@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
@@ -15,6 +16,18 @@ export class LeadsService {
       isPrimary: index === primaryIndex,
     }));
 
+    const payloadJson: Prisma.JsonObject = {
+      sourceService: payload.sourceService,
+      sourceUrl: payload.sourceUrl ?? null,
+      sourceLabel: payload.sourceLabel ?? null,
+      message: payload.message,
+      contactMethods: payload.contactMethods.map((method) => ({
+        type: method.type,
+        value: method.value,
+      })),
+      metadata: payload.metadata ?? null,
+    };
+
     const lead = await this.prisma.lead.create({
       data: {
         status: 'new',
@@ -27,10 +40,7 @@ export class LeadsService {
         },
         submissions: {
           create: {
-            payloadJson: {
-              ...payload,
-              metadata: payload.metadata || null,
-            },
+            payloadJson,
           },
         },
       },
