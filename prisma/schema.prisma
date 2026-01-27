@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Lead {
+  id            String               @id @default(uuid())
+  status        String               @default("new")
+  sourceService String
+  sourceUrl     String?
+  sourceLabel   String?
+  message       String               @db.Text
+  createdAt     DateTime             @default(now())
+  contactMethods LeadContactMethod[]
+  submissions   LeadSubmission[]
+
+  @@index([createdAt])
+  @@index([sourceService])
+}
+
+model LeadContactMethod {
+  id        String   @id @default(uuid())
+  leadId    String
+  type      String
+  value     String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+}
+
+model LeadSubmission {
+  id         String   @id @default(uuid())
+  leadId     String
+  payloadJson Json
+  createdAt  DateTime @default(now())
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([createdAt])
+}
