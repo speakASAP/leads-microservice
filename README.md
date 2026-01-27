@@ -29,6 +29,8 @@ This service must integrate with all shared services:
 Planned public endpoints (final contract in docs):
 
 - `POST /api/leads/submit` - Create lead and submission
+- `GET /api/leads/:id` - Get lead details
+- `GET /api/leads` - List leads with filters
 - `GET /health` - Health check
 
 ## Configuration
@@ -57,9 +59,22 @@ automatically by nginx-microservice during deployment.
 All operational and audit logs must be sent to the centralized logging
 microservice (`LOGGING_SERVICE_URL`).
 
+## Database Setup
+
+Apply the migration before first run:
+
+```bash
+psql -h db-server-postgres -p 5432 -U dbadmin -d leads -f prisma/migrations/20260127_init/migration.sql
+```
+
 ## Constraints
 
 - Production-only workflow (no dev/prod separation)
 - No automated tests
 - Max 30 items per request
 - Do not increase timeouts; check logs when delays happen
+
+## Tech Stack
+
+- NestJS (TypeScript)
+- Prisma (PostgreSQL)

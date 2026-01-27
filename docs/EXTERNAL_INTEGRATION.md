@@ -29,7 +29,9 @@ Use one of the following, depending on where the caller runs:
 
 ```json
 {
-  "source": "statex.cz/contact",
+  "sourceService": "statex",
+  "sourceUrl": "https://statex.cz/contact",
+  "sourceLabel": "contact-form",
   "message": "I need a prototype and estimate",
   "contactMethods": [
     { "type": "email", "value": "client@example.com" },
@@ -50,7 +52,7 @@ Use one of the following, depending on where the caller runs:
 ```json
 {
   "leadId": "uuid",
-  "status": "received",
+  "status": "new",
   "confirmationSent": true
 }
 ```
@@ -64,8 +66,47 @@ Use one of the following, depending on where the caller runs:
 }
 ```
 
+## Lead Read Endpoints
+
+### Get Lead by ID
+
+`GET /api/leads/:id`
+
+**Response**:
+
+```json
+{
+  "id": "uuid",
+  "status": "new",
+  "sourceService": "statex",
+  "sourceUrl": "https://statex.cz/contact",
+  "sourceLabel": "contact-form",
+  "message": "I need a prototype and estimate",
+  "createdAt": "2026-01-27T10:00:00.000Z",
+  "contactMethods": [
+    { "type": "email", "value": "client@example.com", "isPrimary": true }
+  ]
+}
+```
+
+### List Leads
+
+`GET /api/leads?sourceService=statex&startDate=2026-01-01&endDate=2026-02-01&page=1&limit=30`
+
+**Response**:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "limit": 30,
+  "total": 0
+}
+```
+
 ## Integration Notes
 
 - Always send at least one `contactMethods` entry.
+- `sourceService` is required for reporting and marketing workflows.
 - Use existing shared microservices via env vars, not hardcoded URLs.
 - All failures and retries should be logged through `LOGGING_SERVICE_URL`.
