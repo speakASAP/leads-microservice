@@ -19,7 +19,7 @@ export class LeadsController {
     await this.loggingService.log('info', 'Lead submitted', { leadId: lead.id, sourceService: lead.sourceService });
 
     const confirmationSent = await this.notificationsService.sendLeadConfirmation(
-      lead.contactMethods,
+      payload.contactMethods,
       lead.id,
     );
 
