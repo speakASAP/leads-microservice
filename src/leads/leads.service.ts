@@ -25,7 +25,7 @@ export class LeadsService {
         type: method.type,
         value: method.value,
       })),
-      metadata: payload.metadata ?? null,
+      metadata: payload.metadata ? (payload.metadata as Prisma.JsonValue) : null,
     };
 
     const lead = await this.prisma.lead.create({
