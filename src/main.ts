@@ -13,7 +13,7 @@ async function bootstrap() {
 
   const corsOrigin = process.env.CORS_ORIGIN || '*';
   app.enableCors({ origin: corsOrigin, credentials: true });
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['health'] });
 
   const port = Number(process.env.PORT) || 4400;
   await app.listen(port);
