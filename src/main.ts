@@ -12,7 +12,9 @@ async function bootstrap() {
   }));
 
   const corsOrigin = process.env.CORS_ORIGIN || '*';
-  app.enableCors({ origin: corsOrigin, credentials: true });
+  // Handle comma-separated origins
+  const corsOrigins = corsOrigin.includes(',') ? corsOrigin.split(',').map(o => o.trim()) : corsOrigin;
+  app.enableCors({ origin: corsOrigins, credentials: true });
   app.setGlobalPrefix('api', { exclude: ['health'] });
 
   const port = Number(process.env.PORT) || 4400;
