@@ -61,11 +61,10 @@ microservice (`LOGGING_SERVICE_URL`).
 
 ## Database Setup
 
-Apply the migration before first run:
-
-```bash
-psql -h db-server-postgres -p 5432 -U dbadmin -d leads -f prisma/migrations/20260127_init/migration.sql
-```
+**Before first deploy:** create the `leads` database on the shared PostgreSQL
+server (e.g. `database-server/scripts/create-database.sh` or
+`CREATE DATABASE leads` as admin). The container runs `prisma migrate deploy`
+on startup to apply schema.
 
 ## Constraints
 

@@ -22,8 +22,8 @@ RUN npm run build
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
-# Install OpenSSL for Prisma query engine
-RUN apk add --no-cache openssl1.1-compat || apk add --no-cache openssl
+# Install OpenSSL for Prisma query engine, wget for healthcheck
+RUN apk add --no-cache openssl1.1-compat wget || apk add --no-cache openssl wget
 ENV NODE_ENV=production
 ENV npm_config_update_notifier=false
 ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
@@ -31,5 +31,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package*.json ./
 COPY prisma ./prisma
+COPY scripts/docker-entrypoint.sh /app/scripts/docker-entrypoint.sh
+RUN chmod +x /app/scripts/docker-entrypoint.sh
 EXPOSE ${PORT}
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
