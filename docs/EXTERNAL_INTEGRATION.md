@@ -30,7 +30,7 @@ Use one of the following, depending on where the caller runs:
 ```json
 {
   "sourceService": "statex",
-  "sourceUrl": "https://statex.cz/contact",
+  "sourceUrl": "https://alfares.cz/contact",
   "sourceLabel": "contact-form",
   "message": "I need a prototype and estimate",
   "contactMethods": [
@@ -41,7 +41,7 @@ Use one of the following, depending on where the caller runs:
     { "type": "linkedin", "value": "https://linkedin.com/in/client" }
   ],
   "metadata": {
-    "page": "https://statex.cz/contact",
+    "page": "https://alfares.cz/contact",
     "locale": "en"
   }
 }
@@ -79,7 +79,7 @@ Use one of the following, depending on where the caller runs:
   "id": "uuid",
   "status": "new",
   "sourceService": "statex",
-  "sourceUrl": "https://statex.cz/contact",
+  "sourceUrl": "https://alfares.cz/contact",
   "sourceLabel": "contact-form",
   "message": "I need a prototype and estimate",
   "createdAt": "2026-01-27T10:00:00.000Z",

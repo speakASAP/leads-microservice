@@ -19,4 +19,4 @@ sgiprealestate, statex, marketing-microservice.
 ## SLA
 
 - Port: 4400/4401 (blue/green)
-- Production: <https://leads.statex.cz>
+- Production: <https://leads.alfares.cz>
