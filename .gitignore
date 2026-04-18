@@ -26,3 +26,9 @@ Thumbs.db
 
 node_modules/
 dist/
+
+# Kubernetes / local credentials
+k8s/secret.yaml
+secrets/
+**/client_secret*.json
+**/*.apps.googleusercontent.com.json
