@@ -1,30 +1,31 @@
 # CLAUDE.md (leads-microservice)
 
-Ecosystem defaults: sibling [`../CLAUDE.md`](../CLAUDE.md) and [`../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md`](../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md).
+Ecosystem defaults: [`../CLAUDE.md`](../CLAUDE.md) · [`../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md`](../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md)
 
-Read this repo's `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json` first.
+Read in order: `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
 
 ---
 
 ## leads-microservice
 
-**Purpose**: Lead intake and follow-up without requiring registration. Collects contact form submissions; integrates with CRM and AI analysis.  
-**Ports**: 4400 (blue) · 4401 (green)  
-**Domain**: https://leads.alfares.cz  
-**Stack**: NestJS · PostgreSQL
+**Purpose**: Lead intake without registration. Contact form submissions → CRM + AI analysis.
+**Domain**: https://leads.alfares.cz · **Ports**: 4400 (blue) · 4401 (green)
+**Stack**: NestJS · PostgreSQL · Prisma · Kubernetes (`statex-apps`)
+**Secrets**: Vault `secret/prod/leads-microservice` → K8s ExternalSecret
 
-### Key constraints
-- GDPR: lead data requires explicit consent tracking — always store consent with the lead
-- Never export raw lead data without explicit owner approval
+### Constraints
+- GDPR: always store consent with lead
+- No raw lead data export without owner approval
 - No mass outreach without human review
-- All lead notifications via notifications-microservice
+- All notifications via notifications-microservice
 
 ### Consumers
-sgiprealestate, statex, marketing-microservice.
+statex · marketing-microservice
 
 ### Quick ops
 ```bash
-curl https://leads.alfares.cz/health
-docker compose logs -f
-./scripts/deploy.sh
+curl https://leads.alfares.cz/health   # health check
+./scripts/deploy.sh                    # deploy
+docker compose logs -f                 # legacy logs
+kubectl logs -n statex-apps -l app=leads-microservice -f  # k8s logs
 ```

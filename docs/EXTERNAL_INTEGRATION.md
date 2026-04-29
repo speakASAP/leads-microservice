@@ -5,10 +5,10 @@ leads-microservice to submit new lead requests.
 
 ## Base URLs
 
-Use one of the following, depending on where the caller runs:
-
-- **Docker network (recommended)**: `http://leads-microservice:${PORT}`
-- **Production HTTPS**: `https://<domain>` (from `DOMAIN` in `.env`)
+| Caller location | URL |
+|----------------|-----|
+| K8s in-cluster (recommended) | `http://leads-microservice.statex-apps.svc.cluster.local:4400` |
+| Production public | `https://leads.alfares.cz` |
 
 ## Rate Limits
 

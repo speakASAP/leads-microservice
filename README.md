@@ -1,79 +1,25 @@
-# Leads Microservice
+# leads-microservice
 
-Leads intake and follow-up service for collecting contact submissions without
-forcing account registration. Designed for production-only deployments and
-integrated with all shared Statex microservices.
+Lead intake without registration. Collects contact submissions; integrates with CRM and AI.
 
-## Responsibilities
+- **Domain**: https://leads.alfares.cz
+- **Ports**: 4400 (blue) · 4401 (green)
+- **Stack**: NestJS · PostgreSQL · Prisma
+- **Namespace**: `statex-apps`
 
-- Accept lead submissions with multiple contact methods
-- Store lead data and submission history
-- Send confirmation messages via notifications microservice
-- Provide status updates and offer links later in the flow
-- Log all lead lifecycle events to centralized logging
+## Docs
 
-## Shared Microservices (Required)
+| File | Purpose |
+|------|---------|
+| `BUSINESS.md` | Goals, constraints, SLA |
+| `SYSTEM.md` | Architecture, endpoints, integrations |
+| `CLAUDE.md` | Agent entry point, quick ops |
+| `docs/EXTERNAL_INTEGRATION.md` | How consumers call this service |
+| `k8s/` | Kubernetes manifests |
 
-This service must integrate with all shared services:
-
-- Auth microservice (`AUTH_SERVICE_URL`)
-- Database server (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)
-- Logging microservice (`LOGGING_SERVICE_URL`)
-- Notifications microservice (`NOTIFICATION_SERVICE_URL`)
-- Payments microservice (`PAYMENT_SERVICE_URL`)
-- AI microservice (`AI_SERVICE_URL`)
-- Nginx microservice (blue/green deployment and routing)
-
-## API Overview
-
-Planned public endpoints (final contract in docs):
-
-- `POST /api/leads/submit` - Create lead and submission
-- `GET /api/leads/:id` - Get lead details
-- `GET /api/leads` - List leads with filters
-- `GET /health` - Health check
-
-## Configuration
-
-All configuration is provided via `.env`. Do not hardcode values.
-See `.env.example` for all required keys.
-
-## Deployment (Blue/Green)
-
-Use:
+## Quick start
 
 ```bash
+curl https://leads.alfares.cz/health
 ./scripts/deploy.sh
 ```
-
-This calls `nginx-microservice/scripts/blue-green/deploy-smart.sh` and registers
-API routes via `nginx-api-routes.conf`.
-
-## Nginx API Routes
-
-Custom API routes are registered through `nginx-api-routes.conf` and picked up
-automatically by nginx-microservice during deployment.
-
-## Logging
-
-All operational and audit logs must be sent to the centralized logging
-microservice (`LOGGING_SERVICE_URL`).
-
-## Database Setup
-
-**Before first deploy:** create the `leads` database on the shared PostgreSQL
-server (e.g. `database-server/scripts/create-database.sh` or
-`CREATE DATABASE leads` as admin). The container runs `prisma migrate deploy`
-on startup to apply schema.
-
-## Constraints
-
-- Production-only workflow (no dev/prod separation)
-- No automated tests
-- Max 30 items per request
-- Do not increase timeouts; check logs when delays happen
-
-## Tech Stack
-
-- NestJS (TypeScript)
-- Prisma (PostgreSQL)
