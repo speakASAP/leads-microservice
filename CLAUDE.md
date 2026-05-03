@@ -1,8 +1,6 @@
 # CLAUDE.md (leads-microservice)
 
-Ecosystem defaults: [`../CLAUDE.md`](../CLAUDE.md) · [`../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md`](../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md)
-
-Read in order: `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
+→ Ecosystem: [../shared/CLAUDE.md](../shared/CLAUDE.md) | Reading order: `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
 
 ---
 
@@ -22,10 +20,4 @@ Read in order: `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → 
 ### Consumers
 statex · marketing-microservice
 
-### Quick ops
-```bash
-curl https://leads.alfares.cz/health   # health check
-./scripts/deploy.sh                    # deploy
-docker compose logs -f                 # legacy logs
-kubectl logs -n statex-apps -l app=leads-microservice -f  # k8s logs
-```
+**Ops**: `curl https://leads.alfares.cz/health` · `kubectl logs -n statex-apps -l app=leads-microservice -f` · `./scripts/deploy.sh`
