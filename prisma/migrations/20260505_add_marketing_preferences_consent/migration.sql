@@ -1,0 +1,8 @@
+ALTER TABLE "Lead"
+ADD COLUMN "preferredChannel" TEXT,
+ADD COLUMN "fallbackChannels" JSONB,
+ADD COLUMN "marketingConsent" BOOLEAN,
+ADD COLUMN "consentSource" TEXT,
+ADD COLUMN "consentCapturedAt" TIMESTAMP(3),
+ADD COLUMN "unsubscribedAt" TIMESTAMP(3),
+ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

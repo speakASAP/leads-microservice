@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
+import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 
 @Injectable()
 export class LeadsService {
@@ -26,6 +27,11 @@ export class LeadsService {
         value: method.value,
       })),
       metadata: payload.metadata ? (payload.metadata as Prisma.JsonValue) : null,
+      preferredChannel: payload.preferredChannel ?? null,
+      fallbackChannels: payload.fallbackChannels ?? null,
+      marketingConsent: payload.marketingConsent ?? null,
+      consentSource: payload.consentSource ?? null,
+      consentCapturedAt: payload.consentCapturedAt ?? null,
     };
 
     const lead = await this.prisma.lead.create({
@@ -35,6 +41,11 @@ export class LeadsService {
         sourceUrl: payload.sourceUrl,
         sourceLabel: payload.sourceLabel,
         message: payload.message,
+        preferredChannel: payload.preferredChannel ?? null,
+        fallbackChannels: (payload.fallbackChannels ?? null) as Prisma.InputJsonValue | null,
+        marketingConsent: payload.marketingConsent ?? null,
+        consentSource: payload.consentSource ?? null,
+        consentCapturedAt: payload.consentCapturedAt ? new Date(payload.consentCapturedAt) : null,
         contactMethods: {
           create: contactMethods,
         },
@@ -107,5 +118,89 @@ export class LeadsService {
       limit,
       total,
     };
+  }
+
+  async getLeadPreferences(leadId: string) {
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        preferredChannel: true,
+        fallbackChannels: true,
+        marketingConsent: true,
+        consentSource: true,
+        consentCapturedAt: true,
+        unsubscribedAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    return lead;
+  }
+
+  async updateLeadPreferences(leadId: string, payload: UpdateLeadPreferencesDto) {
+    const existing = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { id: true } });
+    if (!existing) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    const data: Prisma.LeadUpdateInput = {};
+    if (Object.prototype.hasOwnProperty.call(payload, 'preferredChannel')) {
+      data.preferredChannel = payload.preferredChannel;
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'fallbackChannels')) {
+      data.fallbackChannels = (payload.fallbackChannels ?? null) as Prisma.InputJsonValue | null;
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'marketingConsent')) {
+      data.marketingConsent = payload.marketingConsent;
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'consentSource')) {
+      data.consentSource = payload.consentSource;
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'consentCapturedAt')) {
+      data.consentCapturedAt = payload.consentCapturedAt ? new Date(payload.consentCapturedAt) : null;
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'unsubscribedAt')) {
+      data.unsubscribedAt = payload.unsubscribedAt ? new Date(payload.unsubscribedAt) : null;
+    }
+
+    return this.prisma.lead.update({
+      where: { id: leadId },
+      data,
+      select: {
+        id: true,
+        preferredChannel: true,
+        fallbackChannels: true,
+        marketingConsent: true,
+        consentSource: true,
+        consentCapturedAt: true,
+        unsubscribedAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async unsubscribeLead(leadId: string) {
+    const existing = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { id: true } });
+    if (!existing) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    return this.prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        marketingConsent: false,
+        unsubscribedAt: new Date(),
+      },
+      select: {
+        id: true,
+        unsubscribedAt: true,
+        updatedAt: true,
+      },
+    });
   }
 }

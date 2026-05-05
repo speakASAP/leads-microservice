@@ -26,6 +26,7 @@ Thumbs.db
 
 node_modules/
 dist/
+.npm-cache/
 
 # Kubernetes / local credentials
 k8s/secret.yaml

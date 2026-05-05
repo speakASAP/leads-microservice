@@ -14,7 +14,14 @@ model Lead {
   sourceUrl     String?
   sourceLabel   String?
   message       String               @db.Text
+  preferredChannel String?
+  fallbackChannels Json?
+  marketingConsent Boolean?
+  consentSource String?
+  consentCapturedAt DateTime?
+  unsubscribedAt DateTime?
   createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
   contactMethods LeadContactMethod[]
   submissions   LeadSubmission[]
 
