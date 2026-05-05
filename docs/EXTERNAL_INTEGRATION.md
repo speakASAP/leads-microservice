@@ -43,7 +43,12 @@ leads-microservice to submit new lead requests.
   "metadata": {
     "page": "https://alfares.cz/contact",
     "locale": "en"
-  }
+  },
+  "preferredChannel": "email",
+  "fallbackChannels": ["whatsapp", "telegram"],
+  "marketingConsent": true,
+  "consentSource": "contact-form-v2",
+  "consentCapturedAt": "2026-05-05T07:30:00.000Z"
 }
 ```
 
@@ -110,3 +115,36 @@ leads-microservice to submit new lead requests.
 - `sourceService` is required for reporting and marketing workflows.
 - Use existing shared microservices via env vars, not hardcoded URLs.
 - All failures and retries should be logged through `LOGGING_SERVICE_URL`.
+
+## Internal Preferences API (Trusted Services)
+
+Used by trusted internal services like `marketing-microservice`.
+
+- Required headers:
+  - `x-internal-service-token: <INTERNAL_SERVICE_TOKEN>`
+  - `x-service-name: <trusted-service-name>`
+
+### Get Lead Preferences
+
+`GET /api/leads/internal/:id/preferences`
+
+### Update Lead Preferences
+
+`PATCH /api/leads/internal/:id/preferences`
+
+Body (all fields optional, nullable):
+
+```json
+{
+  "preferredChannel": "telegram",
+  "fallbackChannels": ["email"],
+  "marketingConsent": true,
+  "consentSource": "manual-support",
+  "consentCapturedAt": "2026-05-05T07:30:00.000Z",
+  "unsubscribedAt": null
+}
+```
+
+### Unsubscribe Lead
+
+`POST /api/leads/internal/:id/unsubscribe`

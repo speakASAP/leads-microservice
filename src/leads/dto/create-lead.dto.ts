@@ -1,4 +1,14 @@
-import { ArrayMaxSize, IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsISO8601,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class LeadContactMethodDto {
@@ -36,4 +46,26 @@ export class CreateLeadDto {
 
   @IsOptional()
   metadata?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsIn(['email', 'telegram', 'whatsapp', 'none'])
+  preferredChannel?: 'email' | 'telegram' | 'whatsapp' | 'none';
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  fallbackChannels?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  marketingConsent?: boolean;
+
+  @IsOptional()
+  @IsString()
+  consentSource?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  consentCapturedAt?: string;
 }

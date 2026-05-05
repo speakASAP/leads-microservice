@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
+import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 import { LoggingService } from '../logging/logging.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { InternalServiceGuard } from './guards/internal-service.guard';
 
 @Controller('leads')
 export class LeadsController {
@@ -44,6 +46,45 @@ export class LeadsController {
       sourceService: query.sourceService || null,
       page: result.page,
       limit: result.limit,
+    });
+    return result;
+  }
+
+  @Get('internal/:id/preferences')
+  @UseGuards(InternalServiceGuard)
+  async getLeadPreferences(@Param('id') id: string) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.getLeadPreferences(id);
+    await this.loggingService.log('info', 'Lead preferences retrieved', {
+      leadId: id,
+      timestamp: new Date().toISOString(),
+      duration_ms: Date.now() - startedAt,
+    });
+    return result;
+  }
+
+  @Patch('internal/:id/preferences')
+  @UseGuards(InternalServiceGuard)
+  async updateLeadPreferences(@Param('id') id: string, @Body() payload: UpdateLeadPreferencesDto) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.updateLeadPreferences(id, payload);
+    await this.loggingService.log('info', 'Lead preferences updated', {
+      leadId: id,
+      timestamp: new Date().toISOString(),
+      duration_ms: Date.now() - startedAt,
+    });
+    return result;
+  }
+
+  @Post('internal/:id/unsubscribe')
+  @UseGuards(InternalServiceGuard)
+  async unsubscribeLead(@Param('id') id: string) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.unsubscribeLead(id);
+    await this.loggingService.log('info', 'Lead unsubscribed via internal API', {
+      leadId: id,
+      timestamp: new Date().toISOString(),
+      duration_ms: Date.now() - startedAt,
     });
     return result;
   }
