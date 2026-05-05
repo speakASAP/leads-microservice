@@ -7,7 +7,7 @@
 ## leads-microservice
 
 **Purpose**: Lead intake without registration. Contact form submissions → CRM + AI analysis.
-**Domain**: https://leads.alfares.cz · **Ports**: 4400 (blue) · 4401 (green)
+**Domain**: https://leads.alfares.cz · **Port**: 4400
 **Stack**: NestJS · PostgreSQL · Prisma · Kubernetes (`statex-apps`)
 **Secrets**: Vault `secret/prod/leads-microservice` → K8s ExternalSecret
 

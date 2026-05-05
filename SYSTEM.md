@@ -4,18 +4,17 @@
 
 NestJS · PostgreSQL · Prisma. Deployed to Kubernetes (`statex-apps` namespace).
 
-- Blue/green ports: 4400 (blue) · 4401 (green)
+- Port: 4400
 - Endpoints: `POST /leads`, `GET /leads`, `PATCH /leads/:id`, `GET /health`
 - GDPR consent tracked per lead
 - Max 30 items per request; do not increase timeouts — check logs
 
 ## Deployment
 
-Primary: Kubernetes (`k8s/`). Legacy: Docker Compose (`docker-compose.yml`).
-
-```bash
-./scripts/deploy.sh
-```
+**Platform:** Kubernetes (k3s) · namespace `statex-apps`  
+**Image:** `localhost:5000/leads-microservice:latest`  
+**Deploy:** `./scripts/deploy.sh`  
+**Logs:** `kubectl logs -n statex-apps -l app=leads-microservice -f`
 
 First deploy: create `leads` DB on `database-server`, then `prisma migrate deploy` runs on container start.
 
