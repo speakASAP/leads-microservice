@@ -16,8 +16,10 @@ NC='\033[0m'
 SERVICE_NAME="leads-microservice"
 NAMESPACE="${K8S_NAMESPACE:-statex-apps}"
 REGISTRY="${K8S_REGISTRY:-localhost:5000}"
-IMAGE_TAG="${1:-latest}"
+DEFAULT_TAG="$(cd \"$PROJECT_ROOT\" && git rev-parse --short HEAD 2>/dev/null || echo \"build-$(date -u +%Y%m%d%H%M%S)\")"
+IMAGE_TAG="${1:-$DEFAULT_TAG}"
 IMAGE="${REGISTRY}/${SERVICE_NAME}:${IMAGE_TAG}"
+IMAGE_LATEST="${REGISTRY}/${SERVICE_NAME}:latest"
 K8S_DIR="$PROJECT_ROOT/k8s"
 
 ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
@@ -51,11 +53,12 @@ phase "║  leads-microservice Kubernetes Deployment                 ║"
 phase "╚════════════════════════════════════════════════════════════╝"
 
 phase "[1/7] Build image ${IMAGE}"
-docker build -t "$IMAGE" "$PROJECT_ROOT"
+docker build -t "$IMAGE" -t "$IMAGE_LATEST" "$PROJECT_ROOT"
 log INFO "Image build completed"
 
 phase "[2/7] Push image to local registry"
 docker push "$IMAGE"
+docker push "$IMAGE_LATEST"
 log INFO "Image push completed"
 
 phase "[3/7] Apply ConfigMap and ExternalSecret (Vault-managed)"
