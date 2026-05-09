@@ -49,7 +49,7 @@ if [ ! -d "$K8S_DIR" ]; then
 fi
 
 phase "╔════════════════════════════════════════════════════════════╗"
-phase "║  leads-microservice Kubernetes Deployment                 ║"
+phase "║        leads-microservice Kubernetes Deployment            ║"
 phase "╚════════════════════════════════════════════════════════════╝"
 
 phase "[1/7] Build image ${IMAGE}"
@@ -112,7 +112,8 @@ if [ "${ES_READY}" != "True" ]; then
 fi
 log INFO "ExternalSecret is Ready"
 
-echo -e "${GREEN}[$(ts)] ✅ Deployment successful${NC}"
-echo -e "${GREEN}[$(ts)] Service: ${SERVICE_NAME}${NC}"
+echo -e "${GREEN}==========================================================${NC}"
+echo -e "${GREEN}  ✅ Leads Microservice Deployment successful${NC}"
+echo -e "${GREEN}==========================================================${NC}"
 echo -e "${GREEN}[$(ts)] Namespace: ${NAMESPACE}${NC}"
 echo -e "${GREEN}[$(ts)] Image: ${IMAGE}${NC}"
