@@ -23,6 +23,12 @@ export class LeadsController {
     const confirmationSent = await this.notificationsService.sendLeadConfirmation(
       payload.contactMethods,
       lead.id,
+      {
+        name: typeof payload.metadata?.name === 'string' ? payload.metadata.name : undefined,
+        message: payload.message,
+        sourceService: payload.sourceService,
+        sourceUrl: payload.sourceUrl,
+      },
     );
 
     return {
