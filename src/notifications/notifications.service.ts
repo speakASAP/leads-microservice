@@ -13,6 +13,7 @@ type LeadContext = {
   message: string;
   sourceService: string;
   sourceUrl?: string;
+  confirmationToken?: string;
 };
 
 const BG_URL = 'https://speakasap.com/static/big_brother/assets/bg.png';
@@ -94,6 +95,10 @@ function buildHtml(ctx: LeadContext): string {
   const domain = ctx.sourceUrl
     ? new URL(ctx.sourceUrl).hostname.replace(/^www\./, '')
     : ctx.sourceService;
+  const baseUrl = ctx.sourceUrl ? `https://${domain}` : `https://${ctx.sourceService}`;
+  const confirmUrl = ctx.confirmationToken
+    ? `${baseUrl}/confirm?token=${ctx.confirmationToken}`
+    : null;
 
   return `<!DOCTYPE html>
 <html lang="cs">
@@ -142,9 +147,31 @@ function buildHtml(ctx: LeadContext): string {
               </tr>
             </table>
 
+            ${confirmUrl ? `
+            <!-- Confirmation button -->
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;">
+              <tr>
+                <td align="center">
+                  <a href="${confirmUrl}"
+                     style="display:inline-block;background-color:#1E88E5;color:#fff;font-family:Arial,sans-serif;
+                            font-size:16px;font-weight:bold;text-decoration:none;padding:14px 32px;
+                            border-radius:6px;letter-spacing:0.3px;">
+                    Potvrdit registraci
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding-top:10px;font-family:Arial,sans-serif;font-size:12px;color:#888;">
+                  Nebo zkopírujte tento odkaz do prohlížeče:<br>
+                  <a href="${confirmUrl}" style="color:#1E88E5;word-break:break-all;">${confirmUrl}</a>
+                </td>
+              </tr>
+            </table>
+            ` : `
             <p style="margin:0 0 24px;">
               Pokud máte další otázky, neváhejte nás kontaktovat.
             </p>
+            `}
 
             <p style="margin:0;">
               S pozdravem,<br>

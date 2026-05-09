@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
@@ -34,9 +35,12 @@ export class LeadsService {
       consentCapturedAt: payload.consentCapturedAt ?? null,
     };
 
+    const confirmationToken = randomBytes(32).toString('hex');
+
     const lead = await this.prisma.lead.create({
       data: {
         status: 'new',
+        confirmationToken,
         sourceService: payload.sourceService,
         sourceUrl: payload.sourceUrl,
         sourceLabel: payload.sourceLabel,
@@ -182,6 +186,26 @@ export class LeadsService {
         updatedAt: true,
       },
     });
+  }
+
+  async confirmLead(token: string) {
+    const lead = await this.prisma.lead.findUnique({
+      where: { confirmationToken: token },
+      select: { id: true, confirmedAt: true, sourceService: true, sourceUrl: true },
+    });
+
+    if (!lead) {
+      throw new NotFoundException('Invalid confirmation token');
+    }
+
+    if (!lead.confirmedAt) {
+      await this.prisma.lead.update({
+        where: { id: lead.id },
+        data: { confirmedAt: new Date(), status: 'confirmed' },
+      });
+    }
+
+    return { id: lead.id, sourceService: lead.sourceService, sourceUrl: lead.sourceUrl };
   }
 
   async unsubscribeLead(leadId: string) {

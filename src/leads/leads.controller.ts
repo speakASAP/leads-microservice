@@ -32,6 +32,7 @@ export class LeadsController {
         message: payload.message,
         sourceService: payload.sourceService,
         sourceUrl: payload.sourceUrl,
+        confirmationToken: lead.confirmationToken ?? undefined,
       },
     );
 
@@ -42,6 +43,11 @@ export class LeadsController {
       status: lead.status,
       confirmationSent,
     };
+  }
+
+  @Get('confirm/:token')
+  async confirmLead(@Param('token') token: string) {
+    return this.leadsService.confirmLead(token);
   }
 
   @Get(':id')
