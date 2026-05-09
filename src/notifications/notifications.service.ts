@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import { AxiosError } from 'axios';
 
 type ContactMethod = {
   type: string;
@@ -113,10 +114,6 @@ function buildHtml(ctx: LeadContext): string {
             </p>
 
             <p style="margin:0;">
-              <a href="https://speakasap.com/">
-                <img src="https://speakasap.com/static/img/logo_big.png" width="140" alt="SpeakASAP logo"
-                     style="display:block;margin-bottom:8px;">
-              </a>
               S pozdravem,<br>
               <strong>Tým ${domain}</strong>
             </p>
@@ -126,22 +123,9 @@ function buildHtml(ctx: LeadContext): string {
         <!-- Footer -->
         <tr>
           <td style="background-color:#1E88E5;padding:16px 24px;border-radius:0 0 8px 8px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="font-family:Arial,sans-serif;font-size:12px;color:#fff;line-height:1.6;">
-                  Email: <a href="mailto:contact@speakasap.com" style="color:#fff;text-decoration:none;">contact@speakasap.com</a>
-                </td>
-                <td align="right">
-                  <a href="https://play.google.com/store/apps/dev?id=5886045250381103493" target="_blank">
-                    <img src="https://speakasap.com/static/img/app_google_play.png" alt="Google Play" width="80">
-                  </a>
-                  &nbsp;
-                  <a href="https://apps.apple.com/us/developer/alfares-s-r-o/id977918347" target="_blank">
-                    <img src="https://speakasap.com/static/img/app_store.png" alt="App Store" width="80">
-                  </a>
-                </td>
-              </tr>
-            </table>
+            <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#fff;line-height:1.6;">
+              <a href="https://${domain}" style="color:#fff;text-decoration:none;">${domain}</a>
+            </p>
           </td>
         </tr>
 
@@ -155,18 +139,37 @@ function buildHtml(ctx: LeadContext): string {
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(private readonly httpService: HttpService) {}
 
   private async sendViaNotifications(
     payload: Record<string, unknown>,
     baseUrl: string,
+    label: string,
   ): Promise<void> {
     const serviceToken = process.env.NOTIFICATIONS_SERVICE_TOKEN;
+    const hasToken = !!serviceToken;
+    const url = `${baseUrl}/notifications/send`;
+
+    this.logger.log(`[${label}] POST ${url} channel=${payload['channel']} recipient=${payload['recipient']} hasToken=${hasToken}`);
+
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (serviceToken) {
       headers['Authorization'] = `Bearer ${serviceToken}`;
     }
-    await lastValueFrom(this.httpService.post(`${baseUrl}/notifications/send`, payload, { headers }));
+
+    try {
+      const resp = await lastValueFrom(this.httpService.post(url, payload, { headers }));
+      this.logger.log(`[${label}] SUCCESS status=${resp.status} data=${JSON.stringify(resp.data)}`);
+    } catch (err) {
+      const axiosErr = err as AxiosError;
+      const status = axiosErr.response?.status;
+      const body = JSON.stringify(axiosErr.response?.data);
+      const msg = axiosErr.message;
+      this.logger.error(`[${label}] FAILED status=${status} message=${msg} body=${body}`);
+      throw err;
+    }
   }
 
   async sendLeadConfirmation(
@@ -174,17 +177,39 @@ export class NotificationsService {
     ctx: LeadContext,
   ): Promise<boolean> {
     const baseUrl = process.env.NOTIFICATION_SERVICE_URL;
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    this.logger.log(
+      `sendLeadConfirmation START` +
+      ` baseUrl=${baseUrl}` +
+      ` adminEmail=${adminEmail}` +
+      ` contactMethods=${JSON.stringify(contactMethods)}` +
+      ` sourceService=${ctx.sourceService}` +
+      ` sourceUrl=${ctx.sourceUrl}` +
+      ` name=${ctx.name}` +
+      ` messageLen=${ctx.message?.length}`
+    );
+
     if (!baseUrl) {
+      this.logger.error('sendLeadConfirmation ABORT: NOTIFICATION_SERVICE_URL is not set');
       return false;
     }
 
-    const domain = ctx.sourceUrl
-      ? (() => { try { return new URL(ctx.sourceUrl!).hostname.replace(/^www\./, ''); } catch { return ctx.sourceService; } })()
-      : ctx.sourceService;
+    let domain: string;
+    try {
+      domain = ctx.sourceUrl
+        ? new URL(ctx.sourceUrl).hostname.replace(/^www\./, '')
+        : ctx.sourceService;
+    } catch (e) {
+      domain = ctx.sourceService;
+      this.logger.warn(`sendLeadConfirmation: failed to parse sourceUrl="${ctx.sourceUrl}", using sourceService as domain`);
+    }
 
-    // Admin notification — always sent regardless of submitter contact type
-    const adminEmail = process.env.ADMIN_EMAIL;
+    this.logger.log(`sendLeadConfirmation domain=${domain}`);
+
+    // Admin notification
     if (adminEmail) {
+      this.logger.log(`sendLeadConfirmation: sending ADMIN notification to ${adminEmail}`);
       try {
         await this.sendViaNotifications({
           channel: 'email',
@@ -194,16 +219,19 @@ export class NotificationsService {
           message: buildAdminHtml(ctx, contactMethods),
           contentType: 'text/html',
           service: ctx.sourceService,
-          fromEmail: `contact@${domain}`,
           fromName: domain,
-        }, baseUrl);
-      } catch {
-        // admin notification failure is non-fatal
+        }, baseUrl, 'ADMIN');
+        this.logger.log('sendLeadConfirmation: ADMIN notification sent OK');
+      } catch (e) {
+        this.logger.error(`sendLeadConfirmation: ADMIN notification failed (non-fatal): ${(e as Error).message}`);
       }
+    } else {
+      this.logger.warn('sendLeadConfirmation: ADMIN_EMAIL not set, skipping admin notification');
     }
 
-    // Confirmation to submitter
+    // Submitter confirmation
     if (contactMethods.length === 0) {
+      this.logger.warn('sendLeadConfirmation: no contactMethods, skipping submitter confirmation');
       return false;
     }
 
@@ -215,18 +243,15 @@ export class NotificationsService {
 
     const selected = contactMethods.find((method) => channelMap[method.type]);
     if (!selected) {
+      this.logger.warn(`sendLeadConfirmation: no supported channel in contactMethods=${JSON.stringify(contactMethods)}`);
       return false;
     }
 
+    this.logger.log(`sendLeadConfirmation: sending SUBMITTER confirmation channel=${selected.type} recipient=${selected.value}`);
+
     const isEmail = selected.type === 'email';
     const html = isEmail ? buildHtml(ctx) : undefined;
-
-    let fromEmail: string | undefined;
-    let fromName: string | undefined;
-    if (isEmail) {
-      fromEmail = `contact@${domain}`;
-      fromName = domain;
-    }
+    const fromName = isEmail ? domain : undefined;
 
     try {
       await this.sendViaNotifications({
@@ -237,11 +262,12 @@ export class NotificationsService {
         message: isEmail ? html : `Vaše zpráva byla přijata. Brzy se vám ozveme. (${ctx.sourceService})`,
         contentType: isEmail ? 'text/html' : undefined,
         service: ctx.sourceService,
-        fromEmail,
         fromName,
-      }, baseUrl);
+      }, baseUrl, 'SUBMITTER');
+      this.logger.log('sendLeadConfirmation: SUBMITTER confirmation sent OK');
       return true;
-    } catch {
+    } catch (e) {
+      this.logger.error(`sendLeadConfirmation: SUBMITTER confirmation failed: ${(e as Error).message}`);
       return false;
     }
   }

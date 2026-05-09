@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
@@ -9,6 +9,8 @@ import { InternalServiceGuard } from './guards/internal-service.guard';
 
 @Controller('leads')
 export class LeadsController {
+  private readonly logger = new Logger(LeadsController.name);
+
   constructor(
     private readonly leadsService: LeadsService,
     private readonly loggingService: LoggingService,
@@ -17,7 +19,10 @@ export class LeadsController {
 
   @Post('submit')
   async submitLead(@Body() payload: CreateLeadDto) {
+    this.logger.log(`submitLead START sourceService=${payload.sourceService} contactMethods=${JSON.stringify(payload.contactMethods)} messageLen=${payload.message?.length} metadata=${JSON.stringify(payload.metadata)}`);
+
     const lead = await this.leadsService.createLead(payload);
+    this.logger.log(`submitLead lead created leadId=${lead.id}`);
     await this.loggingService.log('info', 'Lead submitted', { leadId: lead.id, sourceService: lead.sourceService });
 
     const confirmationSent = await this.notificationsService.sendLeadConfirmation(
@@ -29,6 +34,8 @@ export class LeadsController {
         sourceUrl: payload.sourceUrl,
       },
     );
+
+    this.logger.log(`submitLead DONE leadId=${lead.id} confirmationSent=${confirmationSent}`);
 
     return {
       leadId: lead.id,
