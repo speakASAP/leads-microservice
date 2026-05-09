@@ -37,8 +37,14 @@ export class NotificationsService {
       message: `Your request was received. Lead ID: ${leadId}`,
     };
 
+    const serviceToken = process.env.NOTIFICATIONS_SERVICE_TOKEN;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (serviceToken) {
+      headers['Authorization'] = `Bearer ${serviceToken}`;
+    }
+
     try {
-      await lastValueFrom(this.httpService.post(url, payload));
+      await lastValueFrom(this.httpService.post(url, payload, { headers }));
       return true;
     } catch {
       return false;
