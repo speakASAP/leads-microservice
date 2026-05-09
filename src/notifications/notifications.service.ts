@@ -28,29 +28,62 @@ function buildAdminHtml(ctx: LeadContext, contactMethods: ContactMethod[]): stri
 
   return `<!DOCTYPE html>
 <html lang="cs">
-<head><meta charset="UTF-8"><title>Nový zájem — ${domain}</title></head>
-<body style="margin:0;padding:0;background:#f5f5f5;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
-  <tr><td align="center" style="padding:20px 0;">
-    <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;border-radius:8px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.15);">
-      <tr><td style="background-color:#1E88E5;padding:14px 24px;">
-        <span style="color:#fff;font-size:18px;font-family:Arial,sans-serif;">Nový zájem — ${domain}</span>
-      </td></tr>
-      <tr><td style="background:#fff;padding:28px 24px;font-family:Arial,sans-serif;color:#333;">
-        ${ctx.name ? `<p style="margin:0 0 12px;font-size:15px;">Jméno: <strong>${ctx.name}</strong></p>` : ''}
-        <p style="margin:0 0 8px;font-size:14px;color:#555;">Kontakt:</p>
-        <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">${contactRows}</table>
-        <table cellpadding="0" cellspacing="0" border="0" width="100%"
-               style="border-left:4px solid #1E88E5;background:#E3F2FD;border-radius:0 4px 4px 0;margin-bottom:20px;">
-          <tr><td style="padding:14px 16px;font-size:14px;color:#1a1a1a;line-height:1.6;">
-            <strong style="display:block;margin-bottom:6px;color:#1E88E5;">Zpráva:</strong>
-            ${ctx.message.replace(/\n/g, '<br>')}
-          </td></tr>
-        </table>
-        <p style="margin:0;font-size:13px;color:#888;">Zdroj: ${ctx.sourceService}${ctx.sourceUrl ? ` · ${ctx.sourceUrl}` : ''}</p>
-      </td></tr>
-    </table>
-  </td></tr>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nový zájem — ${domain}</title>
+</head>
+<body style="margin:0;padding:0;background:url('${BG_URL}') repeat #BBDEFB;background-color:#BBDEFB;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background:url('${BG_URL}') repeat #BBDEFB;background-color:#BBDEFB;"
+       bgcolor="#BBDEFB" background="${BG_URL}">
+  <tr>
+    <td align="center" style="padding:20px 0;background:url('${BG_URL}') repeat #BBDEFB;background-color:#BBDEFB;"
+        bgcolor="#BBDEFB" background="${BG_URL}">
+
+      <table cellpadding="0" cellspacing="0" border="0"
+             style="width:100%;max-width:640px;border-radius:8px;overflow:hidden;
+                    box-shadow:0 2px 2px rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px rgba(0,0,0,.12);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#1E88E5;padding:14px 24px;border-radius:8px 8px 0 0;">
+            <a href="https://${domain}" style="color:#fff;text-decoration:none;font-size:18px;font-family:Arial,sans-serif;">
+              ${domain}
+            </a>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background-color:#F5F5F5;padding:32px 24px;font-family:Arial,sans-serif;font-size:15px;color:#333;line-height:1.6;">
+            <p style="margin:0 0 4px;font-size:18px;font-weight:bold;color:#1E88E5;">Nový zájem</p>
+            ${ctx.name ? `<p style="margin:0 0 12px;font-size:15px;">Jméno: <strong>${ctx.name}</strong></p>` : ''}
+            <p style="margin:12px 0 6px;font-size:14px;color:#555;">Kontakt:</p>
+            <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">${contactRows}</table>
+            <table cellpadding="0" cellspacing="0" border="0" width="100%"
+                   style="border-left:4px solid #1E88E5;background:#E3F2FD;border-radius:0 4px 4px 0;margin-bottom:20px;">
+              <tr><td style="padding:14px 16px;font-size:14px;color:#1a1a1a;line-height:1.6;">
+                <strong style="display:block;margin-bottom:6px;color:#1E88E5;">Zpráva:</strong>
+                ${ctx.message.replace(/\n/g, '<br>')}
+              </td></tr>
+            </table>
+            <p style="margin:0;font-size:12px;color:#888;">Zdroj: ${ctx.sourceService}${ctx.sourceUrl ? ` · ${ctx.sourceUrl}` : ''}</p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#1E88E5;padding:16px 24px;border-radius:0 0 8px 8px;">
+            <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#fff;line-height:1.6;">
+              <a href="https://${domain}" style="color:#fff;text-decoration:none;">${domain}</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
 </table>
 </body>
 </html>`;
