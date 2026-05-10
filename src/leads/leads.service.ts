@@ -191,7 +191,7 @@ export class LeadsService {
   async confirmLead(token: string) {
     const lead = await this.prisma.lead.findUnique({
       where: { confirmationToken: token },
-      select: { id: true, confirmedAt: true, sourceService: true, sourceUrl: true },
+      select: { id: true, confirmedAt: true, sourceService: true, sourceUrl: true, contactMethods: true },
     });
 
     if (!lead) {
@@ -205,7 +205,14 @@ export class LeadsService {
       });
     }
 
-    return { id: lead.id, sourceService: lead.sourceService, sourceUrl: lead.sourceUrl };
+    const emailContact = lead.contactMethods.find((m) => m.type === 'email');
+
+    return {
+      id: lead.id,
+      sourceService: lead.sourceService,
+      sourceUrl: lead.sourceUrl,
+      email: emailContact?.value ?? null,
+    };
   }
 
   async unsubscribeLead(leadId: string) {
