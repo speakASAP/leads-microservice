@@ -73,7 +73,7 @@ log INFO "Service and Ingress applied"
 
 phase "[5/7] Apply Deployment and update image"
 kubectl apply -f "$K8S_DIR/deployment.yaml" -n "$NAMESPACE"
-kubectl set image deployment/"$SERVICE_NAME" app="$IMAGE" -n "$NAMESPACE"
+kubectl set image deployment/"$SERVICE_NAME" app="$IMAGE_LATEST" -n "$NAMESPACE"
 log INFO "Deployment applied and image set to ${IMAGE}"
 
 phase "[6/7] Wait for rollout"
