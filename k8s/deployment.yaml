@@ -33,11 +33,17 @@ spec:
                 name: leads-microservice-config
             - secretRef:
                 name: leads-microservice-secret
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 4400
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
               port: 4400
-            initialDelaySeconds: 15
             periodSeconds: 30
             failureThreshold: 3
             timeoutSeconds: 5
