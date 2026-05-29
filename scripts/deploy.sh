@@ -13,6 +13,12 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# shellcheck disable=SC1091
+source "$(dirname "$PROJECT_ROOT")/shared/scripts/load-deploy-phase-timing.sh" "$PROJECT_ROOT" 2>/dev/null \
+  || source "$HOME/Documents/Github/shared/scripts/load-deploy-phase-timing.sh" "$PROJECT_ROOT" \
+  || { echo "Error: deploy timing library not found" >&2; exit 1; }
+deploy_timing_init "leads-microservice"
+
 SERVICE_NAME="leads-microservice"
 NAMESPACE="${K8S_NAMESPACE:-statex-apps}"
 REGISTRY="${K8S_REGISTRY:-localhost:5000}"
@@ -52,45 +58,47 @@ phase "╔═══════════════════════�
 phase "║        leads-microservice Kubernetes Deployment            ║"
 phase "╚════════════════════════════════════════════════════════════╝"
 
+deploy_timing_phase_start "Build image"
 phase "[1/7] Build image ${IMAGE}"
 docker build -t "$IMAGE" -t "$IMAGE_LATEST" "$PROJECT_ROOT"
 log INFO "Image build completed"
+deploy_timing_phase_end "Build image"
 
+deploy_timing_phase_start "Push image"
 phase "[2/7] Push image to local registry"
 docker push "$IMAGE"
 docker push "$IMAGE_LATEST"
 log INFO "Image push completed"
+deploy_timing_phase_end "Push image"
 
+deploy_timing_phase_start "Apply ConfigMap and ExternalSecret"
 phase "[3/7] Apply ConfigMap and ExternalSecret (Vault-managed)"
 kubectl apply -f "$K8S_DIR/configmap.yaml" -n "$NAMESPACE"
 kubectl apply -f "$K8S_DIR/external-secret.yaml" -n "$NAMESPACE"
 log INFO "ConfigMap and ExternalSecret applied"
+deploy_timing_phase_end "Apply ConfigMap and ExternalSecret"
 
+deploy_timing_phase_start "Apply Service and Ingress"
 phase "[4/7] Apply Service and Ingress"
 kubectl apply -f "$K8S_DIR/service.yaml" -n "$NAMESPACE"
 kubectl apply -f "$K8S_DIR/ingress.yaml" -n "$NAMESPACE"
 log INFO "Service and Ingress applied"
+deploy_timing_phase_end "Apply Service and Ingress"
 
+deploy_timing_phase_start "Apply Deployment and update image"
 phase "[5/7] Apply Deployment and update image"
 kubectl apply -f "$K8S_DIR/deployment.yaml" -n "$NAMESPACE"
 kubectl set image deployment/"$SERVICE_NAME" app="$IMAGE_LATEST" -n "$NAMESPACE"
 log INFO "Deployment applied and image set to ${IMAGE}"
+deploy_timing_phase_end "Apply Deployment and update image"
 
+deploy_timing_phase_start "Wait for rollout"
 phase "[6/7] Wait for rollout"
-if ! kubectl rollout status deployment/"$SERVICE_NAME" -n "$NAMESPACE" --timeout=120s; then
-  log WARNING "Rollout did not complete in time. Diagnosing terminating pods..."
-  kubectl get pods -n "$NAMESPACE" -l app="$SERVICE_NAME" -o wide || true
-  TERMINATING_PODS=$(kubectl get pods -n "$NAMESPACE" -l app="$SERVICE_NAME" --no-headers 2>/dev/null | awk '$3=="Terminating"{print $1}')
-  if [ -n "$TERMINATING_PODS" ]; then
-    log WARNING "Force deleting stuck terminating pods..."
-    for pod in $TERMINATING_PODS; do
-      kubectl delete pod -n "$NAMESPACE" "$pod" --grace-period=0 --force || true
-    done
-  fi
-  kubectl rollout status deployment/"$SERVICE_NAME" -n "$NAMESPACE" --timeout=120s
-fi
+deploy_timing_k8s_rollout_wait kubectl "$SERVICE_NAME" "$NAMESPACE"
 log INFO "Rollout finished successfully"
+deploy_timing_phase_end "Wait for rollout"
 
+deploy_timing_phase_start "Verify health and ExternalSecret"
 phase "[7/7] Verify health and ExternalSecret readiness"
 POD="$(kubectl get pod -n "$NAMESPACE" -l app="$SERVICE_NAME" -o jsonpath='{.items[0].metadata.name}')"
 if [ -z "$POD" ]; then
@@ -111,9 +119,10 @@ if [ "${ES_READY}" != "True" ]; then
   exit 1
 fi
 log INFO "ExternalSecret is Ready"
+deploy_timing_phase_end "Verify health and ExternalSecret"
 
-echo -e "${GREEN}==========================================================${NC}"
-echo -e "${GREEN}  ✅ Leads Microservice Deployment successful${NC}"
-echo -e "${GREEN}==========================================================${NC}"
+deploy_timing_finish_success "Leads Microservice"
 echo -e "${GREEN}[$(ts)] Namespace: ${NAMESPACE}${NC}"
 echo -e "${GREEN}[$(ts)] Image: ${IMAGE}${NC}"
+DEPLOY_TIMING_FINISHED=1
+exit 0
