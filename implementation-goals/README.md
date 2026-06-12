@@ -23,8 +23,8 @@ This directory stores durable goal records and goal-specific execution artifacts
 | Goal | Status | File |
 | --- | --- | --- |
 | Goal 1 - Intent Preservation System | done | `GOAL-01-intent-preservation-system.md` |
-| Goal 2 - Lead Intake Contract And Consent Hardening | pending | use templates when selected |
-| Goal 3 - Privacy-Safe Retrieval And Internal Access | pending | use templates when selected |
+| Goal 2 - Lead Intake Contract And Consent Hardening | done | `GOAL-02-lead-intake-contract-and-consent-hardening.md` |
+| Goal 3 - Privacy-Safe Retrieval And Internal Access | done | `GOAL-03-privacy-safe-retrieval-and-internal-access.md` |
 | Goal 4 - Notification And Confirmation Reliability | pending | use templates when selected |
 | Goal 5 - AI And CRM Data-Sharing Boundary | pending | use templates when selected |
 | Goal 6 - Operational Smoke And Documentation Ingestion | pending | use templates when selected |

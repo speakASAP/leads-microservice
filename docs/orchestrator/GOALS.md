@@ -46,16 +46,16 @@ Acceptance criteria:
 
 ## Goal 3 - Privacy-Safe Retrieval And Internal Access
 
-Status: pending
+Status: done
 
 Intent: Lead retrieval, list, preference, and unsubscribe APIs must expose only the minimum necessary data through controlled paths.
 
 Chunks:
 
-- [ ] 3.1 Audit `GET /api/leads`, `GET /api/leads/:id`, and internal preference endpoints.
-- [ ] 3.2 Verify or add access controls for non-public lead retrieval.
-- [ ] 3.3 Preserve the max 30 items per list request.
-- [ ] 3.4 Add validation evidence for trusted internal-service headers.
+- [x] 3.1 Audit `GET /api/leads`, `GET /api/leads/:id`, and internal preference endpoints.
+- [x] 3.2 Verify or add access controls for non-public lead retrieval.
+- [x] 3.3 Preserve the max 30 items per list request.
+- [x] 3.4 Add validation evidence for trusted internal-service headers.
 
 Acceptance criteria:
 

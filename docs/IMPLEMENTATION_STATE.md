@@ -21,8 +21,8 @@ downstream:
 
 - Stage: production.
 - Health: documented as `ok` in `STATE.json`.
-- Current owner-selected task: Goal 2 - Lead Intake Contract And Consent Hardening is complete.
-- Runtime source changes in the latest task: none for chunk 2.4; consumer compatibility risks were recorded.
+- Current owner-selected task: Goal 3 - Privacy-Safe Retrieval And Internal Access is complete.
+- Runtime source changes in the latest task: raw lead list/detail retrieval now requires `InternalServiceGuard`; focused controller/service/guard tests were added.
 - Deployment required for latest task: no.
 
 ## Preserved Intent Summary
@@ -31,7 +31,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 2 - Lead Intake Contract And Consent Hardening is complete. Chunks 2.1, 2.2, 2.3, and 2.4 are complete.
+Goal 3 - Privacy-Safe Retrieval And Internal Access is complete. Chunks 3.1, 3.2, 3.3, and 3.4 are complete.
 
 ## Completed Goals
 
@@ -40,10 +40,11 @@ Goal 2 - Lead Intake Contract And Consent Hardening is complete. Chunks 2.1, 2.2
 - Goal 2 chunk 2.2 - Consent Evidence Requirements: complete on 2026-06-12.
 - Goal 2 chunk 2.3 - Focused Validation Coverage: complete on 2026-06-12.
 - Goal 2 chunk 2.4 - Consumer Compatibility Risks: complete on 2026-06-12.
+- Goal 3 - Privacy-Safe Retrieval And Internal Access: complete on 2026-06-12.
 
 ## Next Recommended Goal
 
-Goal 3 - Privacy-Safe Retrieval And Internal Access.
+Goal 4 - Notification And Confirmation Reliability.
 
 ## Known Blockers
 
@@ -52,7 +53,7 @@ Goal 3 - Privacy-Safe Retrieval And Internal Access.
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. Continue Goal 3 unless the owner chooses another task.
+2. Continue Goal 4 unless the owner chooses another task.
 3. Fill the execution plan and context package for the selected chunk.
 4. Run the pre-coding gate before source edits.
 5. Record validation evidence before ending.
