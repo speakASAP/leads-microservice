@@ -1,5 +1,6 @@
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsIn,
@@ -7,6 +8,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -14,7 +16,8 @@ import { Type } from 'class-transformer';
 export class LeadContactMethodDto {
   @IsString()
   @IsNotEmpty()
-  type: string;
+  @IsIn(['email', 'telegram', 'whatsapp'])
+  type: 'email' | 'telegram' | 'whatsapp';
 
   @IsString()
   @IsNotEmpty()
@@ -39,6 +42,7 @@ export class CreateLeadDto {
   message: string;
 
   @IsArray()
+  @ArrayMinSize(1)
   @ArrayMaxSize(30)
   @ValidateNested({ each: true })
   @Type(() => LeadContactMethodDto)
@@ -61,11 +65,12 @@ export class CreateLeadDto {
   @IsBoolean()
   marketingConsent?: boolean;
 
-  @IsOptional()
+  @ValidateIf((payload, value) => payload.marketingConsent === true || value !== undefined)
   @IsString()
+  @IsNotEmpty()
   consentSource?: string;
 
-  @IsOptional()
+  @ValidateIf((payload, value) => payload.marketingConsent === true || value !== undefined)
   @IsISO8601()
   consentCapturedAt?: string;
 }

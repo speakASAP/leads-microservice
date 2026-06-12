@@ -51,6 +51,7 @@ export class LeadsController {
   }
 
   @Get(':id')
+  @UseGuards(InternalServiceGuard)
   async getLead(@Param('id') id: string) {
     const lead = await this.leadsService.getLeadById(id);
     await this.loggingService.log('info', 'Lead retrieved', { leadId: id });
@@ -58,6 +59,7 @@ export class LeadsController {
   }
 
   @Get()
+  @UseGuards(InternalServiceGuard)
   async listLeads(@Query() query: LeadQueryDto) {
     const result = await this.leadsService.listLeads(query);
     await this.loggingService.log('info', 'Lead list retrieved', {
