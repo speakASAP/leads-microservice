@@ -47,4 +47,32 @@ describe('InternalServiceGuard', () => {
       ),
     ).toThrow(UnauthorizedException);
   });
+
+  it('rejects missing internal service token', () => {
+    process.env.INTERNAL_SERVICE_TOKEN = 'secret';
+    process.env.TRUSTED_INTERNAL_SERVICES = 'marketing-microservice';
+    const guard = new InternalServiceGuard();
+
+    expect(() =>
+      guard.canActivate(
+        mockContext({
+          'x-service-name': 'marketing-microservice',
+        }),
+      ),
+    ).toThrow(UnauthorizedException);
+  });
+
+  it('rejects missing service name when trusted services are configured', () => {
+    process.env.INTERNAL_SERVICE_TOKEN = 'secret';
+    process.env.TRUSTED_INTERNAL_SERVICES = 'marketing-microservice';
+    const guard = new InternalServiceGuard();
+
+    expect(() =>
+      guard.canActivate(
+        mockContext({
+          'x-internal-service-token': 'secret',
+        }),
+      ),
+    ).toThrow(UnauthorizedException);
+  });
 });
