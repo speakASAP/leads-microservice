@@ -241,3 +241,45 @@ Gate decision:
 Next unfinished chunks:
 
 - Goal 3 - Privacy-Safe Retrieval And Internal Access.
+
+## 2026-06-12 - Goal 3 Privacy-Safe Retrieval And Internal Access
+
+Current focus:
+
+- Owner-selected goal: Goal 3 - Privacy-Safe Retrieval And Internal Access.
+- Completed chunks: 3.1 audit retrieval/internal endpoints, 3.2 add access controls for non-public raw retrieval, 3.3 preserve max-30 list bound, 3.4 add trusted internal-service header validation evidence.
+- Runtime code changes: raw lead list/detail retrieval now requires `InternalServiceGuard`; focused controller/service/guard tests added.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, required orchestrator docs, `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `src/leads/leads.controller.ts`, `src/leads/leads.service.ts`, `src/leads/dto/lead-query.dto.ts`, `src/leads/guards/internal-service.guard.ts`, `src/leads/guards/internal-service.guard.spec.ts`, and `package.json`.
+- Queried DocsRAG from inside the Leads runtime pod because the plain SSH shell does not expose runtime secrets. Retrieval returned HTTP 200 for the Goal 3 privacy-safe retrieval query. The token value was not printed or persisted.
+- DocsRAG context reinforced the trusted internal-service header contract: `x-internal-service-token` and `x-service-name`, with optional `TRUSTED_INTERNAL_SERVICES` caller-name restrictions.
+
+Implementation evidence:
+
+- Added Goal 3 execution, context, coding prompt, and validation report artifacts under `implementation-goals/`.
+- Ran the pre-coding gate with `pass`.
+- Added `InternalServiceGuard` to `GET /api/leads` and `GET /api/leads/:id`.
+- Added `src/leads/leads.controller.spec.ts` to verify raw retrieval and internal routes are guarded while public intake and confirmation remain public.
+- Added `src/leads/leads.service.spec.ts` to verify list retrieval clamps to 30 items.
+- Expanded `src/leads/guards/internal-service.guard.spec.ts` to verify missing token and missing service name are rejected when trusted services are configured.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts src/leads/guards/internal-service.guard.spec.ts`: passed, 10 tests.
+- `npm run build`: passed.
+- Missing-marker scan: pending final run.
+- Secret-pattern scan: pending final run.
+- Sensitive-data handling: synthetic tests and mocked Prisma behavior only; no secrets, real contact details, production lead rows, confirmation tokens, private URLs, or production payloads captured.
+- Contract impact: raw list/detail retrieval is no longer public and now requires trusted internal-service headers. Public intake and confirmation remain public. Internal preference and unsubscribe routes remain guarded. No schema change.
+- Consent impact: no semantics change; stored consent and preference fields are less exposed because raw retrieval now requires trusted internal-service credentials.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 3 after final documentation scans pass. Deployment readiness not evaluated because deployment was not requested.
+
+Next unfinished chunks:
+
+- Goal 4 - Notification And Confirmation Reliability.
