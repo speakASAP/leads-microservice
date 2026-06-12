@@ -22,7 +22,7 @@ Goal 3 - Privacy-Safe Retrieval And Internal Access.
 
 ## Preserved Intent Evidence
 
-The chunk preserves Leads as the consent-aware non-registered intake and preference service by moving raw lead list/detail retrieval behind trusted internal-service access. Public intake and confirmation remain public. Internal preference and unsubscribe routes remain guarded. No raw lead export, outreach automation, production mutation, schema change, or deployment was performed.
+The chunk preserves Leads as the consent-aware non-registered intake and preference service by verifying raw lead list/detail retrieval is behind trusted internal-service access. Public intake and confirmation remain public. Internal preference and unsubscribe routes remain guarded. No raw lead export, outreach automation, production mutation, schema change, or deployment was performed.
 
 ## Gate Evidence
 
@@ -30,8 +30,8 @@ Pre-coding gate result: `pass`. DocsRAG retrieval returned HTTP 200 from inside 
 
 ## Access-Control Evidence
 
-- Added `InternalServiceGuard` to `GET /api/leads` controller method.
-- Added `InternalServiceGuard` to `GET /api/leads/:id` controller method.
+- Verified `InternalServiceGuard` is applied to `GET /api/leads` controller method.
+- Verified `InternalServiceGuard` is applied to `GET /api/leads/:id` controller method.
 - Confirmed `POST /api/leads/submit` and `GET /api/leads/confirm/:token` remain unguarded public routes.
 - Confirmed internal preference read/update and unsubscribe routes remain guarded.
 
@@ -69,8 +69,8 @@ Validation is deterministic and unit-level only. It does not create leads, send 
 - DocsRAG retrieval through the Leads runtime pod: HTTP 200 for the Goal 3 privacy-safe retrieval query.
 - `npm test -- --runTestsByPath src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts src/leads/guards/internal-service.guard.spec.ts`: passed, 10 tests.
 - `npm run build`: passed.
-- Missing-marker scan: pending.
-- Secret/raw-data scan: pending.
+- `rg "\[(MISSING|UNKNOWN):" docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`: no matches, exit status 1.
+- `rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|confirmation[_-]?token)\s*[:=]\s*[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts src/leads/guards/internal-service.guard.spec.ts`: no matches, exit status 1.
 
 ## Passed Criteria
 

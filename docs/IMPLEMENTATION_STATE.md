@@ -22,7 +22,7 @@ downstream:
 - Stage: production.
 - Health: documented as `ok` in `STATE.json`.
 - Current owner-selected task: Goal 3 - Privacy-Safe Retrieval And Internal Access is complete.
-- Runtime source changes in the latest task: raw lead list/detail retrieval now requires `InternalServiceGuard`; focused controller/service/guard tests were added.
+- Runtime source changes in the latest task: none relative to current `HEAD`; guarded raw retrieval and focused controller/service/guard tests were verified.
 - Deployment required for latest task: no.
 
 ## Preserved Intent Summary

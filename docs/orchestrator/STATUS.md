@@ -248,7 +248,7 @@ Current focus:
 
 - Owner-selected goal: Goal 3 - Privacy-Safe Retrieval And Internal Access.
 - Completed chunks: 3.1 audit retrieval/internal endpoints, 3.2 add access controls for non-public raw retrieval, 3.3 preserve max-30 list bound, 3.4 add trusted internal-service header validation evidence.
-- Runtime code changes: raw lead list/detail retrieval now requires `InternalServiceGuard`; focused controller/service/guard tests added.
+- Runtime code changes: none relative to current `HEAD`; guarded raw retrieval and focused controller/service/guard tests were already present and were validated.
 - Deployment: not requested and not performed.
 
 Source context:
@@ -261,24 +261,24 @@ Implementation evidence:
 
 - Added Goal 3 execution, context, coding prompt, and validation report artifacts under `implementation-goals/`.
 - Ran the pre-coding gate with `pass`.
-- Added `InternalServiceGuard` to `GET /api/leads` and `GET /api/leads/:id`.
-- Added `src/leads/leads.controller.spec.ts` to verify raw retrieval and internal routes are guarded while public intake and confirmation remain public.
-- Added `src/leads/leads.service.spec.ts` to verify list retrieval clamps to 30 items.
-- Expanded `src/leads/guards/internal-service.guard.spec.ts` to verify missing token and missing service name are rejected when trusted services are configured.
+- Verified `InternalServiceGuard` is applied to `GET /api/leads` and `GET /api/leads/:id`.
+- Verified `src/leads/leads.controller.spec.ts` covers guarded raw retrieval and internal routes while public intake and confirmation remain public.
+- Verified `src/leads/leads.service.spec.ts` covers list retrieval clamping to 30 items.
+- Verified `src/leads/guards/internal-service.guard.spec.ts` covers missing token and missing service name rejection when trusted services are configured.
 
 Validation evidence:
 
 - `npm test -- --runTestsByPath src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts src/leads/guards/internal-service.guard.spec.ts`: passed, 10 tests.
 - `npm run build`: passed.
-- Missing-marker scan: pending final run.
-- Secret-pattern scan: pending final run.
+- Missing-marker scan passed with no matches: `rg "\[(MISSING|UNKNOWN):" docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`.
+- Secret-pattern scan passed with no matches across `docs`, `AGENTS.md`, `TASKS.md`, `implementation-goals`, `src/leads/leads.controller.spec.ts`, `src/leads/leads.service.spec.ts`, and `src/leads/guards/internal-service.guard.spec.ts`.
 - Sensitive-data handling: synthetic tests and mocked Prisma behavior only; no secrets, real contact details, production lead rows, confirmation tokens, private URLs, or production payloads captured.
 - Contract impact: raw list/detail retrieval is no longer public and now requires trusted internal-service headers. Public intake and confirmation remain public. Internal preference and unsubscribe routes remain guarded. No schema change.
 - Consent impact: no semantics change; stored consent and preference fields are less exposed because raw retrieval now requires trusted internal-service credentials.
 
 Gate decision:
 
-- Integration readiness accepted for Goal 3 after final documentation scans pass. Deployment readiness not evaluated because deployment was not requested.
+- Integration readiness accepted for Goal 3. Deployment readiness not evaluated because deployment was not requested.
 
 Next unfinished chunks:
 
