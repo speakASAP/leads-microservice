@@ -23,7 +23,7 @@ downstream:
 - Health: `ok` after Goal 10 deployment.
 - Current owner-selected task: Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
 - Runtime source changes in the latest completed runtime task: Auth-backed admin guard now captures workspace/tenant claims, admin APIs pass admin scope into service reads, and Leads applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to non-global admin summary/list/detail reads.
-- Latest implementation change: Goal 20 adds fail-closed workspace-scoped admin isolation for non-global Auth admins while keeping global:superadmin platform-wide.
+- Latest implementation change: Goal 20 now supports Vault-backed Auth role source mapping for non-global admin reads while keeping global:superadmin platform-wide.
 - Deployment: completed after owner approval. Goal 18 migration applied in the restarted pod; health and admin 401 smoke checks passed.
 
 ## Preserved Intent Summary
@@ -65,7 +65,7 @@ Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: add or confirm concrete Auth workspace/tenant claims, then configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with exact claim values and approved sourceService lists.
+Next recommended implementation goal: validate production Auth admin tokens against the Vault-backed LEADS_ADMIN_WORKSPACE_SOURCE_MAP, then select the next Leads runtime slice.
 
 ## Known Blockers
 

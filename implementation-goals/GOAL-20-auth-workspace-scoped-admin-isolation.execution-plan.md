@@ -12,7 +12,7 @@ Upstream traceability:
 - auth-microservice/docs/UNIFIED_AUTH_CONTRACT.md
 - auth-microservice/docs/CONSUMER_JWT_VALIDATION_STANDARD.md
 
-Pre-coding gate: pass with selected mapping decision. Auth currently documents user id, email, type, roles, and token validation. It does not define a workspace database model or guaranteed workspace claim. Leads therefore implements a fail-closed, future-compatible extraction of activeWorkspaceId/workspaceId/activeTenantId/tenantId when Auth returns them, and constrains non-global admin reads through LEADS_ADMIN_WORKSPACE_SOURCE_MAP.
+Pre-coding gate: pass with selected mapping decision. Auth documents user id, email, type, roles, and token validation. It does not define a workspace database model or guaranteed workspace claim. Leads therefore supports optional workspace/tenant claims and existing Auth app role strings as scope keys, then constrains non-global admin reads through Vault-backed LEADS_ADMIN_WORKSPACE_SOURCE_MAP.
 
 Invariant review:
 
@@ -29,7 +29,7 @@ Invariant review:
 
 Sensitive-data classification: Auth bearer tokens, raw contact values, raw messages, confirmation tokens, private source paths/query values, raw consent source values, production lead rows, and secrets remain sensitive and must not be logged or recorded.
 
-Contract impact: admin APIs now require workspace scope for non-global admins. global:superadmin remains unscoped. Workspace-to-sourceService mapping is configured by LEADS_ADMIN_WORKSPACE_SOURCE_MAP.
+Contract impact: admin APIs now require a configured workspace, tenant, or Auth role scope for non-global admins. global:superadmin remains unscoped. Scope-to-sourceService mapping is configured by Vault-backed LEADS_ADMIN_WORKSPACE_SOURCE_MAP.
 
 Validation commands:
 
