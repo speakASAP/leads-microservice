@@ -333,6 +333,42 @@ export class LeadsService {
     };
   }
 
+  async getLeadLifecycleEvents(leadId: string) {
+    const lead = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { id: true } });
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    const events = await this.prisma.leadLifecycleEvent.findMany({
+      where: { leadId },
+      orderBy: [{ occurredAt: 'asc' }, { recordedAt: 'asc' }],
+      select: {
+        eventId: true,
+        eventType: true,
+        eventVersion: true,
+        occurredAt: true,
+        producer: true,
+        leadId: true,
+        correlationId: true,
+        idempotencyKey: true,
+        dataClass: true,
+        payload: true,
+        consumerRoutes: true,
+        recordedAt: true,
+      },
+    });
+
+    return {
+      leadId,
+      contractVersion: '2026-06-13.lifecycle.v1',
+      events: events.map((event) => ({
+        ...event,
+        occurredAt: event.occurredAt.toISOString(),
+        recordedAt: event.recordedAt.toISOString(),
+      })),
+    };
+  }
+
   async getLeadPreferences(leadId: string) {
     const lead = await this.prisma.lead.findUnique({
       where: { id: leadId },

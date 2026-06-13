@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { LoggingService } from '../../logging/logging.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { LifecycleEventEnvelope } from './lifecycle-events';
 
 export type LeadLifecycleConsumer =
@@ -30,13 +32,18 @@ export function consumerRoutesForLifecycleEvent(eventType: string): LeadLifecycl
 
 @Injectable()
 export class LeadLifecycleEventRouterService {
-  constructor(private readonly loggingService: LoggingService) {}
+  constructor(
+    private readonly loggingService: LoggingService,
+    @Optional() private readonly prisma?: PrismaService,
+  ) {}
 
   async route<TEventType extends string, TPayload>(
     lifecycleEvent: LifecycleEventEnvelope<TEventType, TPayload>,
   ): Promise<LifecycleRoutingResult> {
     const consumerRoutes = consumerRoutesForLifecycleEvent(lifecycleEvent.eventType);
     const recordedAt = new Date().toISOString();
+
+    await this.persist(lifecycleEvent, consumerRoutes);
 
     await this.loggingService.log('info', 'Lead lifecycle event routed', {
       lifecycleEvent,
@@ -57,5 +64,44 @@ export class LeadLifecycleEventRouterService {
       consumerRoutes,
       recordedAt,
     };
+  }
+
+  private async persist<TEventType extends string, TPayload>(
+    lifecycleEvent: LifecycleEventEnvelope<TEventType, TPayload>,
+    consumerRoutes: LeadLifecycleConsumer[],
+  ) {
+    if (!this.prisma) {
+      return;
+    }
+
+    const data = {
+      leadId: lifecycleEvent.leadId,
+      eventId: lifecycleEvent.eventId,
+      eventType: lifecycleEvent.eventType,
+      eventVersion: lifecycleEvent.eventVersion,
+      occurredAt: new Date(lifecycleEvent.occurredAt),
+      producer: lifecycleEvent.producer,
+      correlationId: lifecycleEvent.correlationId ?? null,
+      idempotencyKey: lifecycleEvent.idempotencyKey ?? null,
+      dataClass: lifecycleEvent.dataClass,
+      payload: lifecycleEvent.payload as Prisma.InputJsonValue,
+      consumerRoutes: consumerRoutes as Prisma.InputJsonValue,
+    };
+
+    if (lifecycleEvent.idempotencyKey) {
+      const { eventId: _eventId, idempotencyKey: _idempotencyKey, leadId: _leadId, ...updateData } = data;
+      await this.prisma.leadLifecycleEvent.upsert({
+        where: { idempotencyKey: lifecycleEvent.idempotencyKey },
+        create: data,
+        update: updateData,
+      });
+      return;
+    }
+
+    await this.prisma.leadLifecycleEvent.upsert({
+      where: { eventId: lifecycleEvent.eventId },
+      create: data,
+      update: data,
+    });
   }
 }

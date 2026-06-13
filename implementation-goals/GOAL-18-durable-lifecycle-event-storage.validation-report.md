@@ -2,7 +2,7 @@
 
 ## Artifact Validated
 
-Goal 18 - Durable Lifecycle Event Storage, chunk 18.1 selection and execution artifacts.
+Goal 18 - Durable Lifecycle Event Storage, chunks 18.1 through 18.6.
 
 ## Preserved Intent Evidence
 
@@ -10,7 +10,9 @@ Durable lifecycle event storage was selected because it strengthens Leads-owned 
 
 ## Gate Evidence
 
-Pre-coding gate result for chunk 18.1: pass. Selection and artifacts are complete; runtime coding has not started. Future source work must re-run the gate before schema or code edits.
+Pre-coding gate result for chunk 18.1: pass. Selection and artifacts are complete.
+
+Pre-coding gate result for chunks 18.2-18.5: pass. Current git status contained the existing Goal 18 chunk 18.1 documentation and continuation-state changes. DocsRAG retrieval returned HTTP 200 from the in-cluster Leads pod. Source/schema edits stayed scoped to durable minimized lifecycle event storage, idempotent router persistence, guarded one-lead retrieval, and focused tests.
 
 ## Invariant Evidence
 
@@ -31,15 +33,15 @@ No secrets, contact details, raw production lead rows, confirmation tokens, priv
 
 ## Consent Evidence
 
-No consent, confirmation, preference, or unsubscribe runtime behavior changed. Future durable storage must preserve minimized consent evidence presence/state without reinterpreting consent.
+No consent, confirmation, preference, or unsubscribe semantics changed. Durable storage persists only minimized lifecycle evidence already produced by the existing lifecycle builders.
 
 ## Contract Evidence
 
-Chunk 18.1 is documentation/selection only. Future chunks will include schema and guarded retrieval contract changes with explicit validation. Public API response shapes remain unchanged.
+Goal 18 adds a Prisma LeadLifecycleEvent model/migration, idempotent router persistence, and guarded one-lead lifecycle event retrieval. Public API response shapes remain unchanged.
 
 ## Replay/Determinism Evidence
 
-Future implementation is required to use deterministic idempotency keys from lifecycle event envelopes to avoid duplicate durable records.
+Router persistence uses deterministic lifecycle idempotency keys where present. Duplicate retries upsert by idempotency key and do not rewrite stored event IDs.
 
 ## Commands Run
 
@@ -47,7 +49,15 @@ Future implementation is required to use deterministic idempotency keys from lif
 - `find docs/orchestrator implementation-goals -maxdepth 2 -type f -name '*.md' -print`: passed; 105 markdown files listed.
 - `rg '\[(MISSING|UNKNOWN):' docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`: passed with no matches.
 - Secret-pattern scan across `docs`, `AGENTS.md`, `TASKS.md`, and `implementation-goals`: passed with no matches.
-- Runtime tests/build: skipped because chunk 18.1 made no source, schema, or runtime behavior changes.
+- Runtime tests/build for chunk 18.1: skipped because no source, schema, or runtime behavior changed.
+- npm run prisma:generate: passed.
+- npx prisma validate: passed.
+- focused Jest router/service/controller tests: passed, 3 suites, 23 tests.
+- npm test: passed, 10 suites, 57 tests.
+- npm run build: passed.
+- npm run lint: passed.
+- Final missing-marker scan: passed with no matches.
+- Final secret-pattern scan across docs, AGENTS, TASKS, implementation-goals, src/leads, src/prisma, and prisma: passed with no matches.
 
 ## Passed Criteria
 
@@ -56,15 +66,19 @@ Future implementation is required to use deterministic idempotency keys from lif
 - Goal 18 execution, context, coding prompt, and validation report artifacts created.
 - Documentation presence, missing-marker, and secret-pattern scans passed.
 - Runtime implementation scope and non-goals named.
+- Prisma lifecycle event model and SQL migration added.
+- Lifecycle router now persists minimized events before logging route metadata.
+- Guarded one-lead lifecycle event retrieval added.
+- Focused and full validation passed.
 
 ## Failed Or Skipped Criteria
 
-Runtime tests/build skipped for chunk 18.1 because no source, schema, or runtime behavior changed.
+Deployment skipped because owner approval for deployment was not requested in this implementation turn.
 
 ## Decision
 
-pass for chunk 18.1.
+pass for Goal 18.
 
 ## Next Action
 
-Implement Goal 18 chunk 18.2: add the Prisma-backed lifecycle event persistence model and migration using minimized event fields only.
+Next owner-approved action: deploy/apply the Goal 18 migration when requested, or select Auth-backed admin authentication after exact Auth claim and tenant mapping semantics are confirmed.

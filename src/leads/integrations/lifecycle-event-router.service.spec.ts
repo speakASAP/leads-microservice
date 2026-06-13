@@ -70,3 +70,72 @@ describe('LeadLifecycleEventRouterService', () => {
     expect(serialized).not.toContain('raw message');
   });
 });
+
+
+describe('LeadLifecycleEventRouterService durable storage', () => {
+  it('persists lifecycle events idempotently before route logging', async () => {
+    const loggingService = {
+      log: jest.fn().mockResolvedValue(undefined),
+    };
+    const prisma = {
+      leadLifecycleEvent: {
+        upsert: jest.fn().mockResolvedValue(undefined),
+      },
+    };
+    const router = new LeadLifecycleEventRouterService(loggingService as never, prisma as never);
+
+    await router.route({
+      eventId: 'evt_synthetic_2',
+      eventType: 'LeadSubmitted',
+      eventVersion: 1,
+      occurredAt: '2026-06-13T00:00:00.000Z',
+      producer: 'leads-microservice',
+      leadId: 'lead_synthetic_2',
+      correlationId: 'lead_synthetic_2',
+      idempotencyKey: 'lead-submitted:lead_synthetic_2',
+      dataClass: 'minimized',
+      payload: {
+        leadId: 'lead_synthetic_2',
+        sourceService: 'shop-assistant',
+        sourceHost: 'shop.example',
+        contactMethodTypes: ['email'],
+        contactMethodCount: 1,
+        consentEvidencePresent: true,
+      },
+    });
+
+    expect(prisma.leadLifecycleEvent.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { idempotencyKey: 'lead-submitted:lead_synthetic_2' },
+        create: expect.objectContaining({
+          eventId: 'evt_synthetic_2',
+          eventType: 'LeadSubmitted',
+          leadId: 'lead_synthetic_2',
+          dataClass: 'minimized',
+          consumerRoutes: ['crm', 'marketing', 'logging-analytics', 'product-apps'],
+          payload: expect.objectContaining({
+            sourceHost: 'shop.example',
+            contactMethodCount: 1,
+          }),
+        }),
+        update: expect.objectContaining({
+          eventType: 'LeadSubmitted',
+        }),
+      }),
+    );
+
+    expect(prisma.leadLifecycleEvent.upsert.mock.calls[0]?.[0].update).not.toEqual(
+      expect.objectContaining({
+        eventId: 'evt_synthetic_2',
+        idempotencyKey: 'lead-submitted:lead_synthetic_2',
+      }),
+    );
+
+    const serializedPersistence = JSON.stringify(prisma.leadLifecycleEvent.upsert.mock.calls[0]?.[0]);
+    expect(serializedPersistence).not.toContain('person@example.test');
+    expect(serializedPersistence).not.toContain('Synthetic raw product interest message');
+    expect(serializedPersistence).not.toContain('synthetic-confirmation-token');
+    expect(serializedPersistence).not.toContain('private/path');
+    expect(loggingService.log).toHaveBeenCalled();
+  });
+});

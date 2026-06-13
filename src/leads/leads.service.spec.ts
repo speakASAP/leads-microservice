@@ -7,6 +7,9 @@ function createService() {
       findUnique: jest.fn().mockResolvedValue(null),
       count: jest.fn().mockResolvedValue(0),
     },
+    leadLifecycleEvent: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   };
 
   return {
@@ -299,5 +302,67 @@ describe('LeadsService controlled contact resolution', () => {
         }),
       }),
     );
+  });
+});
+
+
+describe('LeadsService lifecycle event retrieval', () => {
+  it('returns one-lead minimized lifecycle events without raw lead fields', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique.mockResolvedValueOnce({ id: 'lead_synthetic_events' });
+    prisma.leadLifecycleEvent.findMany.mockResolvedValueOnce([
+      {
+        eventId: 'evt_synthetic_3',
+        eventType: 'LeadSubmitted',
+        eventVersion: 1,
+        occurredAt: new Date('2026-06-13T00:00:00.000Z'),
+        producer: 'leads-microservice',
+        leadId: 'lead_synthetic_events',
+        correlationId: 'lead_synthetic_events',
+        idempotencyKey: 'lead-submitted:lead_synthetic_events',
+        dataClass: 'minimized',
+        payload: {
+          leadId: 'lead_synthetic_events',
+          sourceService: 'shop-assistant',
+          sourceHost: 'shop.example',
+          contactMethodTypes: ['email'],
+          contactMethodCount: 1,
+          consentEvidencePresent: true,
+        },
+        consumerRoutes: ['crm', 'marketing', 'logging-analytics'],
+        recordedAt: new Date('2026-06-13T00:00:01.000Z'),
+      },
+    ]);
+
+    const result = await service.getLeadLifecycleEvents('lead_synthetic_events');
+
+    expect(result).toEqual({
+      leadId: 'lead_synthetic_events',
+      contractVersion: '2026-06-13.lifecycle.v1',
+      events: [
+        expect.objectContaining({
+          eventId: 'evt_synthetic_3',
+          eventType: 'LeadSubmitted',
+          occurredAt: '2026-06-13T00:00:00.000Z',
+          recordedAt: '2026-06-13T00:00:01.000Z',
+          dataClass: 'minimized',
+        }),
+      ],
+    });
+    expect(prisma.leadLifecycleEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { leadId: 'lead_synthetic_events' },
+        select: expect.not.objectContaining({
+          message: true,
+          confirmationToken: true,
+          contactMethods: true,
+          submissions: true,
+        }),
+      }),
+    );
+    expect(JSON.stringify(result)).not.toContain('person@example.test');
+    expect(JSON.stringify(result)).not.toContain('Synthetic raw product interest message');
+    expect(JSON.stringify(result)).not.toContain('synthetic-confirmation-token');
+    expect(JSON.stringify(result)).not.toContain('private/path');
   });
 });

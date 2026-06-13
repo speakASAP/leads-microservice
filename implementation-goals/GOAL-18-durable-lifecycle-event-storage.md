@@ -2,7 +2,7 @@
 
 ```yaml
 id: LEADS-GOAL-18-DURABLE-LIFECYCLE-EVENT-STORAGE
-status: active
+status: done
 owner: leads-owner
 created: 2026-06-13
 last_updated: 2026-06-13
@@ -32,11 +32,11 @@ Leads must durably store minimized lifecycle events for non-registered leads so 
 ## Chunks
 
 - [x] 18.1 Select durable lifecycle event storage as the next runtime slice and create execution artifacts.
-- [ ] 18.2 Add a Prisma-backed lifecycle event persistence model and migration using minimized event fields only.
-- [ ] 18.3 Update `LeadLifecycleEventRouterService` to persist events before logging route metadata.
-- [ ] 18.4 Add a guarded lifecycle event retrieval endpoint using the Goal 11 contract.
-- [ ] 18.5 Add focused tests for persistence, idempotency, minimized payloads, and retrieval bounds.
-- [ ] 18.6 Validate focused tests, full tests, build, Prisma generation/migration checks, documentation scans, and sensitive-data handling.
+- [x] 18.2 Add a Prisma-backed lifecycle event persistence model and migration using minimized event fields only.
+- [x] 18.3 Update `LeadLifecycleEventRouterService` to persist events before logging route metadata.
+- [x] 18.4 Add a guarded lifecycle event retrieval endpoint using the Goal 11 contract.
+- [x] 18.5 Add focused tests for persistence, idempotency, minimized payloads, and retrieval bounds.
+- [x] 18.6 Validate focused tests, full tests, build, Prisma generation/migration checks, documentation scans, and sensitive-data handling.
 
 ## Acceptance Criteria
 

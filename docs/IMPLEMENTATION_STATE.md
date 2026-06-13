@@ -21,10 +21,10 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 18 - Durable Lifecycle Event Storage is active; chunk 18.1 selected durable lifecycle event storage and created execution artifacts.
-- Runtime source changes in the latest completed runtime task: guarded one-lead contact resolution DTO, service evaluation, controller endpoint, and tests. Current Goal 18 selection made no runtime source or schema changes.
-- Latest implementation change: Goal 17 resolves requested-channel contact values for approved internal purposes while keeping logs minimized and campaign execution out of Leads.
-- Deployment: not required for Goal 17; public response shapes, schemas, notification dispatch, campaign execution behavior, and external Marketing ownership are unchanged.
+- Current owner-selected task: Goal 18 - Durable Lifecycle Event Storage is complete.
+- Runtime source changes in the latest completed runtime task: durable minimized lifecycle event table/migration, idempotent lifecycle router persistence, guarded one-lead lifecycle event retrieval, and focused tests.
+- Latest implementation change: Goal 18 durably persists minimized lifecycle events and exposes guarded one-lead lifecycle event retrieval without raw lead export.
+- Deployment: not performed for Goal 18; migration/deploy requires owner approval. Public response shapes, notification dispatch, campaign execution behavior, and external service ownership are unchanged.
 
 ## Preserved Intent Summary
 
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 18 - Durable Lifecycle Event Storage is active. Chunk 18.1 selected durable lifecycle event storage as the next runtime slice and created execution artifacts. Next chunk: 18.2 add the Prisma-backed lifecycle event persistence model and migration using minimized event fields only.
+Goal 18 - Durable Lifecycle Event Storage is complete. Focused tests, full tests, Prisma generation/validation, build, lint, and documentation scans passed.
 
 ## Completed Goals
 
@@ -59,11 +59,11 @@ Goal 18 - Durable Lifecycle Event Storage is active. Chunk 18.1 selected durable
 - Goal 15 - Lifecycle Routing And Auth Conversion Linkage: complete on 2026-06-13.
 - Goal 16 - Marketing Campaign Eligibility Preview: complete on 2026-06-13.
 - Goal 17 - Controlled Contact Resolution: complete on 2026-06-13.
-- Goal 18 chunk 18.1 - Durable Lifecycle Event Storage Selection: active on 2026-06-13.
+- Goal 18 - Durable Lifecycle Event Storage: complete on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: implement Goal 18 chunk 18.2 - add the Prisma-backed lifecycle event persistence model and migration using minimized event fields only. Auth-backed admin authentication remains deferred until exact Auth claim names and tenant mapping semantics are confirmed.
+Next recommended implementation goal: deploy/apply the Goal 18 migration when owner approval is given, or select Auth-backed admin authentication after exact Auth claim names and tenant mapping semantics are confirmed.
 
 ## Known Blockers
 
@@ -72,7 +72,7 @@ Next recommended implementation goal: implement Goal 18 chunk 18.2 - add the Pri
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. Continue Goal 18 chunk 18.2 only after re-running the pre-coding gate and recording current remote git status.
+2. Select the next owner-approved implementation goal or deployment action and create/update goal-specific artifacts before source edits.
 3. Preserve service boundaries: Leads owns non-registered intake/consent/preferences/unsubscribe; Auth owns identity/RBAC/tenancy; Marketing owns campaigns; Notifications owns delivery; CRM owns funnel workflow once implemented.
 4. Do not implement raw lead export, mass outreach, campaign execution, AI enrichment, or production lead mutation without explicit owner approval and validation evidence.
 5. Record validation and continuation evidence before ending.

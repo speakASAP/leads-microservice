@@ -1253,3 +1253,53 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 18 chunk 18.2 - Add a Prisma-backed lifecycle event persistence model and migration using minimized event fields only.
+
+## 2026-06-13 - Goal 18 Durable Lifecycle Event Storage Complete
+
+Current focus:
+
+- Completed Goal 18 - Durable Lifecycle Event Storage.
+- Runtime code changes: Prisma lifecycle event model/migration, idempotent router persistence, guarded one-lead lifecycle event retrieval, and focused tests.
+- Deployment: not requested and not performed.
+
+Implementation evidence:
+
+- Updated prisma/schema.prisma with LeadLifecycleEvent and Lead relation.
+- Added prisma/migrations/20260613_add_lead_lifecycle_events/migration.sql.
+- Updated src/leads/integrations/lifecycle-event-router.service.ts to upsert minimized lifecycle events before route logging.
+- Updated src/leads/leads.service.ts with one-lead minimized lifecycle event retrieval.
+- Updated src/leads/leads.controller.ts with guarded GET /leads/internal/:id/lifecycle-events.
+- Updated focused router, service, and controller tests.
+- Updated Goal 18 validation and continuation state.
+
+Validation evidence:
+
+- npm run prisma:generate: passed.
+- npx prisma validate: passed.
+- focused router/service/controller Jest tests: passed, 3 suites, 23 tests.
+- npm test: passed, 10 suites, 57 tests.
+- npm run build: passed.
+- npm run lint: passed.
+- Missing-marker scan: passed with no matches.
+- Secret-pattern scan across docs, AGENTS, TASKS, implementation-goals, src/leads, src/prisma, and prisma: passed with no matches.
+
+Sensitive-data handling:
+
+- Stored lifecycle events use already-minimized envelopes only.
+- Focused tests prove persistence and retrieval omit contact values, raw messages, confirmation tokens, private paths, and raw consent source values.
+- Logs include aggregate route/retrieval metadata only and do not include returned contact values or raw lead data.
+
+Contract impact:
+
+- New Prisma table and migration for durable lifecycle events.
+- New guarded internal endpoint: GET /leads/internal/:id/lifecycle-events.
+- Public API response shapes are unchanged.
+- No campaign execution, Notifications dispatch, Auth login/JWT validation, CRM workflow, AI export, raw lead export, production lead mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 18. Deployment readiness not evaluated because deployment was not requested.
+
+Next recommended action:
+
+- Deploy/apply the Goal 18 migration when owner approval is given, or select Auth-backed admin authentication after exact Auth claim names and tenant mapping semantics are confirmed.
