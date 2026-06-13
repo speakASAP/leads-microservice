@@ -19,7 +19,15 @@ export class LeadsController {
 
   @Post('submit')
   async submitLead(@Body() payload: CreateLeadDto) {
-    this.logger.log(`submitLead START sourceService=${payload.sourceService} contactMethods=${JSON.stringify(payload.contactMethods)} messageLen=${payload.message?.length} metadata=${JSON.stringify(payload.metadata)}`);
+    const contactMethodTypes = payload.contactMethods.map((method) => method.type).filter(Boolean).join(',') || 'none';
+    const metadataKeys = payload.metadata ? Object.keys(payload.metadata).join(',') : 'none';
+    this.logger.log(
+      `submitLead START sourceService=${payload.sourceService}` +
+      ` contactMethodCount=${payload.contactMethods.length}` +
+      ` contactMethodTypes=${contactMethodTypes}` +
+      ` messageLen=${payload.message?.length}` +
+      ` metadataKeys=${metadataKeys}`,
+    );
 
     const lead = await this.leadsService.createLead(payload);
     this.logger.log(`submitLead lead created leadId=${lead.id}`);
