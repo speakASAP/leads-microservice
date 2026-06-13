@@ -363,3 +363,25 @@ Acceptance criteria:
 - Logging remains metadata-only and does not become the durable event store owner.
 - No Auth login/JWT validation, campaign execution, Notifications dispatch, CRM workflow, AI export, raw lead export, production lead mutation, or deployment is included without separate owner approval.
 
+## Goal 19 - Auth-Backed Admin API Authentication
+
+Status: done
+
+Intent: Leads browser/admin APIs must validate Auth-issued bearer tokens and enforce Leads admin roles without exposing raw lead data or reusing internal service tokens for human users.
+
+Chunks:
+
+- [x] 19.1 Create execution artifacts and pass the pre-coding gate.
+- [x] 19.2 Add Auth validation guard using Auth POST /auth/validate.
+- [x] 19.3 Add masked Auth-backed admin list, detail, and summary APIs.
+- [x] 19.4 Update admin browser shell to use Auth bearer tokens.
+- [x] 19.5 Add focused tests for guard, admin APIs, masking, and preserved internal-service guards.
+- [x] 19.6 Validate tests, build, lint, deployment, migration, health, admin 401, and scans.
+
+Acceptance criteria:
+
+- Browser/admin APIs require Auth bearer tokens and accepted Leads roles.
+- Internal service routes remain protected by InternalServiceGuard.
+- Admin responses are masked/minimized by default.
+- Auth tokens, secrets, raw contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, and raw consent source values are not logged or returned from admin APIs.
+- Tenant/workspace scoping remains a documented follow-up until Auth mapping semantics are confirmed.

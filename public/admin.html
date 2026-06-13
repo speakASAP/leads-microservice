@@ -36,11 +36,10 @@
         <section class="access-panel" aria-label="Secure access">
           <div>
             <h2>Secure access</h2>
-            <p>Lead data loads only after a valid internal service token is supplied. Contact values remain masked in this browser view.</p>
+            <p>Lead data loads only after a valid Auth access token with a Leads admin role is supplied. Contact values remain masked in this browser view.</p>
           </div>
           <form id="admin-auth-form" class="auth-form">
-            <label>Service name <input name="serviceName" value="leads-admin" autocomplete="off" /></label>
-            <label>Internal token <input name="token" type="password" autocomplete="current-password" required /></label>
+            <label>Auth access token <input name="token" type="password" autocomplete="current-password" required /></label>
             <button class="button primary" type="submit">Load dashboard</button>
           </form>
           <p id="admin-status" class="form-status" role="status"></p>

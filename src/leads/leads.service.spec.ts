@@ -366,3 +366,30 @@ describe('LeadsService lifecycle event retrieval', () => {
     expect(JSON.stringify(result)).not.toContain('private/path');
   });
 });
+
+
+describe('LeadsService Auth-backed admin views', () => {
+  it('returns masked admin list without raw message, contact value, token, source path, or consent source', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findMany.mockResolvedValueOnce([
+      {
+        id: 'lead_admin_1', status: 'new', sourceService: 'shop-assistant',
+        sourceUrl: 'https://shop.example/private/path?token=synthetic-token', sourceLabel: 'pricing',
+        preferredChannel: 'email', fallbackChannels: ['telegram'], marketingConsent: true,
+        consentSource: 'private-consent-source:v1', consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+        confirmedAt: null, unsubscribedAt: null, createdAt: new Date('2026-06-13T00:00:00.000Z'), updatedAt: new Date('2026-06-13T00:00:00.000Z'),
+        contactMethods: [{ type: 'email', isPrimary: true }],
+      },
+    ]);
+    prisma.lead.count.mockResolvedValueOnce(1);
+    const result = await service.listAdminLeads({ limit: 30 });
+    expect(result.items[0]).toEqual(expect.objectContaining({ id: 'lead_admin_1', sourceHost: 'shop.example', contactMethods: [{ type: 'email', isPrimary: true }], consentEvidencePresent: true }));
+    expect(prisma.lead.findMany).toHaveBeenCalledWith(expect.objectContaining({ select: expect.not.objectContaining({ message: true, confirmationToken: true, submissions: true }) }));
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('person@example.test');
+    expect(serialized).not.toContain('Synthetic raw product interest message');
+    expect(serialized).not.toContain('synthetic-confirmation-token');
+    expect(serialized).not.toContain('private/path');
+    expect(serialized).not.toContain('private-consent-source');
+  });
+});
