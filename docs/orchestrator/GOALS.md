@@ -313,3 +313,27 @@ Acceptance criteria:
 - Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, and session tokens.
 - Endpoint is guarded by `InternalServiceGuard`.
 - No campaign execution, contact resolution, schema change, production mutation, AI export, CRM export, or deployment is added.
+
+
+## Goal 17 - Controlled Contact Resolution
+
+Status: done
+
+Intent: Leads must provide bounded contact resolution for one lead and approved operational purposes without creating raw export, campaign execution, or notification dispatch behavior.
+
+Chunks:
+
+- [x] 17.1 Create goal-specific execution artifacts and pass the pre-coding gate.
+- [x] 17.2 Add contact resolution DTO.
+- [x] 17.3 Add service logic for requested-channel filtering and campaign eligibility re-checking.
+- [x] 17.4 Add guarded internal endpoint with audit-safe logging.
+- [x] 17.5 Add focused tests for contact return, log minimization, approval requirements, and eligibility suppression.
+- [x] 17.6 Validate focused tests, full tests, build, documentation scans, and sensitive-data handling.
+
+Acceptance criteria:
+
+- Endpoint resolves one lead per request.
+- `approved_campaign_send` requires approval evidence and re-checks eligibility before returning contact values.
+- Response returns only requested channel contact values.
+- Logs omit returned contact values.
+- No batch export, campaign execution, Notifications dispatch, approval storage, schema change, production mutation, deployment, AI export, or CRM export is added.

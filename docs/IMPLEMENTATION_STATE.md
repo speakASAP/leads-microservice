@@ -21,10 +21,10 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 16 - Marketing Campaign Eligibility Preview is complete.
-- Runtime source changes in the latest completed runtime task: guarded Marketing eligibility preview DTO, service evaluation, controller endpoint, and tests.
-- Latest implementation change: Goal 16 adds minimized campaign eligibility evidence for trusted internal callers without contact resolution or campaign execution.
-- Deployment: not required for Goal 16; public response shapes, schemas, notification behavior, campaign execution behavior, and external Marketing ownership are unchanged.
+- Current owner-selected task: Goal 17 - Controlled Contact Resolution is complete.
+- Runtime source changes in the latest completed runtime task: guarded one-lead contact resolution DTO, service evaluation, controller endpoint, and tests.
+- Latest implementation change: Goal 17 resolves requested-channel contact values for approved internal purposes while keeping logs minimized and campaign execution out of Leads.
+- Deployment: not required for Goal 17; public response shapes, schemas, notification dispatch, campaign execution behavior, and external Marketing ownership are unchanged.
 
 ## Preserved Intent Summary
 
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 16 - Marketing Campaign Eligibility Preview is complete. Focused service/controller tests, full tests, and build passed.
+Goal 17 - Controlled Contact Resolution is complete. Focused service/controller tests, full tests, and build passed.
 
 ## Completed Goals
 
@@ -58,10 +58,11 @@ Goal 16 - Marketing Campaign Eligibility Preview is complete. Focused service/co
 - Goal 14 - LeadConfirmed And LeadPreferenceUpdated Lifecycle Adoption: complete on 2026-06-13.
 - Goal 15 - Lifecycle Routing And Auth Conversion Linkage: complete on 2026-06-13.
 - Goal 16 - Marketing Campaign Eligibility Preview: complete on 2026-06-13.
+- Goal 17 - Controlled Contact Resolution: complete on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: select the next owner-approved runtime slice, likely controlled contact resolution after approval, durable lifecycle event storage, or Auth-backed admin authentication.
+Next recommended implementation goal: select the next owner-approved runtime slice, likely durable lifecycle event storage or Auth-backed admin authentication.
 
 ## Known Blockers
 

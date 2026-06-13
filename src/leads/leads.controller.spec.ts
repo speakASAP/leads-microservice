@@ -39,6 +39,7 @@ describe('LeadsController access controls', () => {
   });
 
   it('keeps internal preference, unsubscribe, conversion-link, and campaign eligibility routes guarded', () => {
+    expect(guardsFor('resolveLeadContact')).toContain(InternalServiceGuard);
     expect(guardsFor('previewCampaignEligibility')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('updateLeadPreferences')).toContain(InternalServiceGuard);
@@ -49,6 +50,45 @@ describe('LeadsController access controls', () => {
   it('does not require internal service credentials for public intake or confirmation', () => {
     expect(guardsFor('submitLead')).not.toContain(InternalServiceGuard);
     expect(guardsFor('confirmLead')).not.toContain(InternalServiceGuard);
+  });
+});
+
+describe('LeadsController contact resolution', () => {
+  it('returns requested contact values but logs only aggregate resolution metadata', async () => {
+    const { controller, loggingService } = buildController({
+      resolveLeadContact: jest.fn().mockResolvedValue({
+        leadId: 'lead_synthetic_resolution',
+        purpose: 'single_lead_human_review',
+        resolvedAt: '2026-06-13T04:00:00.000Z',
+        contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+        consent: {
+          marketingConsent: true,
+          consentCapturedAtPresent: true,
+          unsubscribed: false,
+        },
+      }),
+    });
+
+    const result = await controller.resolveLeadContact({
+      leadId: 'lead_synthetic_resolution',
+      purpose: 'single_lead_human_review',
+      requestedChannels: ['email'],
+    });
+
+    expect(result.contactMethods).toEqual([{ type: 'email', value: 'person@example.test', isPrimary: true }]);
+    expect(loggingService.log).toHaveBeenCalledWith(
+      'info',
+      'Lead contact resolved via internal API',
+      expect.objectContaining({
+        leadId: 'lead_synthetic_resolution',
+        purpose: 'single_lead_human_review',
+        requestedChannelCount: 1,
+        returnedContactMethodCount: 1,
+        approvalEvidencePresent: false,
+      }),
+    );
+    const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
+    expect(serializedLog).not.toContain('person@example.test');
   });
 });
 

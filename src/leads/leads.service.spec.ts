@@ -4,6 +4,7 @@ function createService() {
   const prisma = {
     lead: {
       findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn().mockResolvedValue(null),
       count: jest.fn().mockResolvedValue(0),
     },
   };
@@ -174,5 +175,129 @@ describe('LeadsService campaign eligibility preview', () => {
       eligible: 0,
       ineligible: 2,
     });
+  });
+});
+
+
+describe('LeadsService controlled contact resolution', () => {
+  it('resolves only requested channel contact values for one lead', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique = jest.fn().mockResolvedValue({
+      id: 'lead_synthetic_resolution',
+      marketingConsent: true,
+      consentSource: 'private-consent-source:v1',
+      consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+      unsubscribedAt: null,
+      confirmedAt: new Date('2026-06-13T00:01:00.000Z'),
+      contactMethods: [
+        { type: 'email', value: 'person@example.test', isPrimary: true },
+        { type: 'telegram', value: '@synthetic_person', isPrimary: false },
+      ],
+    });
+
+    const result = await service.resolveLeadContact({
+      leadId: 'lead_synthetic_resolution',
+      purpose: 'single_lead_human_review',
+      requestedChannels: ['email'],
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        leadId: 'lead_synthetic_resolution',
+        purpose: 'single_lead_human_review',
+        contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+        consent: {
+          marketingConsent: true,
+          consentCapturedAtPresent: true,
+          unsubscribed: false,
+        },
+      }),
+    );
+  });
+
+  it('requires approval evidence and re-checks eligibility for campaign sends', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique = jest.fn().mockResolvedValue({
+      id: 'lead_synthetic_campaign',
+      marketingConsent: true,
+      consentSource: 'private-consent-source:v1',
+      consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+      unsubscribedAt: null,
+      confirmedAt: new Date('2026-06-13T00:01:00.000Z'),
+      contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+    });
+    prisma.lead.findMany.mockResolvedValueOnce([
+      {
+        id: 'lead_synthetic_campaign',
+        preferredChannel: 'email',
+        fallbackChannels: [],
+        marketingConsent: true,
+        consentSource: 'private-consent-source:v1',
+        consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+        unsubscribedAt: null,
+        confirmedAt: new Date('2026-06-13T00:01:00.000Z'),
+        contactMethods: [{ type: 'email' }],
+      },
+    ]);
+
+    const result = await service.resolveLeadContact({
+      leadId: 'lead_synthetic_campaign',
+      purpose: 'approved_campaign_send',
+      approvalId: 'approval_synthetic_1',
+      requestedChannels: ['email'],
+      campaignPurpose: 'marketing',
+      requireConfirmedContact: true,
+    });
+
+    expect(result.contactMethods).toEqual([{ type: 'email', value: 'person@example.test', isPrimary: true }]);
+    expect(prisma.lead.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: { in: ['lead_synthetic_campaign'] } },
+      }),
+    );
+  });
+
+  it('does not resolve campaign contacts when eligibility re-check fails', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique = jest.fn().mockResolvedValue({
+      id: 'lead_synthetic_ineligible_campaign',
+      marketingConsent: false,
+      consentSource: null,
+      consentCapturedAt: null,
+      unsubscribedAt: new Date('2026-06-13T00:02:00.000Z'),
+      confirmedAt: null,
+      contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+    });
+    prisma.lead.findMany.mockResolvedValueOnce([
+      {
+        id: 'lead_synthetic_ineligible_campaign',
+        preferredChannel: 'email',
+        fallbackChannels: [],
+        marketingConsent: false,
+        consentSource: null,
+        consentCapturedAt: null,
+        unsubscribedAt: new Date('2026-06-13T00:02:00.000Z'),
+        confirmedAt: null,
+        contactMethods: [{ type: 'email' }],
+      },
+    ]);
+
+    const result = await service.resolveLeadContact({
+      leadId: 'lead_synthetic_ineligible_campaign',
+      purpose: 'approved_campaign_send',
+      approvalId: 'approval_synthetic_1',
+      requestedChannels: ['email'],
+      campaignPurpose: 'marketing',
+      requireConfirmedContact: true,
+    });
+
+    expect(result.contactMethods).toEqual([]);
+    expect(result).toEqual(
+      expect.objectContaining({
+        eligibility: expect.objectContaining({
+          eligible: false,
+        }),
+      }),
+    );
   });
 });
