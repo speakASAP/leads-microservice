@@ -10,6 +10,7 @@
 
 ## Completed
 <!-- Coordinator-append-only -->
+- 2026-06-13 goal-16-marketing-campaign-eligibility-preview-complete
 - 2026-06-13 goal-15-lifecycle-routing-auth-conversion-linkage-complete
 - 2026-06-13 goal-14-lead-confirmed-preference-lifecycle-adoption-complete
 - 2026-06-13 goal-13-lead-submitted-lifecycle-event-adoption-complete

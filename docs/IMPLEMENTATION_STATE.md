@@ -21,10 +21,10 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 15 - Lifecycle Routing And Auth Conversion Linkage is complete.
-- Runtime source changes in the latest completed runtime task: lifecycle event routing service, controller routing adoption, and guarded Auth conversion-link event recording.
-- Latest implementation change: Goal 15 routes minimized lifecycle events to intended internal consumers through the existing logging integration and records minimized LeadConvertedToUser linkage evidence for trusted internal callers.
-- Deployment: not required for Goal 15; public response shapes, schemas, notification behavior, campaign behavior, and external Auth ownership are unchanged.
+- Current owner-selected task: Goal 16 - Marketing Campaign Eligibility Preview is complete.
+- Runtime source changes in the latest completed runtime task: guarded Marketing eligibility preview DTO, service evaluation, controller endpoint, and tests.
+- Latest implementation change: Goal 16 adds minimized campaign eligibility evidence for trusted internal callers without contact resolution or campaign execution.
+- Deployment: not required for Goal 16; public response shapes, schemas, notification behavior, campaign execution behavior, and external Marketing ownership are unchanged.
 
 ## Preserved Intent Summary
 
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 15 - Lifecycle Routing And Auth Conversion Linkage is complete. Focused routing/controller/lifecycle tests, full tests, and build passed.
+Goal 16 - Marketing Campaign Eligibility Preview is complete. Focused service/controller tests, full tests, and build passed.
 
 ## Completed Goals
 
@@ -57,10 +57,11 @@ Goal 15 - Lifecycle Routing And Auth Conversion Linkage is complete. Focused rou
 - Goal 13 - LeadSubmitted Lifecycle Event Adoption: complete on 2026-06-13.
 - Goal 14 - LeadConfirmed And LeadPreferenceUpdated Lifecycle Adoption: complete on 2026-06-13.
 - Goal 15 - Lifecycle Routing And Auth Conversion Linkage: complete on 2026-06-13.
+- Goal 16 - Marketing Campaign Eligibility Preview: complete on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: select the next owner-approved runtime slice, likely durable lifecycle event storage, Marketing eligibility preview, or Auth-backed admin authentication.
+Next recommended implementation goal: select the next owner-approved runtime slice, likely controlled contact resolution after approval, durable lifecycle event storage, or Auth-backed admin authentication.
 
 ## Known Blockers
 

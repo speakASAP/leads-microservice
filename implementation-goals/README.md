@@ -37,6 +37,7 @@ This directory stores durable goal records and goal-specific execution artifacts
 | Goal 13 - LeadSubmitted Lifecycle Event Adoption | done | `GOAL-13-lead-submitted-lifecycle-adoption.md` |
 | Goal 14 - LeadConfirmed And LeadPreferenceUpdated Lifecycle Adoption | done | `GOAL-14-lead-confirmed-preference-lifecycle-adoption.md` |
 | Goal 15 - Lifecycle Routing And Auth Conversion Linkage | done | `GOAL-15-lifecycle-routing-auth-conversion-linkage.md` |
+| Goal 16 - Marketing Campaign Eligibility Preview | done | `GOAL-16-marketing-campaign-eligibility-preview.md` |
 
 ## Required Artifacts For Future Coding
 

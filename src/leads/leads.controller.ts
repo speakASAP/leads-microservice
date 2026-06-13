@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { LeadsService } from './leads.service';
+import { CampaignEligibilityPreviewDto } from './dto/campaign-eligibility-preview.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { LinkLeadToUserDto } from './dto/link-lead-to-user.dto';
@@ -126,6 +127,23 @@ export class LeadsController {
       sourceService: query.sourceService || null,
       page: result.page,
       limit: result.limit,
+    });
+    return result;
+  }
+
+  @Post('internal/campaign-eligibility/preview')
+  @UseGuards(InternalServiceGuard)
+  async previewCampaignEligibility(@Body() payload: CampaignEligibilityPreviewDto) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.previewCampaignEligibility(payload);
+    await this.loggingService.log('info', 'Lead campaign eligibility previewed', {
+      campaignPurpose: result.campaignPurpose,
+      channel: result.channel,
+      requireConfirmedContact: result.requireConfirmedContact,
+      requested: result.summary.requested,
+      eligible: result.summary.eligible,
+      ineligible: result.summary.ineligible,
+      duration_ms: Date.now() - startedAt,
     });
     return result;
   }

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CampaignEligibilityPreviewDto } from './dto/campaign-eligibility-preview.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
@@ -121,6 +122,135 @@ export class LeadsService {
       page,
       limit,
       total,
+    };
+  }
+
+  async previewCampaignEligibility(payload: CampaignEligibilityPreviewDto) {
+    const uniqueLeadIds = Array.from(new Set(payload.leadIds));
+    const leads = await this.prisma.lead.findMany({
+      where: { id: { in: uniqueLeadIds } },
+      select: {
+        id: true,
+        preferredChannel: true,
+        fallbackChannels: true,
+        marketingConsent: true,
+        consentSource: true,
+        consentCapturedAt: true,
+        unsubscribedAt: true,
+        confirmedAt: true,
+        contactMethods: {
+          select: { type: true },
+        },
+      },
+    });
+    const leadsById = new Map(leads.map((lead) => [lead.id, lead]));
+
+    const items = payload.leadIds.map((leadId) => {
+      const lead = leadsById.get(leadId);
+      if (!lead) {
+        return {
+          leadId,
+          eligible: false,
+          reasons: ['invalid_lead_id'],
+          contactMethodTypes: [],
+          preferredChannel: null,
+          fallbackChannelCount: 0,
+          marketingConsent: null,
+          consentEvidencePresent: false,
+          unsubscribed: false,
+          confirmed: false,
+        };
+      }
+
+      const contactMethodTypes = Array.from(
+        new Set(
+          lead.contactMethods
+            .map((method) => method.type)
+            .filter((type): type is 'email' | 'telegram' | 'whatsapp' =>
+              ['email', 'telegram', 'whatsapp'].includes(String(type)),
+            ),
+        ),
+      ).sort();
+      const reasons: string[] = [];
+      const consentSourcePresent = Boolean(lead.consentSource);
+      const consentCapturedAtPresent = Boolean(lead.consentCapturedAt);
+      const consentEvidencePresent = consentSourcePresent && consentCapturedAtPresent;
+      const unsubscribed = Boolean(lead.unsubscribedAt);
+      const confirmed = Boolean(lead.confirmedAt);
+      const supportedChannelPresent = contactMethodTypes.includes(payload.channel);
+
+      if (payload.campaignPurpose === 'marketing') {
+        if (lead.marketingConsent === true) {
+          reasons.push('marketing_consent_true');
+        } else {
+          reasons.push('missing_marketing_consent');
+        }
+        if (consentSourcePresent) {
+          reasons.push('consent_source_present');
+        } else {
+          reasons.push('missing_consent_source');
+        }
+        if (consentCapturedAtPresent) {
+          reasons.push('consent_captured_at_present');
+        } else {
+          reasons.push('missing_consent_captured_at');
+        }
+      }
+
+      if (unsubscribed) {
+        reasons.push('unsubscribed');
+      } else {
+        reasons.push('not_unsubscribed');
+      }
+
+      if (payload.requireConfirmedContact) {
+        if (confirmed) {
+          reasons.push('confirmed_when_required');
+        } else {
+          reasons.push('confirmation_required');
+        }
+      }
+
+      if (supportedChannelPresent) {
+        reasons.push('supported_channel_present');
+      } else {
+        reasons.push('unsupported_channel');
+      }
+
+      const eligible =
+        (payload.campaignPurpose !== 'marketing' ||
+          (lead.marketingConsent === true && consentEvidencePresent)) &&
+        !unsubscribed &&
+        (!payload.requireConfirmedContact || confirmed) &&
+        supportedChannelPresent;
+
+      return {
+        leadId,
+        eligible,
+        reasons,
+        contactMethodTypes,
+        preferredChannel: lead.preferredChannel,
+        fallbackChannelCount: Array.isArray(lead.fallbackChannels) ? lead.fallbackChannels.length : 0,
+        marketingConsent: lead.marketingConsent,
+        consentEvidencePresent,
+        unsubscribed,
+        confirmed,
+      };
+    });
+
+    const eligibleCount = items.filter((item) => item.eligible).length;
+
+    return {
+      contractVersion: '2026-06-13.lifecycle.v1',
+      campaignPurpose: payload.campaignPurpose,
+      channel: payload.channel,
+      requireConfirmedContact: payload.requireConfirmedContact ?? false,
+      items,
+      summary: {
+        requested: payload.leadIds.length,
+        eligible: eligibleCount,
+        ineligible: payload.leadIds.length - eligibleCount,
+      },
     };
   }
 
