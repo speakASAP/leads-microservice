@@ -1474,3 +1474,23 @@ Sensitive-data handling:
 Gate decision:
 
 - Source, manifest, and Vault configuration are ready for commit and deployment.
+
+
+## 2026-06-13 - Goal 20 Vault Role Map Deployment Complete
+
+Deployment evidence:
+
+- Committed and pushed runtime/config/docs change: 3c2ef66 feat: back Leads admin source map with Vault.
+- Deployment built and pushed image localhost:5000/leads-microservice:3c2ef66.
+- scripts/deploy.sh completed successfully after the immutable image tag rollout; rollout wait duration was 210.45s and total deployment time was 225.22s.
+- The mutable latest rollout created a transient pod that stalled in ContainerCreating; it was force-deleted by deploy diagnostics, then the deployment was pinned to localhost:5000/leads-microservice:3c2ef66.
+- Active deployment reports READY 1/1, UP-TO-DATE 1, AVAILABLE 1, image localhost:5000/leads-microservice:3c2ef66.
+- Active pod: leads-microservice-6949bcd546-46qkd, Running and ready, image localhost:5000/leads-microservice:3c2ef66.
+- ExternalSecret is Ready and Kubernetes Secret contains LEADS_ADMIN_WORKSPACE_SOURCE_MAP key; value was not printed.
+- Runtime env check reported mapPresent=true, keyCount=19, hasShopAssistantRole=true, and hasLeadsAdminRole=true without printing mapped source values.
+- Public health smoke returned HTTP 200 with status ok.
+- Unauthenticated GET /api/admin/leads returned HTTP 401.
+
+Gate decision:
+
+- Deployment accepted. Goal 20 admin source mapping is now Auth-role scoped and Vault-backed in production.
