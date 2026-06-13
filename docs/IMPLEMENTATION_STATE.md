@@ -21,8 +21,8 @@ downstream:
 
 - Stage: production.
 - Health: documented as `ok` in `STATE.json`.
-- Current owner-selected task: Goal 6 - Operational Smoke And Documentation Ingestion is complete.
-- Runtime source changes in the latest task: none for Goal 6; build/test/health and DocsRAG ingestion/retrieval evidence were recorded.
+- Current owner-selected task: Goal 7 - Frontend Cutover Deployment Path Check is complete.
+- Runtime source changes in the latest task: none for Goal 7; frontend deployment path discovery and read-only Kubernetes evidence were recorded.
 - Deployment required for latest task: no.
 
 ## Preserved Intent Summary
@@ -31,7 +31,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 6 - Operational Smoke And Documentation Ingestion is complete. Chunks 6.1, 6.2, 6.3, and 6.4 are complete.
+Goal 7 - Frontend Cutover Deployment Path Check is complete. The frontend path was located, so destructive fixture-only merge/delete validation was not scoped or run.
 
 ## Completed Goals
 
@@ -44,6 +44,7 @@ Goal 6 - Operational Smoke And Documentation Ingestion is complete. Chunks 6.1, 
 - Goal 4 - Notification And Confirmation Reliability: complete on 2026-06-13.
 - Goal 5 - AI And CRM Data-Sharing Boundary: complete on 2026-06-13.
 - Goal 6 - Operational Smoke And Documentation Ingestion: complete on 2026-06-13.
+- Goal 7 - Frontend Cutover Deployment Path Check: complete on 2026-06-13.
 
 ## Next Recommended Goal
 
