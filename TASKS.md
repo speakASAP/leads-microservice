@@ -7,6 +7,7 @@
 
 ## Active
 <!-- Coordinator-maintained -->
+- 2026-06-13 goal-18-durable-lifecycle-event-storage-active
 
 ## Completed
 <!-- Coordinator-append-only -->
