@@ -38,7 +38,8 @@ describe('LeadsController access controls', () => {
     expect(guardsFor('listLeads')).toContain(InternalServiceGuard);
   });
 
-  it('keeps internal preference, unsubscribe, and conversion-link routes guarded', () => {
+  it('keeps internal preference, unsubscribe, conversion-link, and campaign eligibility routes guarded', () => {
+    expect(guardsFor('previewCampaignEligibility')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('updateLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('unsubscribeLead')).toContain(InternalServiceGuard);
@@ -48,6 +49,81 @@ describe('LeadsController access controls', () => {
   it('does not require internal service credentials for public intake or confirmation', () => {
     expect(guardsFor('submitLead')).not.toContain(InternalServiceGuard);
     expect(guardsFor('confirmLead')).not.toContain(InternalServiceGuard);
+  });
+});
+
+describe('LeadsController campaign eligibility preview', () => {
+  it('returns minimized eligibility results and logs only aggregate summary', async () => {
+    const { controller, loggingService } = buildController({
+      previewCampaignEligibility: jest.fn().mockResolvedValue({
+        contractVersion: '2026-06-13.lifecycle.v1',
+        campaignPurpose: 'marketing',
+        channel: 'email',
+        requireConfirmedContact: true,
+        items: [
+          {
+            leadId: 'lead_synthetic_eligible',
+            eligible: true,
+            reasons: [
+              'marketing_consent_true',
+              'consent_source_present',
+              'consent_captured_at_present',
+              'not_unsubscribed',
+              'confirmed_when_required',
+              'supported_channel_present',
+            ],
+            contactMethodTypes: ['email'],
+            preferredChannel: 'email',
+            fallbackChannelCount: 0,
+            marketingConsent: true,
+            consentEvidencePresent: true,
+            unsubscribed: false,
+            confirmed: true,
+          },
+        ],
+        summary: {
+          requested: 1,
+          eligible: 1,
+          ineligible: 0,
+        },
+      }),
+    });
+
+    const result = await controller.previewCampaignEligibility({
+      leadIds: ['lead_synthetic_eligible'],
+      campaignPurpose: 'marketing',
+      channel: 'email',
+      requireConfirmedContact: true,
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        contractVersion: '2026-06-13.lifecycle.v1',
+        summary: {
+          requested: 1,
+          eligible: 1,
+          ineligible: 0,
+        },
+      }),
+    );
+    expect(loggingService.log).toHaveBeenCalledWith(
+      'info',
+      'Lead campaign eligibility previewed',
+      expect.objectContaining({
+        campaignPurpose: 'marketing',
+        channel: 'email',
+        requested: 1,
+        eligible: 1,
+        ineligible: 0,
+      }),
+    );
+
+    const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
+    expect(serializedLog).not.toContain('person@example.test');
+    expect(serializedLog).not.toContain('Synthetic raw product interest message');
+    expect(serializedLog).not.toContain('synthetic-confirmation-token');
+    expect(serializedLog).not.toContain('private/path');
+    expect(serializedLog).not.toContain('private-consent-source');
   });
 });
 

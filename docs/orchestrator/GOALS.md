@@ -289,3 +289,27 @@ Acceptance criteria:
 - Auth conversion linkage records only minimized conversion evidence and does not create registered users or infer identity from raw lead export.
 - The conversion-link endpoint remains internal-service guarded.
 - Existing public response shapes and existing schemas remain unchanged.
+
+
+## Goal 16 - Marketing Campaign Eligibility Preview
+
+Status: done
+
+Intent: Leads must provide Marketing with guarded, minimized campaign eligibility evidence based on consent, unsubscribe, confirmation, and channel support without raw contact export or campaign execution.
+
+Chunks:
+
+- [x] 16.1 Create goal-specific execution artifacts and pass the pre-coding gate.
+- [x] 16.2 Add campaign eligibility preview DTO.
+- [x] 16.3 Add deterministic service eligibility evaluation.
+- [x] 16.4 Add guarded internal preview endpoint with audit-safe summary logging.
+- [x] 16.5 Add focused tests for eligibility reasons, guard coverage, and sensitive-data omission.
+- [x] 16.6 Validate focused tests, full tests, build, documentation scans, and sensitive-data handling.
+
+Acceptance criteria:
+
+- Request is limited to at most 30 candidate lead IDs.
+- Response includes lead IDs, eligibility booleans, deterministic reason codes, contact method types, preferred channel, fallback count, consent evidence summary, confirmation state, unsubscribe state, and aggregate summary only.
+- Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, and session tokens.
+- Endpoint is guarded by `InternalServiceGuard`.
+- No campaign execution, contact resolution, schema change, production mutation, AI export, CRM export, or deployment is added.

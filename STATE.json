@@ -3,13 +3,13 @@
   "project": "leads-microservice",
   "stage": "production",
   "health": "ok",
-  "cycle": 10,
+  "cycle": 11,
   "last_cycle_at": "2026-06-13T00:00:00Z",
   "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
-  "last_milestone": "goal-15-lifecycle-routing-auth-conversion-linkage-complete",
-  "next_focus": "Next owner-approved implementation goal: durable lifecycle event storage, Marketing eligibility preview, or Auth-backed admin authentication",
+  "last_milestone": "goal-16-marketing-campaign-eligibility-preview-complete",
+  "next_focus": "Next owner-approved implementation goal: controlled contact resolution after approval, durable lifecycle event storage, or Auth-backed admin authentication",
   "blockers": [],
   "budget_units_used": 0,
   "metrics": {
@@ -44,7 +44,9 @@
       "goal_14": "complete",
       "goal_14_tests": "passed",
       "goal_15": "complete",
-      "goal_15_tests": "passed"
+      "goal_15_tests": "passed",
+      "goal_16": "complete",
+      "goal_16_tests": "passed"
     }
   }
 }

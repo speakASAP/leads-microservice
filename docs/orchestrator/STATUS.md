@@ -1104,3 +1104,54 @@ Gate decision:
 Next recommended goal:
 
 - Select the next owner-approved runtime slice, likely durable lifecycle event storage, Marketing eligibility preview, or Auth-backed admin authentication.
+
+
+## 2026-06-13 - Goal 16 Marketing Campaign Eligibility Preview Complete
+
+Current focus:
+
+- Selected next implementation goal: Marketing eligibility preview, because durable event storage needs a schema/migration plan and Auth-backed admin authentication needs exact Auth claim names.
+- Runtime code changes: guarded internal eligibility preview endpoint, DTO, service evaluation, audit-safe logging summary, and focused tests.
+- Deployment: not required and not performed.
+
+Source context:
+
+- DocsRAG was queried first, but `JWT_TOKEN` was unavailable in the remote shell. Repo-local Goal 11 Marketing eligibility and lifecycle contracts were used as source of truth.
+
+Implementation evidence:
+
+- Added `src/leads/dto/campaign-eligibility-preview.dto.ts`.
+- Updated `src/leads/leads.service.ts` with deterministic eligibility evaluation.
+- Updated `src/leads/leads.controller.ts` with `POST /leads/internal/campaign-eligibility/preview`.
+- Updated `src/leads/leads.service.spec.ts`.
+- Updated `src/leads/leads.controller.spec.ts`.
+- Added Goal 16 execution artifacts under `implementation-goals/`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts`: passed, 2 suites, 14 tests.
+- `npm run build`: passed.
+- Full `npm test`: passed, 10 suites, 50 tests.
+- Missing-marker scan: passed with no matches.
+- Secret-pattern scan: passed with no matches.
+
+Sensitive-data handling:
+
+- Synthetic test values only.
+- Eligibility preview response returns lead IDs, eligibility booleans, deterministic reason codes, contact method types, preferred channel, fallback count, consent evidence presence, unsubscribe state, confirmation state, and aggregate counts.
+- Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, session tokens, and raw consent source values.
+
+Contract impact:
+
+- New guarded internal endpoint only.
+- No public API response shape changed.
+- No Prisma schema, campaign execution, approval workflow, contact resolution, raw export, Notifications dispatch, AI export, CRM export, production read, production mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 16.
+
+Next recommended goal:
+
+- Select the next owner-approved runtime slice, likely controlled contact resolution after approval, durable lifecycle event storage, or Auth-backed admin authentication.
