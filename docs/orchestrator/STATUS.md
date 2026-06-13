@@ -1303,3 +1303,47 @@ Gate decision:
 Next recommended action:
 
 - Deploy/apply the Goal 18 migration when owner approval is given, or select Auth-backed admin authentication after exact Auth claim names and tenant mapping semantics are confirmed.
+
+## 2026-06-13 - Goal 19 Auth-Backed Admin APIs And Goal 18 Deployment Complete
+
+Current focus:
+
+- Deployed Goal 18 durable lifecycle event storage migration after owner approval.
+- Completed and deployed Goal 19 Auth-backed admin API authentication.
+
+Implementation evidence:
+
+- Added Auth-backed AdminAuthGuard using Auth POST /auth/validate.
+- Added masked browser/admin APIs under /api/admin/leads.
+- Updated admin browser shell to use Authorization bearer tokens instead of internal service token headers.
+- Kept service-to-service routes on InternalServiceGuard.
+- Recorded tenant/workspace mapping as follow-up because Auth contract does not define Leads tenant mapping yet.
+
+Validation evidence:
+
+- Focused tests passed: 5 suites, 30 tests.
+- Full npm test passed: 12 suites, 64 tests.
+- npm run build passed.
+- npm run lint passed.
+- npm run prisma:generate and npx prisma validate passed.
+- Missing-marker and secret-pattern scans passed with no matches.
+- scripts/deploy.sh completed successfully.
+- Forced rollout restart completed successfully after unchanged latest image reference.
+- New pod logs show migration 20260613_add_lead_lifecycle_events applied successfully.
+- Public health returned status ok.
+- GET /api/admin/leads without Authorization returned HTTP 401.
+- GET /admin returned HTTP 200 and contains Auth access token prompt.
+- In-pod DB check confirmed LeadLifecycleEvent table exists.
+
+Sensitive-data handling:
+
+- No tokens, secrets, raw contact values, raw messages, confirmation tokens, private source path/query values, metadata values, production lead rows, or raw consent source values were recorded.
+- Admin API responses are masked/minimized by default.
+
+Gate decision:
+
+- Integration and deployment readiness accepted for Goal 19 and Goal 18 migration deployment.
+
+Next recommended action:
+
+- Confirm exact Auth tenant/workspace mapping before tenant-scoped admin isolation, or select the next owner-approved Leads runtime slice.

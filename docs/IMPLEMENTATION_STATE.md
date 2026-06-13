@@ -21,10 +21,10 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 18 - Durable Lifecycle Event Storage is complete.
-- Runtime source changes in the latest completed runtime task: durable minimized lifecycle event table/migration, idempotent lifecycle router persistence, guarded one-lead lifecycle event retrieval, and focused tests.
-- Latest implementation change: Goal 18 durably persists minimized lifecycle events and exposes guarded one-lead lifecycle event retrieval without raw lead export.
-- Deployment: not performed for Goal 18; migration/deploy requires owner approval. Public response shapes, notification dispatch, campaign execution behavior, and external service ownership are unchanged.
+- Current owner-selected task: Goal 19 - Auth-Backed Admin API Authentication is complete and deployed with Goal 18 migration.
+- Runtime source changes in the latest completed runtime task: Auth-backed admin guard, masked admin APIs, admin browser Auth token flow, and Goal 18 durable lifecycle event migration deployed.
+- Latest implementation change: Goal 19 validates Auth bearer tokens for browser/admin APIs and serves masked admin lead data without internal service tokens.
+- Deployment: completed after owner approval. Goal 18 migration applied in the restarted pod; health and admin 401 smoke checks passed.
 
 ## Preserved Intent Summary
 
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 18 - Durable Lifecycle Event Storage is complete. Focused tests, full tests, Prisma generation/validation, build, lint, and documentation scans passed.
+Goal 19 - Auth-Backed Admin API Authentication is complete. Goal 18 deployment/migration and Goal 19 Auth-backed admin APIs are deployed.
 
 ## Completed Goals
 
@@ -60,10 +60,11 @@ Goal 18 - Durable Lifecycle Event Storage is complete. Focused tests, full tests
 - Goal 16 - Marketing Campaign Eligibility Preview: complete on 2026-06-13.
 - Goal 17 - Controlled Contact Resolution: complete on 2026-06-13.
 - Goal 18 - Durable Lifecycle Event Storage: complete on 2026-06-13.
+- Goal 19 - Auth-Backed Admin API Authentication: complete and deployed on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: deploy/apply the Goal 18 migration when owner approval is given, or select Auth-backed admin authentication after exact Auth claim names and tenant mapping semantics are confirmed.
+Next recommended implementation goal: confirm exact Auth tenant/workspace mapping before tenant-scoped admin isolation, or select the next owner-approved Leads runtime slice.
 
 ## Known Blockers
 

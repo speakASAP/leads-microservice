@@ -8,9 +8,119 @@ import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 
+function sourceHostForAdmin(sourceUrl?: string | null): string | null {
+  if (!sourceUrl) {
+    return null;
+  }
+  try {
+    return new URL(sourceUrl).hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
 @Injectable()
 export class LeadsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private toAdminLeadSummary(lead: {
+    id: string;
+    status: string;
+    sourceService: string;
+    sourceUrl?: string | null;
+    sourceLabel?: string | null;
+    preferredChannel?: string | null;
+    fallbackChannels?: Prisma.JsonValue | null;
+    marketingConsent?: boolean | null;
+    consentSource?: string | null;
+    consentCapturedAt?: Date | null;
+    confirmedAt?: Date | null;
+    unsubscribedAt?: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    contactMethods: Array<{ type: string; isPrimary: boolean }>;
+  }) {
+    return {
+      id: lead.id,
+      status: lead.status,
+      sourceService: lead.sourceService,
+      sourceLabel: lead.sourceLabel ?? null,
+      sourceHost: sourceHostForAdmin(lead.sourceUrl),
+      preferredChannel: lead.preferredChannel ?? null,
+      fallbackChannelCount: Array.isArray(lead.fallbackChannels) ? lead.fallbackChannels.length : 0,
+      marketingConsent: lead.marketingConsent ?? null,
+      consentEvidencePresent: Boolean(lead.consentSource && lead.consentCapturedAt),
+      confirmedAt: lead.confirmedAt,
+      unsubscribedAt: lead.unsubscribedAt,
+      createdAt: lead.createdAt,
+      updatedAt: lead.updatedAt,
+      contactMethods: lead.contactMethods.map((method) => ({
+        type: method.type,
+        isPrimary: method.isPrimary,
+      })),
+    };
+  }
+
+  async getAdminLeadSummary() {
+    const [total, confirmed, consented, unsubscribed] = await Promise.all([
+      this.prisma.lead.count(),
+      this.prisma.lead.count({ where: { confirmedAt: { not: null } } }),
+      this.prisma.lead.count({ where: { marketingConsent: true, unsubscribedAt: null } }),
+      this.prisma.lead.count({ where: { unsubscribedAt: { not: null } } }),
+    ]);
+    return { total, confirmed, consented, unsubscribed };
+  }
+
+  async listAdminLeads(query: LeadQueryDto) {
+    const limit = Math.min(query.limit || 30, 30);
+    const page = query.page || 1;
+    const skip = (page - 1) * limit;
+    const where: Prisma.LeadWhereInput = {};
+    if (query.sourceService) {
+      where.sourceService = query.sourceService;
+    }
+    if (query.startDate || query.endDate) {
+      where.createdAt = {};
+      if (query.startDate) {
+        where.createdAt.gte = new Date(query.startDate);
+      }
+      if (query.endDate) {
+        where.createdAt.lte = new Date(query.endDate);
+      }
+    }
+    const [items, total] = await Promise.all([
+      this.prisma.lead.findMany({
+        where,
+        select: {
+          id: true, status: true, sourceService: true, sourceUrl: true, sourceLabel: true, preferredChannel: true,
+          fallbackChannels: true, marketingConsent: true, consentSource: true, consentCapturedAt: true,
+          confirmedAt: true, unsubscribedAt: true, createdAt: true, updatedAt: true,
+          contactMethods: { select: { type: true, isPrimary: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      this.prisma.lead.count({ where }),
+    ]);
+    return { items: items.map((lead) => this.toAdminLeadSummary(lead)), page, limit, total };
+  }
+
+  async getAdminLeadById(id: string) {
+    const lead = await this.prisma.lead.findUnique({
+      where: { id },
+      select: {
+        id: true, status: true, sourceService: true, sourceUrl: true, sourceLabel: true, preferredChannel: true,
+        fallbackChannels: true, marketingConsent: true, consentSource: true, consentCapturedAt: true,
+        confirmedAt: true, unsubscribedAt: true, createdAt: true, updatedAt: true,
+        contactMethods: { select: { type: true, isPrimary: true } },
+      },
+    });
+    if (!lead) {
+      throw new NotFoundException("Lead not found");
+    }
+    return this.toAdminLeadSummary(lead);
+  }
 
   async createLead(payload: CreateLeadDto) {
     const primaryIndex = payload.contactMethods.findIndex((method) => method.type && method.value);
