@@ -21,7 +21,7 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 20 - Auth Workspace-Scoped Admin Isolation is implemented and validation passed; deployment pending final owner-approved deploy step.
+- Current owner-selected task: Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
 - Runtime source changes in the latest completed runtime task: Auth-backed admin guard now captures workspace/tenant claims, admin APIs pass admin scope into service reads, and Leads applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to non-global admin summary/list/detail reads.
 - Latest implementation change: Goal 20 adds fail-closed workspace-scoped admin isolation for non-global Auth admins while keeping global:superadmin platform-wide.
 - Deployment: completed after owner approval. Goal 18 migration applied in the restarted pod; health and admin 401 smoke checks passed.
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 20 - Auth Workspace-Scoped Admin Isolation is implemented with validation passing. Deployment is pending final rollout evidence.
+Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
 
 ## Completed Goals
 
@@ -61,11 +61,11 @@ Goal 20 - Auth Workspace-Scoped Admin Isolation is implemented with validation p
 - Goal 17 - Controlled Contact Resolution: complete on 2026-06-13.
 - Goal 18 - Durable Lifecycle Event Storage: complete on 2026-06-13.
 - Goal 19 - Auth-Backed Admin API Authentication: complete and deployed on 2026-06-13.
-- Goal 20 - Auth Workspace-Scoped Admin Isolation: implemented and validation passed on 2026-06-13.
+- Goal 20 - Auth Workspace-Scoped Admin Isolation: complete and deployed on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: deploy Goal 20 and then configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available.
+Next recommended implementation goal: configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available, or select the next owner-approved Leads runtime slice.
 
 ## Known Blockers
 
