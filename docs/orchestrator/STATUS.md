@@ -423,3 +423,46 @@ Gate decision:
 Next unfinished chunks:
 
 - None. All current Leads orchestrator goals are complete.
+
+## 2026-06-13 - Goal 7 Frontend Cutover Deployment Path Check
+
+Current focus:
+
+- Owner-selected follow-up: locate the frontend deployment path before cutover, or explicitly scope a destructive fixture-only merge/delete validation run.
+- Runtime code changes: none.
+- Deployment: not requested and not performed.
+- Destructive validation: not scoped or run because the frontend deployment path was located.
+
+Source context:
+
+- Reviewed Leads orchestrator state and confirmed all prior goals are complete.
+- Searched `leads-microservice` for frontend, cutover, fixture, merge, and delete references; no relevant frontend deployment path exists in this backend repo.
+- Queried DocsRAG from inside the Leads runtime pod without printing token values. Retrieval returned HTTP 200 and included an older StateX integration note with blue/green compose commands; current Kubernetes manifests and live cluster state supersede that note for production cutover planning.
+- Inspected `/home/ssf/Documents/Github/statex` read-only because `alfares.cz` is the StateX frontend host and the Leads repo has no frontend assets.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-07-frontend-cutover-deployment-path.md`.
+- Added `implementation-goals/GOAL-07-frontend-cutover-deployment-path.validation-report.md`.
+- Located the current frontend source path: `/home/ssf/Documents/Github/statex/statex-website/frontend`.
+- Located the current production deploy path: `/home/ssf/Documents/Github/statex/scripts/deploy.sh`.
+- Confirmed `/home/ssf/Documents/Github/statex/Dockerfile` builds the production image by copying `statex-website/frontend` into `/app`.
+
+Validation evidence:
+
+- `kubectl -n statex-apps get ingress statex -o wide`: passed; ingress host `alfares.cz`.
+- `kubectl -n statex-apps get svc statex -o wide`: passed; service `statex` exposes port `3000/TCP`.
+- `kubectl -n statex-apps get deploy statex -o wide`: passed; deployment `statex` was `1/1` ready and uses image `localhost:5000/statex:latest`.
+- `kubectl -n statex-apps get pods -l app=statex -o wide`: passed; one running ready pod.
+- Runtime metadata check inside deployment `statex`: passed; working directory `/app`, `SERVICE_NAME=statex`, `DOMAIN=alfares.cz`, `PORT=3000`, `NODE_ENV=production`; no secrets were printed.
+- Sensitive-data handling: no secrets, real contact details, production lead rows, raw messages, confirmation tokens, private URLs, CRM records, or production payloads captured.
+- Consent impact: no consent, confirmation, preference, or unsubscribe semantics changed.
+- Contract impact: no Leads API, schema, logging, notification, AI, CRM, frontend, or deployment contract changed.
+
+Gate decision:
+
+- Documentation-only readiness accepted. Deployment readiness was not evaluated because no deployment was requested. Destructive fixture-only merge/delete validation remains out of scope unless the owner explicitly requests it with a synthetic-only, non-production fixture boundary.
+
+Next unfinished chunks:
+
+- None. All current Leads orchestrator goals remain complete.

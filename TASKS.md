@@ -20,3 +20,4 @@
 - 2026-06-13 goal-4-notification-and-confirmation-reliability-complete
 - 2026-06-13 goal-5-ai-and-crm-data-sharing-boundary-complete
 - 2026-06-13 goal-6-operational-smoke-and-documentation-ingestion-complete
+- 2026-06-13 goal-7-frontend-cutover-deployment-path-checked
