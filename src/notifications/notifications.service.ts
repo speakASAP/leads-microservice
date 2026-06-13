@@ -18,6 +18,23 @@ type LeadContext = {
 
 const BG_URL = 'https://speakasap.com/static/big_brother/assets/bg.png';
 
+function summarizeContactMethods(contactMethods: ContactMethod[]): string {
+  const types = contactMethods.map((method) => method.type).filter(Boolean).join(',') || 'none';
+  return `contactMethodCount=${contactMethods.length} contactMethodTypes=${types}`;
+}
+
+function getSourceHost(sourceUrl?: string): string | null {
+  if (!sourceUrl) {
+    return null;
+  }
+
+  try {
+    return new URL(sourceUrl).hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
 function buildAdminHtml(ctx: LeadContext, contactMethods: ContactMethod[]): string {
   const domain = ctx.sourceUrl
     ? new URL(ctx.sourceUrl).hostname.replace(/^www\./, '')
@@ -212,7 +229,12 @@ export class NotificationsService {
     const hasToken = !!serviceToken;
     const url = `${baseUrl}/notifications/send`;
 
-    this.logger.log(`[${label}] POST ${url} channel=${payload['channel']} recipient=${payload['recipient']} hasToken=${hasToken}`);
+    this.logger.log(
+      `[${label}] POST ${url}` +
+      ` channel=${payload['channel']}` +
+      ` recipientPresent=${Boolean(payload['recipient'])}` +
+      ` hasToken=${hasToken}`,
+    );
 
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (serviceToken) {
@@ -221,13 +243,12 @@ export class NotificationsService {
 
     try {
       const resp = await lastValueFrom(this.httpService.post(url, payload, { headers }));
-      this.logger.log(`[${label}] SUCCESS status=${resp.status} data=${JSON.stringify(resp.data)}`);
+      this.logger.log(`[${label}] SUCCESS status=${resp.status}`);
     } catch (err) {
       const axiosErr = err as AxiosError;
       const status = axiosErr.response?.status;
-      const body = JSON.stringify(axiosErr.response?.data);
       const msg = axiosErr.message;
-      this.logger.error(`[${label}] FAILED status=${status} message=${msg} body=${body}`);
+      this.logger.error(`[${label}] FAILED status=${status} message=${msg}`);
       throw err;
     }
   }
@@ -241,12 +262,13 @@ export class NotificationsService {
 
     this.logger.log(
       `sendLeadConfirmation START` +
-      ` baseUrl=${baseUrl}` +
-      ` adminEmail=${adminEmail}` +
-      ` contactMethods=${JSON.stringify(contactMethods)}` +
+      ` baseUrlConfigured=${Boolean(baseUrl)}` +
+      ` adminEmailConfigured=${Boolean(adminEmail)}` +
+      ` ${summarizeContactMethods(contactMethods)}` +
       ` sourceService=${ctx.sourceService}` +
-      ` sourceUrl=${ctx.sourceUrl}` +
-      ` name=${ctx.name}` +
+      ` sourceUrlPresent=${Boolean(ctx.sourceUrl)}` +
+      ` sourceUrlHost=${getSourceHost(ctx.sourceUrl) ?? 'unavailable'}` +
+      ` namePresent=${Boolean(ctx.name)}` +
       ` messageLen=${ctx.message?.length}`
     );
 
@@ -262,14 +284,14 @@ export class NotificationsService {
         : ctx.sourceService;
     } catch (e) {
       domain = ctx.sourceService;
-      this.logger.warn(`sendLeadConfirmation: failed to parse sourceUrl="${ctx.sourceUrl}", using sourceService as domain`);
+      this.logger.warn('sendLeadConfirmation: failed to parse sourceUrl, using sourceService as domain');
     }
 
     this.logger.log(`sendLeadConfirmation domain=${domain}`);
 
     // Admin notification
     if (adminEmail) {
-      this.logger.log(`sendLeadConfirmation: sending ADMIN notification to ${adminEmail}`);
+      this.logger.log('sendLeadConfirmation: sending ADMIN notification');
       try {
         await this.sendViaNotifications({
           channel: 'email',
@@ -303,11 +325,11 @@ export class NotificationsService {
 
     const selected = contactMethods.find((method) => channelMap[method.type]);
     if (!selected) {
-      this.logger.warn(`sendLeadConfirmation: no supported channel in contactMethods=${JSON.stringify(contactMethods)}`);
+      this.logger.warn(`sendLeadConfirmation: no supported channel in ${summarizeContactMethods(contactMethods)}`);
       return false;
     }
 
-    this.logger.log(`sendLeadConfirmation: sending SUBMITTER confirmation channel=${selected.type} recipient=${selected.value}`);
+    this.logger.log(`sendLeadConfirmation: sending SUBMITTER confirmation channel=${selected.type} recipientPresent=${Boolean(selected.value)}`);
 
     const isEmail = selected.type === 'email';
     const html = isEmail ? buildHtml(ctx) : undefined;

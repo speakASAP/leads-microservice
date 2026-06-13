@@ -25,9 +25,9 @@ This directory stores durable goal records and goal-specific execution artifacts
 | Goal 1 - Intent Preservation System | done | `GOAL-01-intent-preservation-system.md` |
 | Goal 2 - Lead Intake Contract And Consent Hardening | done | `GOAL-02-lead-intake-contract-and-consent-hardening.md` |
 | Goal 3 - Privacy-Safe Retrieval And Internal Access | done | `GOAL-03-privacy-safe-retrieval-and-internal-access.md` |
-| Goal 4 - Notification And Confirmation Reliability | pending | use templates when selected |
-| Goal 5 - AI And CRM Data-Sharing Boundary | pending | use templates when selected |
-| Goal 6 - Operational Smoke And Documentation Ingestion | pending | use templates when selected |
+| Goal 4 - Notification And Confirmation Reliability | done | `GOAL-04-notification-and-confirmation-reliability.md` |
+| Goal 5 - AI And CRM Data-Sharing Boundary | done | `GOAL-05-ai-and-crm-data-sharing-boundary.md` |
+| Goal 6 - Operational Smoke And Documentation Ingestion | done | `GOAL-06-operational-smoke-and-documentation-ingestion.md` |
 
 ## Required Artifacts For Future Coding
 

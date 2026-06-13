@@ -5,7 +5,7 @@ id: LEADS-IMPLEMENTATION-STATE
 status: active
 owner: leads-owner
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-06-13
 completeness_level: complete
 upstream:
   - ../BUSINESS.md
@@ -21,8 +21,8 @@ downstream:
 
 - Stage: production.
 - Health: documented as `ok` in `STATE.json`.
-- Current owner-selected task: Goal 3 - Privacy-Safe Retrieval And Internal Access is complete.
-- Runtime source changes in the latest task: none relative to current `HEAD`; guarded raw retrieval and focused controller/service/guard tests were verified.
+- Current owner-selected task: Goal 6 - Operational Smoke And Documentation Ingestion is complete.
+- Runtime source changes in the latest task: none for Goal 6; build/test/health and DocsRAG ingestion/retrieval evidence were recorded.
 - Deployment required for latest task: no.
 
 ## Preserved Intent Summary
@@ -31,7 +31,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 3 - Privacy-Safe Retrieval And Internal Access is complete. Chunks 3.1, 3.2, 3.3, and 3.4 are complete.
+Goal 6 - Operational Smoke And Documentation Ingestion is complete. Chunks 6.1, 6.2, 6.3, and 6.4 are complete.
 
 ## Completed Goals
 
@@ -41,10 +41,13 @@ Goal 3 - Privacy-Safe Retrieval And Internal Access is complete. Chunks 3.1, 3.2
 - Goal 2 chunk 2.3 - Focused Validation Coverage: complete on 2026-06-12.
 - Goal 2 chunk 2.4 - Consumer Compatibility Risks: complete on 2026-06-12.
 - Goal 3 - Privacy-Safe Retrieval And Internal Access: complete on 2026-06-12.
+- Goal 4 - Notification And Confirmation Reliability: complete on 2026-06-13.
+- Goal 5 - AI And CRM Data-Sharing Boundary: complete on 2026-06-13.
+- Goal 6 - Operational Smoke And Documentation Ingestion: complete on 2026-06-13.
 
 ## Next Recommended Goal
 
-Goal 4 - Notification And Confirmation Reliability.
+None. All current Leads orchestrator goals are complete.
 
 ## Known Blockers
 
@@ -53,7 +56,7 @@ Goal 4 - Notification And Confirmation Reliability.
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. Continue Goal 4 unless the owner chooses another task.
+2. No pending orchestrator goal remains; wait for the owner to select the next task.
 3. Fill the execution plan and context package for the selected chunk.
 4. Run the pre-coding gate before source edits.
 5. Record validation evidence before ending.

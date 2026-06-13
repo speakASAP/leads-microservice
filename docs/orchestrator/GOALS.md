@@ -66,16 +66,16 @@ Acceptance criteria:
 
 ## Goal 4 - Notification And Confirmation Reliability
 
-Status: pending
+Status: done
 
 Intent: Lead confirmation requests must remain observable and privacy-safe without making Leads the notification delivery owner.
 
 Chunks:
 
-- [ ] 4.1 Review notifications-microservice call contract and error handling.
-- [ ] 4.2 Verify confirmation token handling does not leak sensitive values in logs or docs.
-- [ ] 4.3 Add focused tests or smoke evidence for notification failure behavior.
-- [ ] 4.4 Document notification ownership boundary.
+- [x] 4.1 Review notifications-microservice call contract and error handling.
+- [x] 4.2 Verify confirmation token handling does not leak sensitive values in logs or docs.
+- [x] 4.3 Add focused tests or smoke evidence for notification failure behavior.
+- [x] 4.4 Document notification ownership boundary.
 
 Acceptance criteria:
 
@@ -86,16 +86,16 @@ Acceptance criteria:
 
 ## Goal 5 - AI And CRM Data-Sharing Boundary
 
-Status: pending
+Status: done
 
 Intent: AI and CRM integrations must use minimum necessary lead context and never export raw lead data without explicit owner approval.
 
 Chunks:
 
-- [ ] 5.1 Identify current and intended AI/CRM call paths.
-- [ ] 5.2 Define redaction, minimization, and approval rules.
-- [ ] 5.3 Add a validation checklist for prompts, logs, and integration payloads.
-- [ ] 5.4 Split implementation work into owner-approvable chunks.
+- [x] 5.1 Identify current and intended AI/CRM call paths.
+- [x] 5.2 Define redaction, minimization, and approval rules.
+- [x] 5.3 Add a validation checklist for prompts, logs, and integration payloads.
+- [x] 5.4 Split implementation work into owner-approvable chunks.
 
 Acceptance criteria:
 
@@ -105,16 +105,16 @@ Acceptance criteria:
 
 ## Goal 6 - Operational Smoke And Documentation Ingestion
 
-Status: pending
+Status: done
 
 Intent: Leads must prove production readiness with health, build, tests, and documentation retrieval evidence.
 
 Chunks:
 
-- [ ] 6.1 Run `npm run build` and `npm test`.
-- [ ] 6.2 Verify `https://leads.alfares.cz/health`.
-- [ ] 6.3 Trigger DocsRAG ingestion when credentials are available.
-- [ ] 6.4 Verify retrieval returns the current Leads IPS docs.
+- [x] 6.1 Run `npm run build` and `npm test`.
+- [x] 6.2 Verify `https://leads.alfares.cz/health`.
+- [x] 6.3 Trigger DocsRAG ingestion when credentials are available.
+- [x] 6.4 Verify retrieval returns the current Leads IPS docs.
 
 Acceptance criteria:
 

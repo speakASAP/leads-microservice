@@ -283,3 +283,143 @@ Gate decision:
 Next unfinished chunks:
 
 - Goal 4 - Notification And Confirmation Reliability.
+
+## 2026-06-13 - Goal 4 Notification And Confirmation Reliability
+
+Current focus:
+
+- Owner-selected goal: Goal 4 - Notification And Confirmation Reliability.
+- Completed chunks: 4.1 review notifications-microservice call contract and error handling, 4.2 verify confirmation token handling does not leak sensitive values, 4.3 add focused notification failure behavior tests, 4.4 document notification ownership boundary.
+- Runtime code changes: notification and lead submit logs were redacted; focused notification reliability/privacy tests were added.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, required orchestrator docs, `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `src/notifications/notifications.service.ts`, `src/leads/leads.controller.ts`, `src/leads/leads.service.ts`, and `package.json`.
+- Queried DocsRAG from inside the Leads runtime pod because the plain SSH shell does not expose runtime secrets. Retrieval returned HTTP 200 for the Goal 4 notification reliability query. The token value was not printed or persisted.
+- DocsRAG context reinforced that notifications-microservice remains the only outbound sender and that notification failure should be logged without failing critical domain mutation unless legally required.
+
+Implementation evidence:
+
+- Added Goal 4 execution, context, coding prompt, and validation report artifacts under `implementation-goals/`.
+- Ran the pre-coding gate with `pass`.
+- Redacted `NotificationsService` logs so they no longer include raw recipients, raw contact method values, raw source URL paths/query strings, raw messages, confirmation tokens, or notification response bodies.
+- Redacted `LeadsController.submitLead` start log to report contact method count/types, message length, and metadata keys rather than raw contact methods or metadata values.
+- Preserved notifications-microservice payloads and endpoint contract.
+- Preserved admin notification failure as non-fatal and submitter notification failure as `false`.
+- Added `src/notifications/notifications.service.spec.ts` for missing URL, admin failure, submitter failure, and log redaction behavior.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/notifications/notifications.service.spec.ts`: passed, 4 tests.
+- `npm test`: passed, 6 suites and 28 tests.
+- `npm run build`: passed.
+- Static risky-log scan passed with no matches across `src/notifications/notifications.service.ts` and `src/leads/leads.controller.ts`.
+- Missing-marker scan passed with no matches: `rg "\[(MISSING|UNKNOWN):" docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`.
+- Secret-pattern scan passed with no matches across `docs`, `AGENTS.md`, `TASKS.md`, `implementation-goals`, and `src/notifications/notifications.service.spec.ts`.
+- Sensitive-data handling: synthetic test values only; no secrets, real contact details, production lead rows, confirmation tokens, private URLs, or production payloads captured.
+- Contract impact: no notifications-microservice payload contract or schema change. Leads still calls notifications-microservice as the outbound delivery owner; only local logging behavior changed.
+- Consent impact: no semantics change.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 4. Deployment readiness not evaluated because deployment was not requested.
+
+Next unfinished chunks:
+
+- Goal 5 - AI And CRM Data-Sharing Boundary.
+
+## 2026-06-13 - Goal 5 AI And CRM Data-Sharing Boundary
+
+Current focus:
+
+- Owner-selected goal: Goal 5 - AI And CRM Data-Sharing Boundary.
+- Completed chunks: 5.1 identify current and intended AI/CRM call paths, 5.2 define redaction/minimization/approval rules, 5.3 add validation checklist for prompts/logs/integration payloads, 5.4 split implementation into owner-approvable chunks.
+- Runtime code changes: none for Goal 5; documentation and continuation state only.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, required orchestrator docs, `BUSINESS.md`, `SYSTEM.md`, `AGENTS.md`, `TASKS.md`, `STATE.json`, `README.md`, `CLAUDE.md`, `.env.example`, `src/leads/leads.controller.ts`, `src/leads/leads.service.ts`, `src/leads/guards/internal-service.guard.ts`, `src/logging/logging.service.ts`, `prisma/schema.prisma`, and prior Goal 2 through Goal 4 artifacts.
+- Queried DocsRAG from inside the Leads runtime pod because the plain SSH shell does not expose runtime secrets. Retrieval returned HTTP 200 for the Goal 5 AI/CRM data-sharing boundary query. The token value was not printed or persisted.
+- DocsRAG context reinforced that Leads owns lead contact/preference/consent data, marketing-microservice may read Leads contact/preference/consent fields for non-registered contacts, marketing must only target leads with explicit marketing consent, and raw lead export requires owner approval.
+- Source inspection found `AI_SERVICE_URL` configuration and AI/CRM documentation references, but no implemented AI client or CRM-specific client in the Leads source.
+
+Implementation evidence:
+
+- Added Goal 5 execution, context, coding prompt, validation report, and goal record artifacts under `implementation-goals/`.
+- Ran the pre-coding gate with `pass`.
+- Documented current paths: guarded raw lead list/detail retrieval, guarded preference/unsubscribe APIs, logging metadata, notification confirmation context, configured-but-unused `AI_SERVICE_URL`, and no current CRM-specific client.
+- Defined AI/CRM data classes for operational metadata, consent/preference state, contact data, lead narrative/context, confirmation/unsubscribe secrets, and production rows/logs.
+- Added redaction, minimization, and raw-export owner approval rules.
+- Added a validation checklist for prompts, logs, screenshots, validation reports, and future integration payloads.
+- Split future runtime work into owner-approvable chunks for sanitized AI summaries, CRM export design, raw-export exception process, and contract tests.
+- Marked Goal 5 complete and updated continuation state toward Goal 6.
+
+Validation evidence:
+
+- Documentation presence check passed on `alfares`: `find docs/orchestrator implementation-goals -maxdepth 2 -type f -name '*.md' -print` listed the orchestrator docs and Goal 5 artifacts.
+- Missing-marker scan passed on `alfares` with no matches: `rg "\[(MISSING|UNKNOWN):" docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`.
+- Secret-pattern scan passed on `alfares` with no matches across `docs`, `AGENTS.md`, `TASKS.md`, and `implementation-goals`.
+- `npm run build`: passed.
+- Sensitive-data handling: no data-bearing examples; no secrets, real contact details, production lead rows, raw messages, confirmation tokens, private URLs, CRM records, or production payloads captured.
+- Contract impact: no API, schema, logging, notification, AI, or CRM runtime contract change. Future AI/CRM payload constraints and approval gates are documentation only.
+- Consent impact: no semantics change. Future AI/CRM work must preserve consent/preference/unsubscribe evidence and must not infer targetability from contact presence or source service alone.
+
+Gate decision:
+
+- Documentation-only readiness accepted for Goal 5. Deployment readiness not evaluated because deployment was not requested.
+
+Next unfinished chunks:
+
+- Goal 6 - Operational Smoke And Documentation Ingestion.
+
+## 2026-06-13 - Goal 6 Operational Smoke And Documentation Ingestion
+
+Current focus:
+
+- Owner-selected goal: Goal 6 - Operational Smoke And Documentation Ingestion.
+- Completed chunks: 6.1 run build and tests, 6.2 verify production health, 6.3 trigger DocsRAG ingestion, 6.4 verify retrieval returns current Leads IPS docs.
+- Runtime code changes: none for Goal 6; operational validation and documentation/state updates only.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/READINESS_GATES.md`, `AGENTS.md`, `CLAUDE.md`, `package.json`, and `docs-rag-microservice/docs/RAG_USAGE.md`.
+- Baseline DocsRAG retrieval from inside the Leads runtime pod returned HTTP 200 but no context for the current Goal 6/IPS query before ingestion.
+- The plain SSH shell does not expose runtime secrets; DocsRAG calls were run inside the Leads runtime pod and the token value was not printed or persisted.
+
+Implementation evidence:
+
+- Added Goal 6 execution, context, coding prompt, validation report, and goal record artifacts under `implementation-goals/`.
+- Ran the pre-coding gate with `pass`.
+- Ran build and full tests.
+- Verified public production health.
+- Triggered DocsRAG ingestion for `leads-microservice`.
+- Verified DocsRAG retrieval returned current Leads IPS/Goal documentation after ingestion.
+- Marked Goal 6 complete and updated continuation state to no pending implementation goals.
+
+Validation evidence:
+
+- `npm run build`: passed.
+- `npm test`: passed, 6 suites and 28 tests.
+- `curl -sS https://leads.alfares.cz/health`: passed with `{"status":"ok"}`.
+- DocsRAG baseline retrieval before ingestion: HTTP 200 with empty context for current Goal 6/IPS query.
+- DocsRAG ingestion trigger: HTTP 202, job `b49aab8d-ebcd-4e59-8cd8-383702b1b3a2`, status `running`, repo `leads-microservice`.
+- DocsRAG retrieval after ingestion: HTTP 200 and returned current Leads docs including `docs/IMPLEMENTATION_STATE.md`, Goal 5 artifacts, `docs/orchestrator/PROMPTS.md` Goal 6 prompt, and `docs/orchestrator/GOALS.md` Goal 6 backlog entry.
+- Documentation presence check: passed.
+- Missing-marker scan: passed with no matches.
+- Secret-pattern scan: passed with no matches.
+- Sensitive-data handling: no secrets, real contact details, production lead rows, raw messages, confirmation tokens, private URLs, CRM records, or production payloads captured.
+- Contract impact: no API, schema, logging, notification, AI, CRM, or database contract change.
+- Consent impact: no semantics change.
+- AI/CRM export impact: no AI/CRM export.
+- Outreach impact: no outreach automation.
+
+Gate decision:
+
+- Operational readiness accepted for Goal 6. Deployment readiness not evaluated because deployment was not requested.
+
+Next unfinished chunks:
+
+- None. All current Leads orchestrator goals are complete.
