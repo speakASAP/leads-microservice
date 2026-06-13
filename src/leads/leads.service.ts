@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CampaignEligibilityPreviewDto } from './dto/campaign-eligibility-preview.dto';
+import { ContactResolutionDto } from './dto/contact-resolution.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
@@ -250,6 +251,84 @@ export class LeadsService {
         requested: payload.leadIds.length,
         eligible: eligibleCount,
         ineligible: payload.leadIds.length - eligibleCount,
+      },
+    };
+  }
+
+  async resolveLeadContact(payload: ContactResolutionDto) {
+    if (payload.purpose === 'approved_campaign_send' && !payload.approvalId) {
+      throw new NotFoundException('Campaign approval evidence is required');
+    }
+
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: payload.leadId },
+      select: {
+        id: true,
+        marketingConsent: true,
+        consentSource: true,
+        consentCapturedAt: true,
+        unsubscribedAt: true,
+        confirmedAt: true,
+        contactMethods: {
+          select: { type: true, value: true, isPrimary: true },
+        },
+      },
+    });
+
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    const requestedChannels =
+      payload.requestedChannels && payload.requestedChannels.length > 0
+        ? Array.from(new Set(payload.requestedChannels))
+        : Array.from(new Set(lead.contactMethods.map((method) => method.type)));
+
+    if (payload.purpose === 'approved_campaign_send') {
+      const eligibility = await this.previewCampaignEligibility({
+        leadIds: [payload.leadId],
+        campaignPurpose: payload.campaignPurpose ?? 'marketing',
+        channel: requestedChannels[0] as 'email' | 'telegram' | 'whatsapp',
+        requireConfirmedContact: payload.requireConfirmedContact,
+      });
+      const item = eligibility.items[0];
+      if (!item?.eligible) {
+        return {
+          leadId: lead.id,
+          purpose: payload.purpose,
+          resolvedAt: new Date().toISOString(),
+          contactMethods: [],
+          consent: {
+            marketingConsent: lead.marketingConsent,
+            consentCapturedAtPresent: Boolean(lead.consentCapturedAt),
+            unsubscribed: Boolean(lead.unsubscribedAt),
+          },
+          eligibility: item ?? {
+            leadId: payload.leadId,
+            eligible: false,
+            reasons: ['invalid_lead_id'],
+          },
+        };
+      }
+    }
+
+    const contactMethods = lead.contactMethods
+      .filter((method) => requestedChannels.includes(method.type))
+      .map((method) => ({
+        type: method.type,
+        value: method.value,
+        isPrimary: method.isPrimary,
+      }));
+
+    return {
+      leadId: lead.id,
+      purpose: payload.purpose,
+      resolvedAt: new Date().toISOString(),
+      contactMethods,
+      consent: {
+        marketingConsent: lead.marketingConsent,
+        consentCapturedAtPresent: Boolean(lead.consentCapturedAt),
+        unsubscribed: Boolean(lead.unsubscribedAt),
       },
     };
   }

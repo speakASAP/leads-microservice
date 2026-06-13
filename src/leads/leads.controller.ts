@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { CampaignEligibilityPreviewDto } from './dto/campaign-eligibility-preview.dto';
+import { ContactResolutionDto } from './dto/contact-resolution.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { LinkLeadToUserDto } from './dto/link-lead-to-user.dto';
@@ -127,6 +128,22 @@ export class LeadsController {
       sourceService: query.sourceService || null,
       page: result.page,
       limit: result.limit,
+    });
+    return result;
+  }
+
+  @Post('internal/contact-resolution')
+  @UseGuards(InternalServiceGuard)
+  async resolveLeadContact(@Body() payload: ContactResolutionDto) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.resolveLeadContact(payload);
+    await this.loggingService.log('info', 'Lead contact resolved via internal API', {
+      leadId: result.leadId,
+      purpose: result.purpose,
+      requestedChannelCount: payload.requestedChannels?.length ?? null,
+      returnedContactMethodCount: result.contactMethods.length,
+      approvalEvidencePresent: Boolean(payload.approvalId),
+      duration_ms: Date.now() - startedAt,
     });
     return result;
   }

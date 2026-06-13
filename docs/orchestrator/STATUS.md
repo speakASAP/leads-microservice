@@ -1155,3 +1155,50 @@ Gate decision:
 Next recommended goal:
 
 - Select the next owner-approved runtime slice, likely controlled contact resolution after approval, durable lifecycle event storage, or Auth-backed admin authentication.
+
+
+## 2026-06-13 - Goal 17 Controlled Contact Resolution Complete
+
+Current focus:
+
+- Selected next implementation goal after Goal 16: controlled contact resolution after approval.
+- Runtime code changes: guarded one-lead contact resolution endpoint, DTO, service logic, audit-safe logging summary, and focused tests.
+- Deployment: not required and not performed.
+
+Implementation evidence:
+
+- Added `src/leads/dto/contact-resolution.dto.ts`.
+- Updated `src/leads/leads.service.ts` with `resolveLeadContact`.
+- Updated `src/leads/leads.controller.ts` with `POST /leads/internal/contact-resolution`.
+- Updated `src/leads/leads.service.spec.ts`.
+- Updated `src/leads/leads.controller.spec.ts`.
+- Added Goal 17 execution artifacts under `implementation-goals/`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts`: passed, 2 suites, 18 tests.
+- `npm run build`: passed.
+- Full `npm test`: passed, 10 suites, 54 tests.
+- Missing-marker scan: passed with no matches.
+- Secret-pattern scan: passed with no matches.
+
+Sensitive-data handling:
+
+- Contact values are returned only by the guarded contact-resolution endpoint for requested channels.
+- Logs include lead ID, purpose, requested channel count, returned contact method count, approval evidence presence, and duration only.
+- Logs omit returned contact values, raw messages, confirmation tokens, private source URLs, metadata values, campaign content, JWTs, and session tokens.
+
+Contract impact:
+
+- New guarded internal endpoint only.
+- No public API response shape changed.
+- No batch raw export, campaign execution, Notifications dispatch, approval storage, Prisma schema change, production read beyond requested lead lookup, production mutation, deployment, AI export, or CRM export.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 17.
+
+Next recommended goal:
+
+- Select the next owner-approved runtime slice, likely durable lifecycle event storage or Auth-backed admin authentication.
