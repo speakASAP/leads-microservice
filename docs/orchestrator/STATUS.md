@@ -466,3 +466,133 @@ Gate decision:
 Next unfinished chunks:
 
 - None. All current Leads orchestrator goals remain complete.
+
+## 2026-06-13 - Goals 8 And 9 StateX Cutover And AI/CRM Contract Tests
+
+Current focus:
+
+- Owner-selected goals: Goal 8 - StateX Frontend Cutover To Leads Intake, and Goal 9 - AI/CRM Payload Contract Tests.
+- Runtime code changes: StateX frontend direct-form cutover; Leads local sanitized AI/CRM context helper and tests.
+- Deployment: not requested and not performed.
+- Production data access: none.
+
+Source context:
+
+- Queried DocsRAG from inside the Leads runtime pod without printing token values. Retrieval returned HTTP 200 and reinforced Goal 5 minimization rules.
+- Confirmed StateX live env includes `NEXT_PUBLIC_LEADS_SERVICE_URL=https://leads.alfares.cz`.
+- Confirmed `FormSection` already submits dynamic StateX forms to Leads, while `DirectForm` still used platform notification calls before this change.
+- Confirmed Leads `CreateLeadDto` accepts contact method types `email`, `telegram`, and `whatsapp` and requires 1-30 contact methods.
+
+Implementation evidence:
+
+- Added StateX `statex-website/frontend/src/services/leadsService.ts`.
+- Updated StateX `statex-website/frontend/src/components/forms/DirectForm.tsx` to submit direct contact/prototype forms to Leads.
+- Added Leads `src/leads/integrations/ai-crm-payload.ts`.
+- Added Leads `src/leads/integrations/ai-crm-payload.spec.ts`.
+- Added Goal 8 and Goal 9 execution/context/coding prompt/validation artifacts.
+- Updated Goal backlog, continuation state, task state, and metrics.
+
+Validation evidence:
+
+- `npm run build` in `/home/ssf/Documents/Github/statex/statex-website/frontend`: passed. Pre-existing Next config and browserslist warnings were observed; generated build metadata was removed from the working tree after validation.
+- `npm test -- --runTestsByPath src/leads/integrations/ai-crm-payload.spec.ts`: passed, 2 tests.
+- `npm run build` in `/home/ssf/Documents/Github/leads-microservice`: passed.
+- Sensitive-data handling: synthetic tests only; no secrets, real contact details, production lead rows, raw messages, confirmation tokens, private URLs, CRM records, or production payloads captured.
+- Consent impact: no marketing consent is fabricated by the frontend; sanitized AI/CRM context exposes consent presence/boolean only.
+- Contract impact: StateX direct forms now use Leads public intake; no Leads API/schema change; no AI/CRM outbound client or raw export added.
+- Outreach impact: no mass outreach or campaign execution.
+
+Gate decision:
+
+- Integration readiness accepted for Goals 8 and 9. Deployment readiness was not evaluated because deployment was not requested.
+
+Next unfinished chunks:
+
+- None. Owner declined CRM export design and raw export exception process.
+
+## 2026-06-13 - Goal 10 Leads Frontend Landing And Admin Pages
+
+Current focus:
+
+- Owner-selected runtime/frontend task: create a customer landing page and an admin dashboard section for Leads.
+- Runtime source changes: static frontend pages, Nest static serving, and Docker runtime asset copy.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `docs/IMPLEMENTATION_STATE.md`, orchestrator docs, Goal 7 frontend path evidence, `src/main.ts`, `src/leads/leads.controller.ts`, `src/leads/guards/internal-service.guard.ts`, `Dockerfile`, and deployment manifests.
+- Queried DocsRAG from inside the Leads runtime pod. Retrieval returned HTTP 200 and reinforced that Leads owns non-registered contact/consent data while Marketing owns campaign execution, Auth owns registered-user identity/preferences, and Notifications owns outbound delivery.
+- Generated and inspected a visual concept at `/Users/Sergej.Stasok/.codex/generated_images/019ebf77-cacc-77e0-9a4c-e7de82b2d0e9/ig_00489d8c8483c120016a2cebb71d948191ae3a8f705667c2b6.png`.
+
+Implementation evidence:
+
+- Added `public/index.html` landing page with product positioning, workflow, governance, and request-access form.
+- Added `public/admin.html` admin dashboard shell with secure access, metrics, source mix, consent health, confirmation queue, filters, recent leads table, and selected lead detail panel.
+- Added `public/styles.css`, `public/landing.js`, and `public/admin.js`.
+- Updated `src/main.ts` to serve static assets plus `/` and `/admin` before the `/api` prefix.
+- Updated `Dockerfile` to copy `public/` into the runtime image.
+- Added Goal 10 implementation, execution plan, context package, coding prompt, and validation report artifacts.
+
+Validation evidence:
+
+- `npm run build`: passed.
+- `npm test`: passed, 7 suites and 30 tests.
+- Temporary static preview screenshots captured with Playwright and inspected with `view_image`:
+  - `/private/tmp/leads-landing-desktop.png`
+  - `/private/tmp/leads-admin-desktop.png`
+  - `/private/tmp/leads-landing-mobile.png`
+  - `/private/tmp/leads-admin-mobile.png`
+- Visual comparison checked copy, first-viewport hierarchy, white/gray palette with teal accents, 8px panel radius, dashboard density, masked admin data posture, and responsive wrapping. No material visual blocker remains.
+- Temporary remote Nest route smoke on port 4502 was blocked because the SSH shell cannot reach in-cluster `db-server-postgres:5432`; this is recorded as a route-smoke limitation, not a build failure.
+- Sensitive-data handling: no secrets, real contact details, raw production lead rows, raw messages, confirmation tokens, private URLs, or production payloads were captured. Admin token was not supplied during validation.
+- Contract impact: no existing API or database schema changed. Static `/` and `/admin` routes were added; existing `/api` routes remain under the global prefix.
+- Consent impact: landing request form sends consent source and captured timestamp only for affirmative contact consent. Admin shell displays consent/preference/unsubscribe state without changing semantics.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 10. Deployment readiness not evaluated because deployment was not requested.
+
+Next unfinished action:
+
+- Deploy Goal 10 with `./scripts/deploy.sh` from `/home/ssf/Documents/Github/leads-microservice` only if the owner explicitly approves production deployment.
+
+## 2026-06-13 - Goal 10 Production Deployment
+
+Current focus:
+
+- Owner approved deployment of the Leads landing and admin frontend pages.
+- Deployment path: `/home/ssf/Documents/Github/leads-microservice` on `alfares`.
+
+Deployment evidence:
+
+- Ran `./scripts/deploy.sh` from the remote repository.
+- Docker image build passed and copied `public/` into the runtime image.
+- Image pushed to `localhost:5000/leads-microservice:0455bcf` and `localhost:5000/leads-microservice:latest`.
+- ConfigMap and ExternalSecret applied successfully.
+- Service and Ingress applied successfully.
+- Initial deploy script reported rollout success and in-pod health success, but public `/` and `/admin` still returned 404 because the deployment spec image tag was unchanged and Kubernetes did not restart the pod.
+- Ran `kubectl -n statex-apps rollout restart deployment/leads-microservice` and `kubectl -n statex-apps rollout status deployment/leads-microservice --timeout=180s`; rollout completed successfully.
+
+Production verification evidence:
+
+- `curl -I https://leads.alfares.cz/`: HTTP 200, `text/html`.
+- `curl -I https://leads.alfares.cz/admin`: HTTP 200, `text/html`.
+- `curl -s https://leads.alfares.cz/health`: `{"status":"ok"}`.
+- `curl -I https://leads.alfares.cz/styles.css`: HTTP 200, `text/css`.
+- Saved response bodies confirmed non-empty landing/admin HTML.
+- Production screenshots captured and inspected with `view_image`:
+  - `/private/tmp/leads-prod-landing.png`
+  - `/private/tmp/leads-prod-admin.png`
+
+Sensitive-data handling:
+
+- No admin token was supplied during production verification.
+- No raw production lead rows, contact details, raw messages, confirmation tokens, private URLs, or secrets were read, printed, or persisted.
+
+Gate decision:
+
+- Deployment readiness accepted for Goal 10 after forced rollout and production endpoint verification.
+
+Next unfinished action:
+
+- None for Goal 10.

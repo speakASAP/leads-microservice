@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leads | Consent-aware lead intake</title>
+    <meta name="description" content="Consent-aware lead intake for serious teams." />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Leads home">
+        <span class="brand-mark">L</span>
+        <span>Leads</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#workflow">Workflow</a>
+        <a href="#governance">Governance</a>
+        <a href="#request">Request access</a>
+      </nav>
+      <a class="nav-admin" href="/admin">Admin</a>
+    </header>
+
+    <main>
+      <section class="hero-section">
+        <div class="hero-copy">
+          <h1>Consent-aware lead intake for serious teams</h1>
+          <p>Capture enquiries, preserve consent evidence, and hand off every follow-up for human review.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#request">Request access</a>
+            <a class="button secondary" href="/admin">View admin</a>
+          </div>
+        </div>
+        <div class="product-preview" aria-label="Leads product preview">
+          <div class="preview-toolbar">
+            <span>Lead operations</span>
+            <strong>Live intake</strong>
+          </div>
+          <div class="preview-metrics">
+            <div><span>New</span><strong>24</strong></div>
+            <div><span>Confirmed</span><strong>18</strong></div>
+            <div><span>Consent health</span><strong>94%</strong></div>
+          </div>
+          <div class="preview-table" role="table" aria-label="Masked lead preview">
+            <div role="row" class="preview-row head"><span>Source</span><span>Status</span><span>Consent</span></div>
+            <div role="row" class="preview-row"><span>statex</span><span>confirmed</span><span class="ok">captured</span></div>
+            <div role="row" class="preview-row"><span>sgiprealestate</span><span>new</span><span class="warn">review</span></div>
+            <div role="row" class="preview-row"><span>marketing</span><span>confirmed</span><span class="ok">captured</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof-strip" aria-label="Capabilities">
+        <article>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.4-2.8 8.4-7 10-4.2-1.6-7-5.6-7-10V6l7-3z"/></svg>
+          <h2>Privacy-safe intake</h2>
+          <p>Bounded public submissions with source, message, and contact method validation.</p>
+        </article>
+        <article>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 7L10 17l-5-5"/></svg>
+          <h2>Confirmation tracking</h2>
+          <p>Confirmation state stays visible without exposing private tokens in the UI.</p>
+        </article>
+        <article>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M8 12h8M10 17h4"/></svg>
+          <h2>Preference management</h2>
+          <p>Consent, preferred channel, fallback channels, and unsubscribe state stay attached to every lead.</p>
+        </article>
+      </section>
+
+      <section id="workflow" class="workflow-section">
+        <div class="section-heading">
+          <h2>One controlled path from enquiry to review</h2>
+          <p>Leads keeps intake, consent evidence, and handoff state together while Notifications, Marketing, Auth, and AI keep their own boundaries.</p>
+        </div>
+        <div class="workflow-rail">
+          <div><span>01</span><strong>Capture</strong><p>Receive validated contact methods and message context from approved surfaces.</p></div>
+          <div><span>02</span><strong>Confirm</strong><p>Request confirmation through Notifications without becoming the delivery owner.</p></div>
+          <div><span>03</span><strong>Review</strong><p>Show operators status, source mix, consent gaps, and preference state.</p></div>
+          <div><span>04</span><strong>Follow up</strong><p>Keep campaign execution human-reviewed and outside the lead intake service.</p></div>
+        </div>
+      </section>
+
+      <section id="governance" class="governance-section">
+        <div>
+          <h2>Built for consent evidence, not blind outreach</h2>
+          <p>Every dashboard view is designed around review, minimization, and traceability. Raw lead export and mass outreach stay out of scope.</p>
+        </div>
+        <ul>
+          <li>Max 30 lead records per list request</li>
+          <li>Masked contact display in admin tables</li>
+          <li>Consent source and captured timestamp visibility</li>
+          <li>Unsubscribe and preference state surfaced for operators</li>
+        </ul>
+      </section>
+
+      <section id="request" class="request-section">
+        <div class="request-copy">
+          <h2>Request access</h2>
+          <p>Send a short implementation note. The request is submitted as a consent-aware lead with your chosen contact method.</p>
+        </div>
+        <form id="lead-request-form" class="request-form">
+          <label>Name <input name="name" autocomplete="name" required /></label>
+          <label>Work email <input name="email" type="email" autocomplete="email" required /></label>
+          <label>Company <input name="company" autocomplete="organization" required /></label>
+          <label>What should Leads support? <textarea name="message" rows="4" required></textarea></label>
+          <label class="checkbox-line"><input name="marketingConsent" type="checkbox" /> I agree to be contacted about this request.</label>
+          <button class="button primary" type="submit">Send request</button>
+          <p id="request-status" class="form-status" role="status"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Leads microservice</span>
+      <span>Consent-aware non-registered lead intake</span>
+    </footer>
+    <script src="/landing.js"></script>
+  </body>
+</html>

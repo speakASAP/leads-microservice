@@ -21,3 +21,5 @@
 - 2026-06-13 goal-5-ai-and-crm-data-sharing-boundary-complete
 - 2026-06-13 goal-6-operational-smoke-and-documentation-ingestion-complete
 - 2026-06-13 goal-7-frontend-cutover-deployment-path-checked
+- 2026-06-13 goal-10-leads-frontend-landing-and-admin-pages-complete
+- 2026-06-13 goal-10-leads-frontend-landing-and-admin-pages-deployed

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leads admin</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="admin-body">
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <a class="brand" href="/">
+          <span class="brand-mark">L</span>
+          <span>Leads</span>
+        </a>
+        <nav aria-label="Admin">
+          <a class="active" href="#overview">Overview</a>
+          <a href="#leads-table">Leads</a>
+          <a href="#consent-panel">Consent</a>
+          <a href="#source-panel">Sources</a>
+          <a href="#confirmation-panel">Confirmations</a>
+          <a href="#preferences-panel">Preferences</a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <h1>Leads admin</h1>
+            <p>Review intake, consent, confirmations, preferences, and source health.</p>
+          </div>
+          <a class="button secondary" href="/">Landing</a>
+        </header>
+
+        <section class="access-panel" aria-label="Secure access">
+          <div>
+            <h2>Secure access</h2>
+            <p>Lead data loads only after a valid internal service token is supplied. Contact values remain masked in this browser view.</p>
+          </div>
+          <form id="admin-auth-form" class="auth-form">
+            <label>Service name <input name="serviceName" value="leads-admin" autocomplete="off" /></label>
+            <label>Internal token <input name="token" type="password" autocomplete="current-password" required /></label>
+            <button class="button primary" type="submit">Load dashboard</button>
+          </form>
+          <p id="admin-status" class="form-status" role="status"></p>
+        </section>
+
+        <section id="overview" class="metric-grid" aria-label="Lead metrics">
+          <article><span>Total leads</span><strong id="metric-total">-</strong><small>Current query window</small></article>
+          <article><span>Confirmed</span><strong id="metric-confirmed">-</strong><small>Confirmation state present</small></article>
+          <article><span>Marketing consent</span><strong id="metric-consent">-</strong><small>Explicit opt-in ratio</small></article>
+          <article><span>Unsubscribed</span><strong id="metric-unsubscribed">-</strong><small>Suppressed from outreach</small></article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article id="source-panel" class="panel wide">
+            <div class="panel-head"><h2>Source mix</h2><span id="source-count">No data</span></div>
+            <div id="source-bars" class="bar-list"></div>
+          </article>
+          <article id="consent-panel" class="panel">
+            <div class="panel-head"><h2>Consent health</h2><span>Evidence</span></div>
+            <div id="consent-health" class="health-stack"></div>
+          </article>
+          <article id="confirmation-panel" class="panel">
+            <div class="panel-head"><h2>Confirmation queue</h2><span>Newest first</span></div>
+            <div id="confirmation-list" class="queue-list"></div>
+          </article>
+        </section>
+
+        <section class="filters-panel">
+          <form id="lead-filter-form" class="filters-form">
+            <label>Source <input name="sourceService" placeholder="All sources" /></label>
+            <label>Start <input name="startDate" type="date" /></label>
+            <label>End <input name="endDate" type="date" /></label>
+            <label>Limit <input name="limit" type="number" min="1" max="30" value="30" /></label>
+            <button class="button secondary" type="submit">Apply filters</button>
+          </form>
+        </section>
+
+        <section class="table-detail-grid">
+          <article id="leads-table" class="panel table-panel">
+            <div class="panel-head"><h2>Recent leads</h2><span id="table-count">Locked</span></div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Created</th><th>Source</th><th>Status</th><th>Contacts</th><th>Consent</th><th>Preference</th></tr></thead>
+                <tbody id="lead-rows"><tr><td colspan="6">Enter access credentials to load leads.</td></tr></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article id="preferences-panel" class="panel detail-panel">
+            <div class="panel-head"><h2>Selected lead</h2><span>Masked</span></div>
+            <div id="lead-detail" class="detail-stack">
+              <p>Select a lead after loading the dashboard.</p>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/admin.js"></script>
+  </body>
+</html>
