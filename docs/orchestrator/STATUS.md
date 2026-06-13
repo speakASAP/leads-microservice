@@ -1494,3 +1494,35 @@ Deployment evidence:
 Gate decision:
 
 - Deployment accepted. Goal 20 admin source mapping is now Auth-role scoped and Vault-backed in production.
+
+
+## 2026-06-13 - Real Auth Admin Token Validation
+
+Owner request:
+
+- Find the real admin token through existing Vault/Kubernetes patterns, compare other service usage, check Auth behavior, and validate Leads admin access with a real Auth admin token.
+
+Evidence checked:
+
+- Reviewed Auth consumer standard: services should default to POST /auth/validate and must not log token values.
+- Reviewed Auth source: validateToken verifies JWT_SECRET, loads the active user, and reloads current Auth roles from the database before returning sanitized user data.
+- Reviewed Auth Kubernetes wiring: auth-microservice-secret maps JWT_TOKEN from secret/prod/auth-microservice and pods load it through envFrom secretRef.
+- Reviewed sibling service patterns: RunLayer/Catalog use Vault-backed JWT_TOKEN or ORCHESTRATOR_USER_JWT for authorized smoke/monitoring, without committing token values.
+- DocsRAG retrieval for this specific query returned HTTP 500, so live repo and cluster evidence were used.
+
+Vault/Kubernetes token validation:
+
+- Checked candidate Vault-backed JWT fields without printing values: auth:JWT_TOKEN, leads:JWT_TOKEN, catalog:JWT_TOKEN, runlayer:JWT_TOKEN, and runlayer:ORCHESTRATOR_USER_JWT.
+- Auth /auth/validate rejected auth:JWT_TOKEN, leads:JWT_TOKEN, catalog:JWT_TOKEN, and runlayer:JWT_TOKEN with HTTP 401.
+- Auth /auth/validate accepted runlayer:ORCHESTRATOR_USER_JWT with HTTP 201 and role global:superadmin.
+- Auth TEST_EMAIL/TEST_PASSWORD from secret/prod/auth-microservice produced a fresh login token; Auth /auth/validate accepted it with HTTP 201 and role global:superadmin.
+
+Leads production validation:
+
+- Using runlayer:ORCHESTRATOR_USER_JWT as a real Auth admin token, GET https://leads.alfares.cz/api/admin/leads?limit=1 returned HTTP 200, itemCount 1, total 33.
+- Using the fresh Auth login token from Vault-backed TEST_EMAIL/TEST_PASSWORD, GET https://leads.alfares.cz/api/admin/leads?limit=1 returned HTTP 200, itemCount 1, total 33.
+- No token value, credential value, user id, email, production lead row, raw contact value, raw message, confirmation token, private URL, or raw consent source value was printed or recorded.
+
+Result:
+
+- Real Auth admin-token validation is complete for the global admin path. The Vault-backed source map remains deployed and present at runtime; non-global source filtering remains covered by implementation tests and runtime map presence checks.

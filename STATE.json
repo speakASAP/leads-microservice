@@ -8,8 +8,8 @@
   "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
-  "last_milestone": "goal-20-vault-backed-auth-role-source-map-deployed",
-  "next_focus": "Validate production Auth admin tokens against Vault-backed Leads admin source mapping, then select next runtime slice",
+  "last_milestone": "real-auth-admin-token-validation-complete",
+  "next_focus": "Select the next Leads runtime slice",
   "blockers": [],
   "budget_units_used": 0,
   "metrics": {
@@ -64,7 +64,8 @@
       "goal_20_deployment": "deployed-vault-role-map",
       "goal_20_image": "3c2ef66",
       "goal_20_source_map_configuration": "vault_backed_auth_role_map_configured",
-      "goal_20_vault_source_map": "configured"
+      "goal_20_vault_source_map": "configured",
+      "real_auth_admin_token_validation": "passed-global-superadmin"
     }
   }
 }
