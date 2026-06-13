@@ -21,9 +21,10 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 10 - Leads Frontend Landing And Admin Pages is complete and deployed.
-- Runtime source changes in the latest task: static landing/admin pages, Nest static serving, and Docker runtime asset copy.
-- Deployment for latest task: completed on 2026-06-13 with forced rollout restart after the image tag remained unchanged.
+- Current owner-selected task: Goal 15 - Lifecycle Routing And Auth Conversion Linkage is complete.
+- Runtime source changes in the latest completed runtime task: lifecycle event routing service, controller routing adoption, and guarded Auth conversion-link event recording.
+- Latest implementation change: Goal 15 routes minimized lifecycle events to intended internal consumers through the existing logging integration and records minimized LeadConvertedToUser linkage evidence for trusted internal callers.
+- Deployment: not required for Goal 15; public response shapes, schemas, notification behavior, campaign behavior, and external Auth ownership are unchanged.
 
 ## Preserved Intent Summary
 
@@ -31,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 10 - Leads Frontend Landing And Admin Pages is complete and deployed. Production `/`, `/admin`, and `/health` were verified.
+Goal 15 - Lifecycle Routing And Auth Conversion Linkage is complete. Focused routing/controller/lifecycle tests, full tests, and build passed.
 
 ## Completed Goals
 
@@ -46,10 +47,20 @@ Goal 10 - Leads Frontend Landing And Admin Pages is complete and deployed. Produ
 - Goal 6 - Operational Smoke And Documentation Ingestion: complete on 2026-06-13.
 - Goal 7 - Frontend Cutover Deployment Path Check: complete on 2026-06-13.
 - Goal 10 - Leads Frontend Landing And Admin Pages: complete and deployed on 2026-06-13.
+- Goal 11 chunk 11.1 - Ecosystem Lead Lifecycle Contracts Documentation: complete on 2026-06-13.
+- Goal 11 chunk 11.2 - Ecosystem Lead Lifecycle Event And API Contracts: complete on 2026-06-13.
+- Goal 11 chunk 11.3 - Auth-Backed Tenant And Admin Access: complete on 2026-06-13.
+- Goal 11 chunk 11.4 - Marketing Campaign Eligibility And Human Approval: complete on 2026-06-13.
+- Goal 11 chunk 11.5 - CRM Boundary Minimal Schema And Safe Read/Reveal: complete on 2026-06-13.
+- Goal 11 chunk 11.6 - Product App Integration And Source Taxonomy: complete on 2026-06-13.
+- Goal 12 - Lifecycle And Product-App Contract Builders: complete on 2026-06-13.
+- Goal 13 - LeadSubmitted Lifecycle Event Adoption: complete on 2026-06-13.
+- Goal 14 - LeadConfirmed And LeadPreferenceUpdated Lifecycle Adoption: complete on 2026-06-13.
+- Goal 15 - Lifecycle Routing And Auth Conversion Linkage: complete on 2026-06-13.
 
 ## Next Recommended Goal
 
-None. Wait for the owner to select the next Leads task.
+Next recommended implementation goal: select the next owner-approved runtime slice, likely durable lifecycle event storage, Marketing eligibility preview, or Auth-backed admin authentication.
 
 ## Known Blockers
 
@@ -58,5 +69,7 @@ None. Wait for the owner to select the next Leads task.
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. No pending owner-approved Leads frontend action remains.
-3. For future work, select the owner-approved task, update goal-specific artifacts, run the pre-coding gate, validate, and record status evidence.
+2. Select the next owner-approved implementation goal and create goal-specific artifacts before source edits.
+3. Preserve service boundaries: Leads owns non-registered intake/consent/preferences/unsubscribe; Auth owns identity/RBAC/tenancy; Marketing owns campaigns; Notifications owns delivery; CRM owns funnel workflow once implemented.
+4. Do not implement raw lead export, mass outreach, campaign execution, AI enrichment, or production lead mutation without explicit owner approval and validation evidence.
+5. Record validation and continuation evidence before ending.

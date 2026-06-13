@@ -215,6 +215,19 @@ export class LeadsService {
     };
   }
 
+  async getLeadConversionSource(leadId: string) {
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      select: { id: true, sourceService: true },
+    });
+
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    return lead;
+  }
+
   async unsubscribeLead(leadId: string) {
     const existing = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { id: true } });
     if (!existing) {

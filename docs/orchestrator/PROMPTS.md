@@ -29,3 +29,7 @@ Implement the next unfinished chunk of "Goal 5 - AI And CRM Data-Sharing Boundar
 ## Goal 6 Prompt
 
 Implement the next unfinished chunk of "Goal 6 - Operational Smoke And Documentation Ingestion." Record build, test, health, and DocsRAG evidence. If credentials are unavailable, record the blocker and do not fabricate retrieval evidence.
+
+## Goal 11 Prompt
+
+Implement the next unfinished chunk of "Goal 11 - Ecosystem Lead Lifecycle Contracts." Preserve Leads as the consent-aware non-registered warm-contact ledger. Define ecosystem contracts before runtime code. Do not move registered identity, campaign execution, notification delivery, payment ownership, logging storage, or AI model ownership into Leads. Use minimized events and guarded APIs by default; raw contact reveal, campaign launch, AI enrichment, or CRM export requires explicit owner approval and validation evidence.
