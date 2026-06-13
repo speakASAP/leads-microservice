@@ -9,7 +9,7 @@
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
   "last_milestone": "goal-20-auth-workspace-scoped-admin-isolation-complete",
-  "next_focus": "Deploy Goal 20 and configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available",
+  "next_focus": "Configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available, or select next owner-approved Leads runtime slice",
   "blockers": [],
   "budget_units_used": 0,
   "metrics": {
@@ -60,7 +60,9 @@
       "goal_18_migration": "applied",
       "goal_20": "complete",
       "goal_20_tests": "passed",
-      "admin_workspace_source_mapping": "implemented"
+      "admin_workspace_source_mapping": "implemented",
+      "goal_20_deployment": "deployed",
+      "goal_20_image": "3cfd822"
     }
   }
 }

@@ -1389,11 +1389,21 @@ Contract impact:
 - global:superadmin remains platform-wide.
 - Internal service routes, public intake routes, lifecycle storage, campaign eligibility preview, notification behavior, Auth runtime, and Prisma schema are unchanged.
 
+Deployment evidence:
+
+- scripts/deploy.sh completed and pushed image localhost:5000/leads-microservice:3cfd822.
+- Deployment was explicitly pinned to localhost:5000/leads-microservice:3cfd822 after mutable latest pull latency.
+- Rollout status completed successfully after the explicit-tag pod became ready.
+- Running pod: leads-microservice-ffbd96ffc-rvk4f with image localhost:5000/leads-microservice:3cfd822.
+- Public health returned status ok.
+- GET /api/admin/leads without Authorization returned HTTP 401.
+- New pod logs show Prisma migrations complete with no pending migrations and admin routes mapped.
+
 Gate decision:
 
-- Integration readiness accepted for Goal 20. Deployment readiness pending final deploy, health, and admin smoke evidence.
+- Integration and deployment readiness accepted for Goal 20.
 
 Next recommended action:
 
-- Deploy Goal 20 and then configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once concrete Auth workspace IDs are available.
+- Configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once concrete Auth workspace IDs are available, or select the next owner-approved Leads runtime slice.
 

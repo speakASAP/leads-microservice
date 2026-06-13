@@ -29,5 +29,15 @@ Contract impact:
 - global:superadmin behavior remains platform-wide.
 - Internal service routes and public intake routes are unchanged.
 
-Gate decision: integration readiness accepted pending final scans and deployment evidence.
+Deployment evidence:
+
+- scripts/deploy.sh completed and pushed image localhost:5000/leads-microservice:3cfd822.
+- Deployment image was pinned to localhost:5000/leads-microservice:3cfd822 after mutable latest pull latency.
+- Rollout status completed successfully after the explicit image tag pod became ready.
+- Running pod: leads-microservice-ffbd96ffc-rvk4f, image digest sha256:16a4d225ecaf82d6152697b4e1ad8ed8b03e6a2bbcb2f53ea8766888d5b0c1cc.
+- Public health returned status ok.
+- GET /api/admin/leads without Authorization returned HTTP 401.
+- New pod logs show Prisma migrations complete with no pending migrations and admin routes mapped.
+
+Gate decision: integration and deployment readiness accepted for Goal 20.
 
