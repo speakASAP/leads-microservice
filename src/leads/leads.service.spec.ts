@@ -5,6 +5,7 @@ function createService() {
     lead: {
       findMany: jest.fn().mockResolvedValue([]),
       findUnique: jest.fn().mockResolvedValue(null),
+      findFirst: jest.fn().mockResolvedValue(null),
       count: jest.fn().mockResolvedValue(0),
     },
     leadLifecycleEvent: {
@@ -382,7 +383,7 @@ describe('LeadsService Auth-backed admin views', () => {
       },
     ]);
     prisma.lead.count.mockResolvedValueOnce(1);
-    const result = await service.listAdminLeads({ limit: 30 });
+    const result = await service.listAdminLeads({ limit: 30 }, { id: 'auth_global', roles: ['global:superadmin'], isGlobalAdmin: true, workspaceId: null, workspaceIds: [] });
     expect(result.items[0]).toEqual(expect.objectContaining({ id: 'lead_admin_1', sourceHost: 'shop.example', contactMethods: [{ type: 'email', isPrimary: true }], consentEvidencePresent: true }));
     expect(prisma.lead.findMany).toHaveBeenCalledWith(expect.objectContaining({ select: expect.not.objectContaining({ message: true, confirmationToken: true, submissions: true }) }));
     const serialized = JSON.stringify(result);
@@ -391,5 +392,51 @@ describe('LeadsService Auth-backed admin views', () => {
     expect(serialized).not.toContain('synthetic-confirmation-token');
     expect(serialized).not.toContain('private/path');
     expect(serialized).not.toContain('private-consent-source');
+  });
+
+  it('scopes admin lists to source services mapped from the active Auth workspace', async () => {
+    const previous = process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+    process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = JSON.stringify({ 'workspace-alpha': ['shop-assistant', 'statex'] });
+    try {
+      const { prisma, service } = createService();
+      await service.listAdminLeads({}, { id: 'auth_user_1', roles: ['leads.admin'], isGlobalAdmin: false, workspaceId: 'workspace-alpha', workspaceIds: ['workspace-alpha'] });
+      expect(prisma.lead.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { sourceService: { in: ['shop-assistant', 'statex'] } } }));
+      expect(prisma.lead.count).toHaveBeenCalledWith({ where: { sourceService: { in: ['shop-assistant', 'statex'] } } });
+    } finally {
+      if (previous === undefined) delete process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+      else process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = previous;
+    }
+  });
+
+  it('returns no admin list rows when a requested source is outside the workspace mapping', async () => {
+    const previous = process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+    process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = JSON.stringify({ 'workspace-alpha': ['shop-assistant'] });
+    try {
+      const { prisma, service } = createService();
+      await service.listAdminLeads({ sourceService: 'statex' }, { id: 'auth_user_1', roles: ['leads.admin'], isGlobalAdmin: false, workspaceId: 'workspace-alpha', workspaceIds: ['workspace-alpha'] });
+      expect(prisma.lead.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { sourceService: { in: [] } } }));
+    } finally {
+      if (previous === undefined) delete process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+      else process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = previous;
+    }
+  });
+
+  it('rejects scoped admin reads when Auth omits workspace claims', async () => {
+    const { service } = createService();
+    await expect(service.listAdminLeads({}, { id: 'auth_user_1', roles: ['leads.admin'], isGlobalAdmin: false, workspaceId: null, workspaceIds: [] })).rejects.toThrow('Missing Auth workspace scope');
+  });
+
+  it('uses tenant-scoped detail lookup and hides leads outside the caller scope', async () => {
+    const previous = process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+    process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = JSON.stringify({ 'workspace-alpha': ['shop-assistant'] });
+    try {
+      const { prisma, service } = createService();
+      prisma.lead.findFirst.mockResolvedValueOnce(null);
+      await expect(service.getAdminLeadById('lead_hidden', { id: 'auth_user_1', roles: ['leads.admin'], isGlobalAdmin: false, workspaceId: 'workspace-alpha', workspaceIds: ['workspace-alpha'] })).rejects.toThrow('Lead not found');
+      expect(prisma.lead.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'lead_hidden', sourceService: { in: ['shop-assistant'] } } }));
+    } finally {
+      if (previous === undefined) delete process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+      else process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = previous;
+    }
   });
 });

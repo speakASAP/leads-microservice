@@ -13,16 +13,39 @@ function context(headers: Record<string, string>) {
 }
 
 describe('AdminAuthGuard', () => {
-  it('validates Auth bearer token and accepts Leads admin roles', async () => {
+  it('validates Auth bearer token and accepts Leads admin roles with workspace scope', async () => {
     const httpService = {
-      post: jest.fn().mockReturnValue(of({ data: { valid: true, user: { id: 'auth_user_1', email: 'admin@example.test', roles: ['leads.admin'] } } })),
+      post: jest.fn().mockReturnValue(of({ data: { valid: true, user: { id: 'auth_user_1', email: 'admin@example.test', roles: ['leads.admin'], activeWorkspaceId: 'workspace-alpha', workspaceIds: ['workspace-alpha'] } } })),
     };
     const guard = new AdminAuthGuard(httpService as never);
     const { request, executionContext } = context({ authorization: 'Bearer synthetic-token' });
 
     await expect(guard.canActivate(executionContext)).resolves.toBe(true);
     expect(httpService.post).toHaveBeenCalledWith(expect.stringContaining('/auth/validate'), { token: 'synthetic-token' });
-    expect(request.adminUser).toEqual({ id: 'auth_user_1', email: 'admin@example.test', roles: ['leads.admin'] });
+    expect(request.adminUser).toEqual({
+      id: 'auth_user_1',
+      email: 'admin@example.test',
+      roles: ['leads.admin'],
+      isGlobalAdmin: false,
+      workspaceId: 'workspace-alpha',
+      workspaceIds: ['workspace-alpha'],
+    });
+  });
+
+  it('marks global superadmin tokens as unscoped platform admins', async () => {
+    const httpService = { post: jest.fn().mockReturnValue(of({ data: { valid: true, user: { sub: 'auth_user_3', roles: ['global:superadmin'] } } })) };
+    const guard = new AdminAuthGuard(httpService as never);
+    const { request, executionContext } = context({ authorization: 'Bearer synthetic-token' });
+
+    await expect(guard.canActivate(executionContext)).resolves.toBe(true);
+    expect(request.adminUser).toEqual({
+      id: 'auth_user_3',
+      email: null,
+      roles: ['global:superadmin'],
+      isGlobalAdmin: true,
+      workspaceId: null,
+      workspaceIds: [],
+    });
   });
 
   it('rejects missing bearer token', async () => {
