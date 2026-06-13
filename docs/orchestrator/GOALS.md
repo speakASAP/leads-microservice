@@ -121,3 +121,23 @@ Acceptance criteria:
 - Build/test evidence is recorded.
 - Production health evidence is recorded when requested.
 - DocsRAG ingestion/retrieval evidence is recorded or blocked with a credential note.
+## Goal 10 - Leads Frontend Landing And Admin Pages
+
+Status: done
+
+Intent: Leads must expose a customer-facing landing page and an operator-facing admin dashboard shell without weakening consent, privacy, retrieval, or outreach boundaries.
+
+Chunks:
+
+- [x] 10.1 Add landing page for potential customers.
+- [x] 10.2 Add admin dashboard shell for authorized operators.
+- [x] 10.3 Serve frontend assets from the Leads Nest runtime and Docker image.
+- [x] 10.4 Validate build, tests, lint, screenshots, and sensitive-data handling.
+
+Acceptance criteria:
+
+- `/` serves a polished customer landing page with request-access intake.
+- `/admin` serves a dashboard shell with metrics, source mix, consent health, confirmation queue, filters, recent leads, and selected lead detail.
+- Admin data loads only through guarded Leads APIs after credentials are supplied.
+- Contact values are masked in browser-rendered admin views.
+- No raw lead export, mass outreach, schema change, or ownership drift is added.

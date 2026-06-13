@@ -20,10 +20,10 @@ downstream:
 ## Current State
 
 - Stage: production.
-- Health: documented as `ok` in `STATE.json`.
-- Current owner-selected task: Goal 7 - Frontend Cutover Deployment Path Check is complete.
-- Runtime source changes in the latest task: none for Goal 7; frontend deployment path discovery and read-only Kubernetes evidence were recorded.
-- Deployment required for latest task: no.
+- Health: `ok` after Goal 10 deployment.
+- Current owner-selected task: Goal 10 - Leads Frontend Landing And Admin Pages is complete and deployed.
+- Runtime source changes in the latest task: static landing/admin pages, Nest static serving, and Docker runtime asset copy.
+- Deployment for latest task: completed on 2026-06-13 with forced rollout restart after the image tag remained unchanged.
 
 ## Preserved Intent Summary
 
@@ -31,7 +31,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 7 - Frontend Cutover Deployment Path Check is complete. The frontend path was located, so destructive fixture-only merge/delete validation was not scoped or run.
+Goal 10 - Leads Frontend Landing And Admin Pages is complete and deployed. Production `/`, `/admin`, and `/health` were verified.
 
 ## Completed Goals
 
@@ -45,19 +45,18 @@ Goal 7 - Frontend Cutover Deployment Path Check is complete. The frontend path w
 - Goal 5 - AI And CRM Data-Sharing Boundary: complete on 2026-06-13.
 - Goal 6 - Operational Smoke And Documentation Ingestion: complete on 2026-06-13.
 - Goal 7 - Frontend Cutover Deployment Path Check: complete on 2026-06-13.
+- Goal 10 - Leads Frontend Landing And Admin Pages: complete and deployed on 2026-06-13.
 
 ## Next Recommended Goal
 
-None. All current Leads orchestrator goals are complete.
+None. Wait for the owner to select the next Leads task.
 
 ## Known Blockers
 
-- None. DocsRAG runtime credential blocker was resolved on 2026-06-12; future retrieval should run from an in-cluster client with the Leads runtime environment.
+- None.
 
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. No pending orchestrator goal remains; wait for the owner to select the next task.
-3. Fill the execution plan and context package for the selected chunk.
-4. Run the pre-coding gate before source edits.
-5. Record validation evidence before ending.
+2. No pending owner-approved Leads frontend action remains.
+3. For future work, select the owner-approved task, update goal-specific artifacts, run the pre-coding gate, validate, and record status evidence.
