@@ -1202,3 +1202,54 @@ Gate decision:
 Next recommended goal:
 
 - Select the next owner-approved runtime slice, likely durable lifecycle event storage or Auth-backed admin authentication.
+
+## 2026-06-13 - Goal 18 Durable Lifecycle Event Storage Selected
+
+Current focus:
+
+- Selected next runtime slice: Goal 18 - Durable Lifecycle Event Storage.
+- Completed chunk: 18.1 select durable lifecycle event storage and create execution artifacts.
+- Runtime code changes: none.
+- Deployment: not requested and not performed.
+
+Selection evidence:
+
+- Reviewed current implementation state, recent Goal 17 completion evidence, Goal 11 lifecycle and Auth admin contracts, Prisma schema, lifecycle event builders, lifecycle event router, package scripts, migrations, TASKS, and STATE.
+- Queried DocsRAG from the in-cluster Leads runtime pod because the plain SSH shell does not expose JWT_TOKEN. Retrieval returned HTTP 200 for durable lifecycle storage versus Auth-backed admin authentication constraints. Token values were not printed.
+- Durable lifecycle event storage was selected because minimized lifecycle builders, runtime adoption, and routing already exist, while Auth-backed admin authentication still requires exact Auth claim names, issuer/audience semantics, role claim shape, and tenant/workspace mapping before backend source edits.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-18-durable-lifecycle-event-storage.md`.
+- Added `implementation-goals/GOAL-18-durable-lifecycle-event-storage.execution-plan.md`.
+- Added `implementation-goals/GOAL-18-durable-lifecycle-event-storage.context-package.md`.
+- Added `implementation-goals/GOAL-18-durable-lifecycle-event-storage.coding-prompt.md`.
+- Added `implementation-goals/GOAL-18-durable-lifecycle-event-storage.validation-report.md`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Sensitive-data handling:
+
+- No raw production lead rows, contact values, raw messages, confirmation tokens, private URLs, JWTs, session tokens, or secrets were printed or persisted.
+- Goal 18 future persistence is constrained to minimized lifecycle event envelopes only.
+
+Validation evidence:
+
+- `git status --short`: showed Goal 18 documentation and continuation-state changes only.
+- Documentation presence check passed: `find docs/orchestrator implementation-goals -maxdepth 2 -type f -name '*.md' -print` listed 105 markdown files.
+- Missing-marker scan passed with no matches.
+- Secret-pattern scan across `docs`, `AGENTS.md`, `TASKS.md`, and `implementation-goals` passed with no matches.
+- Runtime tests/build were skipped because chunk 18.1 made no source, schema, or runtime behavior changes.
+
+Contract impact:
+
+- Chunk 18.1 is documentation/selection only.
+- Future chunk 18.2 will require a Prisma schema and migration plan for durable minimized lifecycle events.
+- Public API response shapes, service-to-service auth headers, notification behavior, campaign behavior, AI export, CRM export, production mutation, and deployment are unchanged.
+
+Gate decision:
+
+- Pre-coding gate passed for chunk 18.1 selection/artifacts. Runtime coding must re-run the gate before source or schema edits.
+
+Next unfinished chunk:
+
+- Goal 18 chunk 18.2 - Add a Prisma-backed lifecycle event persistence model and migration using minimized event fields only.

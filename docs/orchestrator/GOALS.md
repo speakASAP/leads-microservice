@@ -337,3 +337,29 @@ Acceptance criteria:
 - Response returns only requested channel contact values.
 - Logs omit returned contact values.
 - No batch export, campaign execution, Notifications dispatch, approval storage, schema change, production mutation, deployment, AI export, or CRM export is added.
+
+## Goal 18 - Durable Lifecycle Event Storage
+
+Status: active
+
+Intent: Leads must durably store minimized lifecycle events for non-registered leads so internal consumers can replay or retrieve lifecycle evidence without raw lead export, campaign execution, notification dispatch, CRM workflow ownership, or Auth identity ownership drift.
+
+Chunks:
+
+- [x] 18.1 Select durable lifecycle event storage as the next runtime slice and create execution artifacts.
+- [ ] 18.2 Add a Prisma-backed lifecycle event persistence model and migration using minimized event fields only.
+- [ ] 18.3 Update `LeadLifecycleEventRouterService` to persist events before logging route metadata.
+- [ ] 18.4 Add a guarded lifecycle event retrieval endpoint using the Goal 11 contract.
+- [ ] 18.5 Add focused tests for persistence, idempotency, minimized payloads, and retrieval bounds.
+- [ ] 18.6 Validate focused tests, full tests, build, Prisma generation/migration checks, documentation scans, and sensitive-data handling.
+
+Acceptance criteria:
+
+- Durable records store minimized lifecycle event envelopes only.
+- Stored payloads omit contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, raw consent source values, JWTs, session tokens, and campaign content.
+- Idempotency prevents duplicate records for the same lifecycle transition.
+- Retrieval is guarded by `InternalServiceGuard` and bounded to one lead at a time.
+- Public API response shapes are unchanged.
+- Logging remains metadata-only and does not become the durable event store owner.
+- No Auth login/JWT validation, campaign execution, Notifications dispatch, CRM workflow, AI export, raw lead export, production lead mutation, or deployment is included without separate owner approval.
+
