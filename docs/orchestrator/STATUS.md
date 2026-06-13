@@ -596,3 +596,511 @@ Gate decision:
 Next unfinished action:
 
 - None for Goal 10.
+
+## 2026-06-13 - Goal 11 Chunk 11.1 Ecosystem Lead Lifecycle Contracts Documentation
+
+Current focus:
+
+- Owner-approved next implementation direction: make Leads the core warm-contact and consent ledger across Auth, Marketing, Notifications, CRM, Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, StateX, and future B2C applications.
+- Completed chunk: 11.1 document ecosystem architecture, service boundaries, funnel model, CRM decision, product-app capture direction, and phased implementation roadmap.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Reviewed Leads preserved intent docs, implementation state, orchestrator goals, invariants, gates, status, BUSINESS, SYSTEM, TASKS, STATE, current Leads controller/service, sanitized AI/CRM payload helper, internal service guard, notifications service, logging service, and Prisma schema.
+- Used sub-agent planning workstreams for ecosystem integration, B2C funnel/product flow, and CRM boundary analysis.
+- Queried DocsRAG from the in-cluster Leads runtime pod because the plain SSH shell does not expose JWT_TOKEN. Retrieval returned HTTP 200 for the ecosystem lifecycle query. Token values were not printed.
+
+Implementation evidence:
+
+- Added Goal 11 to `docs/orchestrator/GOALS.md`.
+- Added Goal 11 prompt to `docs/orchestrator/PROMPTS.md`.
+- Added Goal 11 to `implementation-goals/README.md`.
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.md`.
+- Added Goal 11 context package, execution plan, coding prompt, and validation report.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` so continuation points to Goal 11 chunk 11.2.
+
+Key architecture decisions:
+
+- Leads remains the non-registered warm-contact, consent, confirmation, preference, and unsubscribe ledger.
+- Auth owns registered identity, RBAC, workspaces, and verified lead-to-user linking.
+- Marketing owns campaigns, audience approval, throttling, and execution policy.
+- Notifications owns delivery mechanics, templates, provider credentials, retries, and delivery status.
+- CRM should be separate once funnels, tasks, assignments, notes, activities, campaign membership, tenancy, and conversion history become runtime domains. Near-term CRM-lite can remain a masked Leads admin view only.
+- Product apps should use a shared Leads intake contract and source taxonomy.
+
+Validation evidence:
+
+- Documentation presence check passed and listed the new Goal 11 files.
+- Missing-marker scan passed with no matches.
+- Secret-pattern scan passed with no matches after rerunning with a pattern file to avoid shell quoting issues.
+- Sensitive-data handling: none; no raw production lead rows, real contact details, confirmation tokens, private URLs, secrets, raw messages, AI payloads, or CRM exports were used.
+- Contract impact: no runtime API, schema, notification, logging, AI, CRM, or campaign contract changed in this chunk.
+- Consent impact: no runtime behavior changed. Future campaign eligibility is documented to require affirmative consent evidence and no unsubscribe state.
+- Outreach impact: no outreach automation, campaign execution, or notification send was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted for chunk 11.1. Runtime coding remains blocked until chunk 11.2 defines concrete lifecycle event contracts and API shapes with a named source scope.
+
+Next unfinished chunk:
+
+- Goal 11 chunk 11.2 - Define implementation-ready lifecycle event contracts for Leads, Auth, Marketing, Notifications, CRM, and product-app integrations.
+
+## 2026-06-13 - Goal 11 Chunk 11.2 Lifecycle Event Contracts
+
+Current focus:
+
+- Completed chunk: 11.2 define implementation-ready lifecycle event contracts and API shapes.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.contracts.md`.
+- Marked Goal 11 chunk 11.2 complete in `docs/orchestrator/GOALS.md`.
+- Updated Goal 11 execution plan and validation report.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` so continuation points to chunk 11.3.
+
+Contract decisions:
+
+- Lifecycle events use a minimized envelope with `eventId`, `eventType`, `eventVersion`, `occurredAt`, `producer`, `leadId`, optional correlation/idempotency values, and `dataClass: minimized`.
+- Defined `LeadSubmitted`, `LeadConfirmed`, `LeadPreferenceUpdated`, and `LeadConvertedToUser` v1 payloads.
+- Defined Marketing campaign eligibility API returning lead IDs, eligibility flags, reasons, preference summary, consent summary, unsubscribe state, and confirmation state without contact values or raw messages.
+- Defined controlled contact resolution as a future audited, approval-bound, small-batch API, not a general export.
+- Defined Auth lead-link API where Auth verifies identity and Leads records only conversion reference metadata.
+- Defined initial product app `sourceService` taxonomy.
+
+Validation evidence:
+
+- Sensitive-data handling: none; contracts use synthetic examples only.
+- Contract impact: future-facing documentation only. No runtime API, schema, event emitter, notification, AI, CRM, Marketing, or Auth call changed.
+- Consent impact: future campaign eligibility requires affirmative consent evidence and no unsubscribe state.
+- Outreach impact: no outreach automation or campaign execution was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted for chunk 11.2. Runtime coding remains blocked until a future chunk names source scope and passes the pre-coding gate.
+
+Next unfinished chunk:
+
+- Goal 11 chunk 11.3 - Define Auth-backed tenant and admin access requirements before replacing the temporary internal-token admin shell.
+
+## 2026-06-13 - Goal 11 Chunk 11.2 Lifecycle Event And API Contracts
+
+Current focus:
+
+- Selected default next chunk: Goal 11 chunk 11.2.
+- Completed chunk: define implementation-ready lifecycle event contracts and API shapes for Leads, Auth, Marketing, Notifications, CRM, and product-app integrations.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Reviewed Leads preserved intent docs, implementation state, orchestrator goals, invariants, gates, status, BUSINESS, SYSTEM, TASKS, STATE, current Leads controller/service, sanitized AI/CRM payload helper, internal service guard, notifications service, logging service, and Prisma schema.
+- Queried DocsRAG from the in-cluster Leads runtime pod because the plain SSH shell does not expose JWT_TOKEN. Retrieval returned HTTP 200 for the lifecycle event/API contract query. Token values were not printed.
+- DocsRAG context confirmed Marketing expects non-registered lead contact preferences and consents from Leads, while Notifications owns delivery and Auth owns registered identity.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.lifecycle-contracts.md`.
+- Updated Goal 11 execution plan, context package, coding prompt, validation report, main goal record, orchestrator goals, implementation state, task state, and STATE continuation.
+- Defined contract version `2026-06-13.lifecycle.v1` with a common lifecycle event envelope and idempotency-key rules.
+- Defined minimized event shapes for `LeadSubmitted`, `LeadConfirmed`, `LeadPreferenceUpdated`, `LeadConvertedToUser`, and optional `LeadSuppressedOrUnsubscribed`.
+- Defined future guarded API shapes for lifecycle event retrieval, campaign eligibility preview, controlled contact resolution, and Auth conversion linking.
+- Defined product source taxonomy for Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, StateX, SGIP Real Estate, shared landing pages, and unknown/future sources.
+
+Contract decisions:
+
+- Default lifecycle contracts expose lead IDs, source summaries, contact method types/counts, message length, metadata keys, consent evidence presence, preference counts, and lifecycle booleans/timestamps only.
+- Raw contact values, raw messages, confirmation tokens, full source URL path/query/fragment, metadata values, and raw submission payloads are forbidden by default.
+- Marketing campaign eligibility preview returns lead IDs and deterministic consent/preference reasons only; contact resolution remains separate, purpose-bound, and approval-gated.
+- Auth conversion linkage requires Auth-verified contact ownership or an explicit conversion token and does not allow raw lead bulk export for identity inference.
+
+Validation evidence:
+
+- Documentation presence check: passed; the Goal 11 lifecycle contract file and execution pack were listed by the documentation presence check.
+- Missing-marker scan: passed with no matches for unresolved missing/unknown markers.
+- Secret-pattern scan: passed with no matches using a temporary pattern file against docs, AGENTS.md, TASKS.md, and implementation-goals.
+- Sensitive-data handling: none; no raw production lead rows, real contact details, confirmation tokens, private URLs, secrets, raw messages, AI payloads, or CRM exports were used.
+- Contract impact: documentation-only target contracts; no runtime API, schema, notification, logging, AI, CRM, or campaign contract changed.
+- Consent impact: no runtime consent behavior changed. Future campaign eligibility must require affirmative consent evidence, no unsubscribe state, and confirmation where policy requires it.
+- Outreach impact: no outreach automation, campaign execution, notification send, or contact resolution was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted. Runtime source edits remain blocked until a future chunk names exact source scope and validation commands.
+
+Next unfinished chunk:
+
+- Goal 11 chunk 11.3 - Define Auth-backed tenant and admin access requirements before replacing the temporary internal-token admin shell.
+
+## 2026-06-13 - Goal 11 Chunk 11.3 Auth-Backed Tenant And Admin Access
+
+Current focus:
+
+- Completed chunk: 11.3 define Auth-backed tenant and admin access requirements before replacing the temporary internal-token admin shell.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Queried DocsRAG from the in-cluster Leads runtime pod for Auth/RBAC context. Retrieval returned HTTP 200 and reinforced centralized Auth ownership, JWT roles, RBAC middleware, admin role assignment, and user-facing role-based access. Token values were not printed.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.auth-admin-access.md`.
+- Marked Goal 11 chunk 11.3 complete in `docs/orchestrator/GOALS.md`.
+- Updated Goal 11 execution plan and validation report.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` so continuation points to chunk 11.4.
+
+Contract decisions:
+
+- Human admin access must use Auth-backed sessions or JWTs; browser users must not type or store `INTERNAL_SERVICE_TOKEN`.
+- Service-to-service internal-token routes remain backend-only and separate from human admin APIs.
+- Leads must not implement login, registration, password handling, user identity storage, or RBAC source of truth.
+- Future admin APIs require Auth claims for user identity, roles, active workspace, and membership proof.
+- Defined initial roles: `leads.owner`, `leads.admin`, `leads.sales_operator`, `leads.marketing_operator`, and `leads.viewer`.
+- Defined masked-by-default admin access, tenant scoping, role permissions, contact reveal request/approval, audit metadata, privacy logging rules, and error behavior.
+
+Validation evidence:
+
+- Sensitive-data handling: none; contracts use synthetic examples only.
+- Contract impact: future-facing documentation only. No runtime auth guard, route, frontend behavior, Prisma schema, or deployment changed.
+- Consent/privacy impact: future admin access requires tenant scoping, role checks, masked defaults, and audited contact reveal.
+- Outreach impact: no outreach automation or campaign execution was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted for chunk 11.3. Runtime coding remains blocked until a future chunk names source scope and passes the pre-coding gate.
+
+Next unfinished chunk:
+
+- Goal 11 chunk 11.4 - Define Marketing campaign eligibility and human approval contract using Leads consent and unsubscribe state.
+
+## 2026-06-13 - Goal 11 Chunk 11.4 Marketing Campaign Eligibility And Human Approval
+
+Current focus:
+
+- Completed chunk: 11.4 define Marketing campaign eligibility and human approval contract using Leads consent and unsubscribe state.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Queried DocsRAG from the in-cluster Leads runtime pod for Marketing/Leads campaign eligibility context. Retrieval returned HTTP 200 and reinforced that Marketing owns campaign orchestration, recipient decisions, execution jobs, and outcomes; Leads owns non-registered contact preferences and consent data; Auth owns registered-user preferences and consents; Notifications owns channel registry and final provider dispatch. Token values were not printed.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.marketing-eligibility.md`.
+- Marked Goal 11 chunk 11.4 complete in `docs/orchestrator/GOALS.md`.
+- Updated Goal 11 execution plan and validation report.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` so continuation points to chunk 11.5.
+
+Contract decisions:
+
+- Campaign eligibility requires affirmative marketing consent, consent source, consent captured timestamp, no unsubscribe state, channel allowance, confirmation where policy requires it, and future tenant/workspace scope checks.
+- Marketing must not treat contact-method presence as campaign permission.
+- Marketing owns human approval records, campaign orchestration, recipient decisions, execution jobs, and delivery outcomes.
+- Leads provides eligibility evidence and post-approval contact resolution only; contact resolution is bounded, audited, and not a general export.
+- Notifications remains final provider dispatch owner; Leads does not send campaign messages.
+- Feedback signals for unsubscribe, complaint, bounce, and preferences return to the owning service without raw message or token leakage.
+
+Validation evidence:
+
+- Sensitive-data handling: none; contracts use synthetic examples only.
+- Contract impact: future-facing documentation only. No runtime API, schema, event emitter, notification, AI, CRM, Marketing, or Auth call changed.
+- Consent impact: future eligibility requires affirmative consent evidence and no unsubscribe state.
+- Outreach impact: no outreach automation or campaign execution was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted for chunk 11.4. Runtime coding remains blocked until a future chunk names source scope and passes the pre-coding gate.
+
+Next unfinished chunk:
+
+- Goal 11 chunk 11.5 - Define CRM service boundary, minimal schema, and safe read/reveal contracts before CRM runtime implementation.
+
+## 2026-06-13 - Goal 11 Chunk 11.5 CRM Boundary Minimal Schema And Safe Read/Reveal
+
+Current focus:
+
+- Completed chunk: 11.5 define CRM service boundary, minimal schema, and safe read/reveal contracts before CRM runtime implementation.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Queried DocsRAG from the in-cluster Leads runtime pod for CRM/Leads boundary context. Retrieval returned HTTP 200 and reinforced Leads ownership of non-registered lead evidence, no raw export without owner approval, no mass outreach without human review, Marketing ownership of campaign execution, Notifications ownership of delivery, Auth ownership of identity, and no cross-service database writes. Token values were not printed.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.crm-boundary.md`.
+- Marked Goal 11 chunk 11.5 complete in `docs/orchestrator/GOALS.md`.
+- Updated Goal 11 execution plan and validation report.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` so continuation points to chunk 11.6.
+
+Contract decisions:
+
+- CRM should become a separate service once funnel workflow, assignments, tasks, notes, opportunities, campaign membership review, tenant dashboards, and conversion workflow become runtime domains.
+- Leads remains the source of non-registered lead intake, consent evidence, confirmation, preferences, and unsubscribe state.
+- CRM stores workflow references and derived/minimized context, not raw lead payloads.
+- Defined minimal CRM schema: `CrmLeadProfile`, `Pipeline`, `FunnelStage`, `Opportunity`, `Task`, `Note`, `Activity`, `CampaignMembership`, and `ConversionEvent`.
+- Defined safe CRM context reads with no contact values, raw messages, metadata values, confirmation tokens, private URL path/query, or raw submission payload.
+- Defined one-lead-at-a-time contact reveal, purpose-bound, actor-bound, audited, and consent-aware.
+- CRM may propose campaign membership, but Marketing owns final approval and execution.
+
+Validation evidence:
+
+- Sensitive-data handling: none; contracts use synthetic examples only.
+- Contract impact: future-facing documentation only. No runtime API, schema, CRM service scaffold, event emitter, notification, AI, CRM, Marketing, or Auth call changed.
+- Consent/privacy impact: CRM reads minimized context by default; reveal is controlled and audited.
+- Outreach impact: no outreach automation or campaign execution was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted for chunk 11.5. Runtime coding remains blocked until a future chunk names source scope and passes the pre-coding gate.
+
+Next unfinished chunk:
+
+- Goal 11 chunk 11.6 - Define product-app integration contract and source taxonomy for Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, StateX, and future B2C apps.
+
+## 2026-06-13 - Goal 11 Chunk 11.6 Product App Integration And Source Taxonomy
+
+Current focus:
+
+- Completed chunk: 11.6 define product-app integration contract and source taxonomy for Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, StateX, and future B2C apps.
+- Goal 11 status: complete.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Queried DocsRAG from the in-cluster Leads runtime pod for product-app Leads intake context. Retrieval returned HTTP 200 and reinforced Leads preserved intent, public intake separation from guarded internal retrieval, GDPR consent tracking, preference/consent fields, and the no raw export/no mass outreach boundaries. Token values were not printed.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-11-ecosystem-lead-lifecycle-contracts.product-apps.md`.
+- Marked Goal 11 chunk 11.6 complete and Goal 11 done in `docs/orchestrator/GOALS.md`.
+- Updated Goal 11 record, execution plan, and validation report.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` so no Goal 11 chunks remain active.
+
+Contract decisions:
+
+- Product apps submit warm-contact forms to `POST /api/leads/submit` through environment-configured public Leads base URL.
+- Defined initial `sourceService` taxonomy: `shop-assistant`, `buzzos`, `flipflop`, `speakup`, `marathon`, `statex`, `sgiprealestate`, `leads-landing`, and `shared-landing`.
+- Defined stable `sourceLabel` values and approved metadata keys.
+- Documented capture points for Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, and StateX.
+- Marketing consent requires explicit checkbox behavior, consent source/version, and captured timestamp.
+- Product apps must not log raw contact values, raw messages, full payloads, confirmation tokens, service tokens, private source URLs, or secrets.
+- Defined synthetic contract test requirements and shared client responsibilities.
+
+Validation evidence:
+
+- Sensitive-data handling: none; contracts use synthetic examples only.
+- Contract impact: future-facing documentation only. No runtime API, schema, event emitter, product app integration, notification, AI, CRM, Marketing, or Auth call changed.
+- Consent impact: future intake requires explicit consent evidence when marketing consent is true.
+- Outreach impact: no outreach automation or campaign execution was added.
+
+Gate decision:
+
+- Documentation-only readiness accepted for chunk 11.6 and Goal 11.
+
+Next recommended implementation goal:
+
+- Add focused contract tests and builders for Leads lifecycle/product-app payload compatibility before runtime cross-service integration.
+
+## 2026-06-13 - Goal 12 Pre-Coding Gate
+
+Current focus:
+
+- Owner-approved implementation goal: add focused contract tests and builders for Leads lifecycle/product-app payload compatibility.
+- Runtime source scope: `src/leads/integrations/lifecycle-events.ts`, `src/leads/integrations/lifecycle-events.spec.ts`, `src/leads/integrations/product-app-intake.ts`, and `src/leads/integrations/product-app-intake.spec.ts`.
+
+Gate evidence:
+
+- Preserved intent: Leads remains consent-aware non-registered lead intake and evidence owner.
+- Sensitive-data classification: synthetic.
+- Consent impact: product-app helpers must preserve affirmative marketing consent evidence requirements.
+- Contract impact: local builders/tests only; no API, schema, event emitter, product-app integration, campaign execution, notification send, AI export, CRM export, production read, production mutation, or deployment.
+- Validation commands: focused Jest tests, `npm run build`, missing-marker scan, and secret-pattern scan.
+- Gate result: pass.
+
+Next action:
+
+- Implement the named source scope and run validation.
+
+## 2026-06-13 - Goal 12 Lifecycle And Product-App Contract Builders Complete
+
+Current focus:
+
+- Owner-approved implementation goal: focused contract tests and builders for Leads lifecycle/product-app payload compatibility.
+- Runtime code changes: local builders and focused tests only.
+- Deployment: not required and not performed.
+
+Implementation evidence:
+
+- Added `src/leads/integrations/lifecycle-events.ts`.
+- Added `src/leads/integrations/lifecycle-events.spec.ts`.
+- Added `src/leads/integrations/product-app-intake.ts`.
+- Added `src/leads/integrations/product-app-intake.spec.ts`.
+- Added Goal 12 execution artifacts under `implementation-goals/`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-events.spec.ts src/leads/integrations/product-app-intake.spec.ts`: passed, 2 suites, 10 tests.
+- `npm run build`: passed.
+- Missing-marker scan passed with no matches.
+- Secret-pattern scan across docs, implementation-goals, TASKS, AGENTS, and `src/leads/integrations` passed with no matches.
+
+Sensitive-data handling:
+
+- Synthetic values only.
+- Lifecycle tests prove events omit contact values, raw messages, confirmation tokens, private URL path/query values, metadata values, and consent source values.
+- Product-app tests prove safe log summaries omit contact values, raw messages, private URL path/query values, metadata values, and consent source values.
+
+Contract impact:
+
+- Local builder/test additions only. No public API, internal API, Prisma schema, event emitter, message bus, product-app integration, campaign execution, notification send, AI export, CRM export, production read, production mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 12.
+
+Next recommended goal:
+
+- Select the first runtime integration slice, likely lifecycle event builder adoption behind local service boundaries or product-app contract tests per app.
+
+## 2026-06-13 - Goal 13 LeadSubmitted Lifecycle Event Adoption Complete
+
+Current focus:
+
+- Owner-approved implementation goal: first runtime integration slice for lifecycle event builder adoption.
+- Runtime code changes: public intake now records a minimized `LeadSubmitted` lifecycle event via the existing logging integration after successful lead creation.
+- Deployment: not required and not performed.
+
+Implementation evidence:
+
+- Updated `src/leads/leads.controller.ts`.
+- Updated `src/leads/leads.controller.spec.ts`.
+- Added Goal 13 execution artifacts under `implementation-goals/`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/leads.controller.spec.ts src/leads/integrations/lifecycle-events.spec.ts`: passed, 2 suites, 10 tests.
+- `npm run build`: passed.
+- Missing-marker scan passed with no matches.
+- Secret-pattern scan passed with no matches.
+
+Sensitive-data handling:
+
+- Synthetic test values only.
+- Focused controller test proves the lifecycle logging metadata omits contact values, raw messages, confirmation tokens, private URL path/query values, metadata values, and consent source values.
+
+Contract impact:
+
+- Public response shape unchanged.
+- No route, DTO, public API, internal API, Prisma schema, event emitter, message bus, product-app integration, campaign execution, notification delivery behavior, AI export, CRM export, production read, production mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 13.
+
+Next recommended goal:
+
+- Select the next lifecycle runtime slice, likely `LeadConfirmed` or `LeadPreferenceUpdated` lifecycle adoption with focused tests.
+
+
+## 2026-06-13 - Goal 14 LeadConfirmed And LeadPreferenceUpdated Lifecycle Adoption Complete
+
+Current focus:
+
+- Owner-approved implementation goal: integrate both next lifecycle runtime slices.
+- Runtime code changes: public confirmation now records a minimized `LeadConfirmed` lifecycle event; internal preference update and unsubscribe now record minimized `LeadPreferenceUpdated` lifecycle events through the existing logging integration.
+- Deployment: not required and not performed.
+
+Implementation evidence:
+
+- Updated `src/leads/leads.controller.ts`.
+- Updated `src/leads/leads.controller.spec.ts`.
+- Added Goal 14 execution artifacts under `implementation-goals/`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/leads.controller.spec.ts src/leads/integrations/lifecycle-events.spec.ts`: passed, 2 suites, 13 tests.
+- `npm run build`: passed.
+- Missing-marker scan: passed with no matches.
+- Secret-pattern scan: passed with no matches.
+
+Sensitive-data handling:
+
+- Synthetic test values only.
+- Focused controller tests prove lifecycle logging metadata omits contact values, confirmation token values, private URL path/query values, and consent source values.
+- Preference lifecycle payloads carry minimized consent/preference state only.
+
+Contract impact:
+
+- Confirmation response shape unchanged.
+- Internal preference and unsubscribe guards unchanged.
+- No route, DTO, public API, internal API, Prisma schema, event emitter, message bus, product-app integration, campaign execution, notification delivery behavior, Auth integration, AI export, CRM export, production read, production mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 14.
+
+Next recommended goal:
+
+- Select the next integration slice, likely consumer-side lifecycle event routing or Auth conversion linkage planning with focused contracts.
+
+
+## 2026-06-13 - Goal 15 Lifecycle Routing And Auth Conversion Linkage Complete
+
+Current focus:
+
+- Owner-approved implementation goal: implement both next slices, consumer-side lifecycle event routing and Auth conversion linkage.
+- Runtime code changes: lifecycle events now route through `LeadLifecycleEventRouterService`; a guarded internal conversion-link endpoint records minimized `LeadConvertedToUser` lifecycle events.
+- Deployment: not required and not performed.
+
+Implementation evidence:
+
+- Added `src/leads/integrations/lifecycle-event-router.service.ts`.
+- Added `src/leads/integrations/lifecycle-event-router.service.spec.ts`.
+- Added `src/leads/dto/link-lead-to-user.dto.ts`.
+- Updated `src/leads/leads.controller.ts`.
+- Updated `src/leads/leads.controller.spec.ts`.
+- Updated `src/leads/leads.service.ts`.
+- Updated `src/leads/leads.module.ts`.
+- Added Goal 15 execution artifacts under `implementation-goals/`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/leads.controller.spec.ts src/leads/integrations/lifecycle-event-router.service.spec.ts src/leads/integrations/lifecycle-events.spec.ts`: passed, 3 suites, 16 tests.
+- `npm run build`: passed.
+- Full `npm test`: passed, 10 suites, 47 tests.
+- Missing-marker scan: passed with no matches.
+- Secret-pattern scan: passed with no matches.
+
+Sensitive-data handling:
+
+- Synthetic test values only.
+- Router and controller tests prove routed lifecycle metadata omits raw contact values, confirmation token values, private URL path/query values, raw messages, JWT/session wording in payloads, and consent source values.
+- Conversion link event payload includes only lead ID, Auth user ID, source service, link method, and linked timestamp.
+
+Contract impact:
+
+- Public intake and confirmation response shapes unchanged.
+- New `POST /leads/internal/:id/conversion-links` endpoint is guarded by `InternalServiceGuard`.
+- No Prisma schema, message bus, durable event table, raw contact reveal, campaign execution, notification delivery behavior, external Auth call, AI export, CRM export, production read, production mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 15.
+
+Next recommended goal:
+
+- Select the next owner-approved runtime slice, likely durable lifecycle event storage, Marketing eligibility preview, or Auth-backed admin authentication.

@@ -10,6 +10,17 @@
 
 ## Completed
 <!-- Coordinator-append-only -->
+- 2026-06-13 goal-15-lifecycle-routing-auth-conversion-linkage-complete
+- 2026-06-13 goal-14-lead-confirmed-preference-lifecycle-adoption-complete
+- 2026-06-13 goal-13-lead-submitted-lifecycle-event-adoption-complete
+- 2026-06-13 goal-12-lifecycle-product-app-contract-builders-complete
+- 2026-06-13 goal-11-ecosystem-lead-lifecycle-contracts-complete
+- 2026-06-13 goal-11-chunk-11-6-product-app-integration-taxonomy-defined
+- 2026-06-13 goal-11-chunk-11-5-crm-boundary-schema-safe-reveal-defined
+- 2026-06-13 goal-11-chunk-11-4-marketing-campaign-eligibility-approval-defined
+- 2026-06-13 goal-11-chunk-11-3-auth-backed-tenant-admin-access-defined
+- 2026-06-13 goal-11-chunk-11-2-lifecycle-event-contracts-defined
+- 2026-06-13 goal-11-chunk-11-1-ecosystem-lead-lifecycle-contracts-documented
 - 2026-04-05 documentation-standard-applied
 - 2026-06-12 intent-preservation-system-applied
 - 2026-06-12 goal-2-chunk-2-1-lead-intake-validation-hardened

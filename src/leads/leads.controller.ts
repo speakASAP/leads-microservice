@@ -1,11 +1,20 @@
+import { randomUUID } from 'crypto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
+import { LinkLeadToUserDto } from './dto/link-lead-to-user.dto';
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 import { LoggingService } from '../logging/logging.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { InternalServiceGuard } from './guards/internal-service.guard';
+import {
+  buildLeadConfirmedEvent,
+  buildLeadConvertedToUserEvent,
+  buildLeadPreferenceUpdatedEvent,
+  buildLeadSubmittedEvent,
+} from './integrations/lifecycle-events';
+import { LeadLifecycleEventRouterService } from './integrations/lifecycle-event-router.service';
 
 @Controller('leads')
 export class LeadsController {
@@ -14,6 +23,7 @@ export class LeadsController {
   constructor(
     private readonly leadsService: LeadsService,
     private readonly loggingService: LoggingService,
+    private readonly lifecycleEventRouter: LeadLifecycleEventRouterService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -23,15 +33,41 @@ export class LeadsController {
     const metadataKeys = payload.metadata ? Object.keys(payload.metadata).join(',') : 'none';
     this.logger.log(
       `submitLead START sourceService=${payload.sourceService}` +
-      ` contactMethodCount=${payload.contactMethods.length}` +
-      ` contactMethodTypes=${contactMethodTypes}` +
-      ` messageLen=${payload.message?.length}` +
-      ` metadataKeys=${metadataKeys}`,
+        ` contactMethodCount=${payload.contactMethods.length}` +
+        ` contactMethodTypes=${contactMethodTypes}` +
+        ` messageLen=${payload.message?.length}` +
+        ` metadataKeys=${metadataKeys}`,
     );
 
     const lead = await this.leadsService.createLead(payload);
     this.logger.log(`submitLead lead created leadId=${lead.id}`);
     await this.loggingService.log('info', 'Lead submitted', { leadId: lead.id, sourceService: lead.sourceService });
+
+    const leadSubmittedEvent = buildLeadSubmittedEvent(
+      {
+        id: lead.id,
+        status: lead.status,
+        sourceService: lead.sourceService,
+        sourceUrl: lead.sourceUrl,
+        sourceLabel: lead.sourceLabel,
+        contactMethods: lead.contactMethods,
+        preferredChannel: lead.preferredChannel,
+        fallbackChannels: Array.isArray(lead.fallbackChannels) ? lead.fallbackChannels : null,
+        marketingConsent: lead.marketingConsent,
+        consentSource: lead.consentSource,
+        consentCapturedAt: lead.consentCapturedAt,
+        confirmedAt: lead.confirmedAt,
+        unsubscribedAt: lead.unsubscribedAt,
+        createdAt: lead.createdAt,
+      },
+      {
+        eventId: randomUUID(),
+        occurredAt: new Date(),
+        correlationId: lead.id,
+        idempotencyKey: `lead-submitted:${lead.id}`,
+      },
+    );
+    await this.lifecycleEventRouter.route(leadSubmittedEvent);
 
     const confirmationSent = await this.notificationsService.sendLeadConfirmation(
       payload.contactMethods,
@@ -55,7 +91,23 @@ export class LeadsController {
 
   @Get('confirm/:token')
   async confirmLead(@Param('token') token: string) {
-    return this.leadsService.confirmLead(token);
+    const result = await this.leadsService.confirmLead(token);
+    const confirmedAt = new Date();
+    const leadConfirmedEvent = buildLeadConfirmedEvent(
+      {
+        id: result.id,
+        sourceService: result.sourceService,
+        confirmedAt,
+      },
+      {
+        eventId: randomUUID(),
+        occurredAt: confirmedAt,
+        correlationId: result.id,
+        idempotencyKey: `lead-confirmed:${result.id}`,
+      },
+    );
+    await this.lifecycleEventRouter.route(leadConfirmedEvent);
+    return result;
   }
 
   @Get(':id')
@@ -101,6 +153,27 @@ export class LeadsController {
       timestamp: new Date().toISOString(),
       duration_ms: Date.now() - startedAt,
     });
+    const occurredAt = result.updatedAt ?? new Date();
+    const leadPreferenceUpdatedEvent = buildLeadPreferenceUpdatedEvent(
+      {
+        id: result.id,
+        sourceService: 'leads-microservice',
+        preferredChannel: result.preferredChannel,
+        fallbackChannels: Array.isArray(result.fallbackChannels) ? result.fallbackChannels : null,
+        marketingConsent: result.marketingConsent,
+        consentSource: result.consentSource,
+        consentCapturedAt: result.consentCapturedAt,
+        unsubscribedAt: result.unsubscribedAt,
+        updatedAt: result.updatedAt,
+      },
+      {
+        eventId: randomUUID(),
+        occurredAt,
+        correlationId: result.id,
+        idempotencyKey: `lead-preference-updated:${result.id}:${new Date(occurredAt).getTime()}`,
+      },
+    );
+    await this.lifecycleEventRouter.route(leadPreferenceUpdatedEvent);
     return result;
   }
 
@@ -114,6 +187,55 @@ export class LeadsController {
       timestamp: new Date().toISOString(),
       duration_ms: Date.now() - startedAt,
     });
+    const occurredAt = result.updatedAt ?? result.unsubscribedAt ?? new Date();
+    const leadPreferenceUpdatedEvent = buildLeadPreferenceUpdatedEvent(
+      {
+        id: result.id,
+        sourceService: 'leads-microservice',
+        marketingConsent: false,
+        unsubscribedAt: result.unsubscribedAt,
+        updatedAt: result.updatedAt,
+      },
+      {
+        eventId: randomUUID(),
+        occurredAt,
+        correlationId: result.id,
+        idempotencyKey: `lead-preference-updated:${result.id}:${new Date(occurredAt).getTime()}`,
+      },
+    );
+    await this.lifecycleEventRouter.route(leadPreferenceUpdatedEvent);
     return result;
+  }
+
+  @Post('internal/:id/conversion-links')
+  @UseGuards(InternalServiceGuard)
+  async linkLeadToUser(@Param('id') id: string, @Body() payload: LinkLeadToUserDto) {
+    const lead = await this.leadsService.getLeadConversionSource(id);
+    const linkedAt = payload.linkedAt ? new Date(payload.linkedAt) : new Date();
+    const leadConvertedToUserEvent = buildLeadConvertedToUserEvent(
+      {
+        leadId: lead.id,
+        userId: payload.userId,
+        sourceService: lead.sourceService,
+        linkMethod: payload.linkMethod,
+        linkedAt,
+      },
+      {
+        eventId: randomUUID(),
+        occurredAt: linkedAt,
+        correlationId: lead.id,
+        idempotencyKey: `lead-converted-to-user:${lead.id}:${payload.userId}:${payload.linkMethod}:${linkedAt.getTime()}`,
+      },
+    );
+    const routing = await this.lifecycleEventRouter.route(leadConvertedToUserEvent);
+
+    return {
+      leadId: lead.id,
+      userId: payload.userId,
+      linkMethod: payload.linkMethod,
+      linkedAt: linkedAt.toISOString(),
+      lifecycleEventId: leadConvertedToUserEvent.eventId,
+      consumerRoutes: routing.consumerRoutes,
+    };
   }
 }
