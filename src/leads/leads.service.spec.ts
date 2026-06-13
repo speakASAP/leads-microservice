@@ -421,9 +421,22 @@ describe('LeadsService Auth-backed admin views', () => {
     }
   });
 
-  it('rejects scoped admin reads when Auth omits workspace claims', async () => {
+  it('rejects scoped admin reads when Auth omits workspace and role scopes', async () => {
     const { service } = createService();
-    await expect(service.listAdminLeads({}, { id: 'auth_user_1', roles: ['leads.admin'], isGlobalAdmin: false, workspaceId: null, workspaceIds: [] })).rejects.toThrow('Missing Auth workspace scope');
+    await expect(service.listAdminLeads({}, { id: 'auth_user_1', roles: ['leads.admin'], isGlobalAdmin: false, workspaceId: null, workspaceIds: [] })).rejects.toThrow('Missing Auth workspace or role scope');
+  });
+
+  it('scopes admin lists using Vault-mapped Auth app role keys', async () => {
+    const previous = process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+    process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = JSON.stringify({ 'app:shop-assistant:admin': ['shop-assistant'] });
+    try {
+      const { prisma, service } = createService();
+      await service.listAdminLeads({}, { id: 'auth_user_4', roles: ['app:shop-assistant:admin'], isGlobalAdmin: false, workspaceId: 'app:shop-assistant:admin', workspaceIds: ['app:shop-assistant:admin'] });
+      expect(prisma.lead.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { sourceService: { in: ['shop-assistant'] } } }));
+    } finally {
+      if (previous === undefined) delete process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+      else process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP = previous;
+    }
   });
 
   it('uses tenant-scoped detail lookup and hides leads outside the caller scope', async () => {

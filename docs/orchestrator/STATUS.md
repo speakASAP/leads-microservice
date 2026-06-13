@@ -1435,3 +1435,42 @@ Gate decision:
 Next recommended action:
 
 - Add or confirm Auth workspace/tenant claims in auth-microservice, then configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with those exact claim values and approved sourceService lists.
+
+
+## 2026-06-13 - Goal 20 Vault-Backed Auth Role Source Map
+
+Current focus:
+
+- Owner asked Codex to derive the admin source mapping from existing ecosystem Auth/Kubernetes/Vault patterns instead of waiting for a new workspace claim contract.
+
+Evidence checked:
+
+- Queried DocsRAG from the in-cluster Leads runtime pod; retrieval returned HTTP 200 and did not expose secret values.
+- Reviewed auth-microservice RBAC consumer audit. Auth role strings are canonical: global roles plus app:<application-name>:<role> and internal:<application-name>:<role>.
+- Reviewed neighboring microservice manifests. Services use k8s/external-secret.yaml with ClusterSecretStore vault-backend and envFrom secretRef for Vault-backed runtime values.
+- Confirmed Leads already uses ExternalSecret for Vault path secret/prod/leads-microservice.
+
+Implementation:
+
+- Added accepted Auth app admin roles for product source owners: shop-assistant, buzzos, bazos-service, flipflop, speakup, marathon, statex, and sgiprealestate.
+- AdminAuthGuard now preserves workspace/tenant claims and also adds accepted non-global Auth role strings as scope keys.
+- LeadsService now unions sourceService mappings across all available scope keys and still fails closed when no configured mapping is present.
+- Moved LEADS_ADMIN_WORKSPACE_SOURCE_MAP out of k8s/configmap.yaml and into k8s/external-secret.yaml from Vault property secret/prod/leads-microservice:LEADS_ADMIN_WORKSPACE_SOURCE_MAP.
+- Patched Vault without printing token or map values. Vault returned metadata only for secret/prod/leads-microservice version 10.
+
+Validation:
+
+- kubectl apply --dry-run=server for k8s/configmap.yaml: passed.
+- kubectl apply --dry-run=server for k8s/external-secret.yaml: passed.
+- Focused tests passed: src/auth/admin-auth.guard.spec.ts and src/leads/leads.service.spec.ts; 2 suites, 20 tests.
+- npm run build: passed.
+- npm run lint: passed.
+- npm test: passed; 12 suites, 71 tests.
+
+Sensitive-data handling:
+
+- No Vault token, Auth bearer token, secret value, production lead row, raw contact value, raw message, confirmation token, private URL, or raw consent source value was printed or recorded.
+
+Gate decision:
+
+- Source, manifest, and Vault configuration are ready for commit and deployment.

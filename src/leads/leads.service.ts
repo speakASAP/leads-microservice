@@ -20,7 +20,7 @@ function sourceHostForAdmin(sourceUrl?: string | null): string | null {
   }
 }
 
-type AdminLeadScope = Pick<AdminAuthUser, 'isGlobalAdmin' | 'workspaceId'>;
+type AdminLeadScope = Pick<AdminAuthUser, 'isGlobalAdmin' | 'workspaceId' | 'workspaceIds'>;
 
 function configuredWorkspaceSourceMap(): Record<string, string[]> {
   const raw = process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
@@ -50,16 +50,25 @@ function allowedSourceServicesForAdmin(scope: AdminLeadScope): string[] | undefi
   if (scope.isGlobalAdmin) {
     return undefined;
   }
-  if (!scope.workspaceId) {
-    throw new ForbiddenException('Missing Auth workspace scope');
+
+  const scopeKeys = new Set<string>();
+  if (scope.workspaceId) {
+    scopeKeys.add(scope.workspaceId);
+  }
+  scope.workspaceIds.forEach((workspaceId) => scopeKeys.add(workspaceId));
+  if (!scopeKeys.size) {
+    throw new ForbiddenException('Missing Auth workspace or role scope');
   }
 
   const sourceMap = configuredWorkspaceSourceMap();
-  const sourceServices = sourceMap[scope.workspaceId];
-  if (!sourceServices) {
-    throw new ForbiddenException('No Leads source mapping for Auth workspace');
+  const sourceServices = new Set<string>();
+  scopeKeys.forEach((scopeKey) => {
+    sourceMap[scopeKey]?.forEach((sourceService) => sourceServices.add(sourceService));
+  });
+  if (!sourceServices.size) {
+    throw new ForbiddenException('No Leads source mapping for Auth workspace or role scope');
   }
-  return sourceServices;
+  return Array.from(sourceServices);
 }
 
 function scopedAdminLeadWhere(query: LeadQueryDto, scope: AdminLeadScope): Prisma.LeadWhereInput {

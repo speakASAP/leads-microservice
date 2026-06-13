@@ -24,6 +24,14 @@ const ACCEPTED_ADMIN_ROLES = new Set([
   'app:leads:marketing_operator',
   'app:leads:viewer',
   'internal:leads:admin',
+  'app:shop-assistant:admin',
+  'app:buzzos:admin',
+  'app:bazos-service:admin',
+  'app:flipflop:admin',
+  'app:speakup:admin',
+  'app:marathon:admin',
+  'app:statex:admin',
+  'app:sgiprealestate:admin',
 ]);
 
 function authValidateUrl() {
@@ -72,13 +80,20 @@ function stringArrayClaim(user: Record<string, unknown>, keys: string[]): string
   return Array.from(values);
 }
 
-function workspaceClaimsFromUser(user: Record<string, unknown>) {
-  const workspaceId = firstStringClaim(user, ['activeWorkspaceId', 'workspaceId', 'activeTenantId', 'tenantId']);
+function scopedRoleClaims(roles: string[]): string[] {
+  return roles.filter((role) => role !== 'global:superadmin' && ACCEPTED_ADMIN_ROLES.has(role));
+}
+
+function workspaceClaimsFromUser(user: Record<string, unknown>, roles: string[]) {
+  const claimWorkspaceId = firstStringClaim(user, ['activeWorkspaceId', 'workspaceId', 'activeTenantId', 'tenantId']);
   const workspaceIds = new Set(stringArrayClaim(user, ['workspaceIds', 'tenantIds']));
-  if (workspaceId) {
-    workspaceIds.add(workspaceId);
+  if (claimWorkspaceId) {
+    workspaceIds.add(claimWorkspaceId);
   }
-  return { workspaceId, workspaceIds: Array.from(workspaceIds) };
+  scopedRoleClaims(roles).forEach((role) => workspaceIds.add(role));
+
+  const allWorkspaceIds = Array.from(workspaceIds);
+  return { workspaceId: claimWorkspaceId || allWorkspaceIds[0] || null, workspaceIds: allWorkspaceIds };
 }
 
 @Injectable()
@@ -114,7 +129,7 @@ export class AdminAuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid Auth user');
     }
 
-    const workspaceClaims = workspaceClaimsFromUser(user);
+    const workspaceClaims = workspaceClaimsFromUser(user, roles);
     request.adminUser = {
       id,
       email: typeof user.email === 'string' ? user.email : null,

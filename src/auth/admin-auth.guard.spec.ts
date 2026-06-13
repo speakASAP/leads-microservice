@@ -28,7 +28,25 @@ describe('AdminAuthGuard', () => {
       roles: ['leads.admin'],
       isGlobalAdmin: false,
       workspaceId: 'workspace-alpha',
-      workspaceIds: ['workspace-alpha'],
+      workspaceIds: ['workspace-alpha', 'leads.admin'],
+    });
+  });
+
+  it('derives scoped access keys from accepted Auth app roles when workspace claims are absent', async () => {
+    const httpService = {
+      post: jest.fn().mockReturnValue(of({ data: { valid: true, user: { id: 'auth_user_4', email: 'shop-admin.test', roles: ['app:shop-assistant:admin'] } } })),
+    };
+    const guard = new AdminAuthGuard(httpService as never);
+    const { request, executionContext } = context({ authorization: 'Bearer synthetic-token' });
+
+    await expect(guard.canActivate(executionContext)).resolves.toBe(true);
+    expect(request.adminUser).toEqual({
+      id: 'auth_user_4',
+      email: 'shop-admin.test',
+      roles: ['app:shop-assistant:admin'],
+      isGlobalAdmin: false,
+      workspaceId: 'app:shop-assistant:admin',
+      workspaceIds: ['app:shop-assistant:admin'],
     });
   });
 

@@ -4,12 +4,12 @@ Goal: Auth Workspace-Scoped Admin Isolation.
 
 Implementation summary:
 
-- AdminAuthGuard now normalizes optional Auth workspace/tenant claims into request.adminUser.
+- AdminAuthGuard now normalizes optional Auth workspace/tenant claims and accepted Auth app role strings into request.adminUser scope keys.
 - AdminLeadsController passes request.adminUser into admin service methods and logs only safe scope metadata.
-- LeadsService applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to admin summary, list, and detail reads.
+- LeadsService applies Vault-backed LEADS_ADMIN_WORKSPACE_SOURCE_MAP to admin summary, list, and detail reads.
 - global:superadmin remains platform-wide.
-- Non-global admin reads fail closed when Auth workspace scope or configured source mapping is missing.
-- k8s/configmap.yaml sets LEADS_ADMIN_WORKSPACE_SOURCE_MAP to {} by default; .env.example documents the format.
+- Non-global admin reads fail closed when Auth workspace/tenant/role scope or configured source mapping is missing.
+- k8s/external-secret.yaml maps LEADS_ADMIN_WORKSPACE_SOURCE_MAP from Vault; k8s/configmap.yaml no longer carries the runtime map.
 
 Validation evidence completed before this report:
 
@@ -41,3 +41,12 @@ Deployment evidence:
 
 Gate decision: integration and deployment readiness accepted for Goal 20.
 
+
+
+Follow-up deployment validation on 2026-06-13:
+
+- Added Auth app role scope keys for existing ecosystem role patterns.
+- Moved LEADS_ADMIN_WORKSPACE_SOURCE_MAP to Vault-backed ExternalSecret.
+- Patched Vault secret/prod/leads-microservice without printing values; metadata reported version 10.
+- Focused tests passed: 2 suites, 20 tests.
+- npm run build, npm run lint, and npm test passed; full test suite: 12 suites, 71 tests.

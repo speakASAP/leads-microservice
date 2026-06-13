@@ -25,5 +25,4 @@ data:
   LOGGING_SERVICE_URL: "http://logging-microservice.statex-apps.svc.cluster.local:3367"
   NOTIFICATION_SERVICE_URL: "http://notifications-microservice.statex-apps.svc.cluster.local:3368"
   ADMIN_EMAIL: "ssfskype@gmail.com"
-  LEADS_ADMIN_WORKSPACE_SOURCE_MAP: "{}"
   # TIMEOUT_MS: "30000"
