@@ -21,9 +21,9 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 19 - Auth-Backed Admin API Authentication is complete and deployed with Goal 18 migration.
-- Runtime source changes in the latest completed runtime task: Auth-backed admin guard, masked admin APIs, admin browser Auth token flow, and Goal 18 durable lifecycle event migration deployed.
-- Latest implementation change: Goal 19 validates Auth bearer tokens for browser/admin APIs and serves masked admin lead data without internal service tokens.
+- Current owner-selected task: Goal 20 - Auth Workspace-Scoped Admin Isolation is implemented and validation passed; deployment pending final owner-approved deploy step.
+- Runtime source changes in the latest completed runtime task: Auth-backed admin guard now captures workspace/tenant claims, admin APIs pass admin scope into service reads, and Leads applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to non-global admin summary/list/detail reads.
+- Latest implementation change: Goal 20 adds fail-closed workspace-scoped admin isolation for non-global Auth admins while keeping global:superadmin platform-wide.
 - Deployment: completed after owner approval. Goal 18 migration applied in the restarted pod; health and admin 401 smoke checks passed.
 
 ## Preserved Intent Summary
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 19 - Auth-Backed Admin API Authentication is complete. Goal 18 deployment/migration and Goal 19 Auth-backed admin APIs are deployed.
+Goal 20 - Auth Workspace-Scoped Admin Isolation is implemented with validation passing. Deployment is pending final rollout evidence.
 
 ## Completed Goals
 
@@ -61,10 +61,11 @@ Goal 19 - Auth-Backed Admin API Authentication is complete. Goal 18 deployment/m
 - Goal 17 - Controlled Contact Resolution: complete on 2026-06-13.
 - Goal 18 - Durable Lifecycle Event Storage: complete on 2026-06-13.
 - Goal 19 - Auth-Backed Admin API Authentication: complete and deployed on 2026-06-13.
+- Goal 20 - Auth Workspace-Scoped Admin Isolation: implemented and validation passed on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: confirm exact Auth tenant/workspace mapping before tenant-scoped admin isolation, or select the next owner-approved Leads runtime slice.
+Next recommended implementation goal: deploy Goal 20 and then configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available.
 
 ## Known Blockers
 

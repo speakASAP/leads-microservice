@@ -38,3 +38,6 @@
 - 2026-06-13 goal-7-frontend-cutover-deployment-path-checked
 - 2026-06-13 goal-10-leads-frontend-landing-and-admin-pages-complete
 - 2026-06-13 goal-10-leads-frontend-landing-and-admin-pages-deployed
+
+- 2026-06-13 goal-20-auth-workspace-scoped-admin-isolation-complete
+

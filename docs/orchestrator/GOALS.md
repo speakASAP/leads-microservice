@@ -385,3 +385,27 @@ Acceptance criteria:
 - Admin responses are masked/minimized by default.
 - Auth tokens, secrets, raw contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, and raw consent source values are not logged or returned from admin APIs.
 - Tenant/workspace scoping remains a documented follow-up until Auth mapping semantics are confirmed.
+
+## Goal 20 - Auth Workspace-Scoped Admin Isolation
+
+Status: done
+
+Intent: Leads admin APIs must enforce workspace-scoped reads for non-global Auth admins using a Leads-owned sourceService mapping while keeping Auth as the identity and RBAC authority.
+
+Chunks:
+
+- [x] 20.1 Confirm Auth does not currently define a concrete workspace schema or required workspace claim.
+- [x] 20.2 Select sourceService mapping as the first tenant isolation layer.
+- [x] 20.3 Normalize optional Auth workspace/tenant claims in AdminAuthGuard.
+- [x] 20.4 Apply scoped sourceService filters to admin summary, list, and detail reads.
+- [x] 20.5 Add focused tests for scope propagation, missing workspace rejection, source filtering, and hidden detail behavior.
+- [x] 20.6 Validate tests, build, lint, scans, deployment, and smoke checks.
+
+Acceptance criteria:
+
+- Non-global admin reads require Auth workspace scope and LEADS_ADMIN_WORKSPACE_SOURCE_MAP.
+- global:superadmin remains platform-wide.
+- Cross-workspace sourceService reads return no list rows or hidden not-found detail behavior.
+- Admin responses remain minimized and do not expose raw lead data.
+- No Auth runtime, Prisma schema, public intake, internal service guard, outreach, AI/CRM export, or notification behavior changes.
+

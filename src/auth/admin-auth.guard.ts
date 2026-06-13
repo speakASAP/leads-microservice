@@ -6,6 +6,9 @@ export type AdminAuthUser = {
   id: string;
   email?: string | null;
   roles: string[];
+  isGlobalAdmin: boolean;
+  workspaceId?: string | null;
+  workspaceIds: string[];
 };
 
 const ACCEPTED_ADMIN_ROLES = new Set([
@@ -44,6 +47,40 @@ function rolesFromUser(user: Record<string, unknown>): string[] {
   return Array.isArray(user.roles) ? user.roles.filter((role): role is string => typeof role === 'string') : [];
 }
 
+function firstStringClaim(user: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = user[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function stringArrayClaim(user: Record<string, unknown>, keys: string[]): string[] {
+  const values = new Set<string>();
+  for (const key of keys) {
+    const value = user[key];
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (typeof item === 'string' && item.trim()) {
+          values.add(item.trim());
+        }
+      });
+    }
+  }
+  return Array.from(values);
+}
+
+function workspaceClaimsFromUser(user: Record<string, unknown>) {
+  const workspaceId = firstStringClaim(user, ['activeWorkspaceId', 'workspaceId', 'activeTenantId', 'tenantId']);
+  const workspaceIds = new Set(stringArrayClaim(user, ['workspaceIds', 'tenantIds']));
+  if (workspaceId) {
+    workspaceIds.add(workspaceId);
+  }
+  return { workspaceId, workspaceIds: Array.from(workspaceIds) };
+}
+
 @Injectable()
 export class AdminAuthGuard implements CanActivate {
   constructor(private readonly httpService: HttpService) {}
@@ -77,10 +114,14 @@ export class AdminAuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid Auth user');
     }
 
+    const workspaceClaims = workspaceClaimsFromUser(user);
     request.adminUser = {
       id,
       email: typeof user.email === 'string' ? user.email : null,
       roles,
+      isGlobalAdmin: roles.includes('global:superadmin'),
+      workspaceId: workspaceClaims.workspaceId,
+      workspaceIds: workspaceClaims.workspaceIds,
     } as AdminAuthUser;
     return true;
   }

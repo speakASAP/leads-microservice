@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AdminAuthUser } from '../auth/admin-auth.guard';
 import { CampaignEligibilityPreviewDto } from './dto/campaign-eligibility-preview.dto';
 import { ContactResolutionDto } from './dto/contact-resolution.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
@@ -17,6 +18,73 @@ function sourceHostForAdmin(sourceUrl?: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+type AdminLeadScope = Pick<AdminAuthUser, 'isGlobalAdmin' | 'workspaceId'>;
+
+function configuredWorkspaceSourceMap(): Record<string, string[]> {
+  const raw = process.env.LEADS_ADMIN_WORKSPACE_SOURCE_MAP;
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(parsed).map(([workspaceId, value]) => {
+        if (Array.isArray(value)) {
+          return [workspaceId, value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0).map((item) => item.trim())];
+        }
+        if (typeof value === 'string') {
+          return [workspaceId, value.split(',').map((item) => item.trim()).filter(Boolean)];
+        }
+        return [workspaceId, []];
+      }),
+    );
+  } catch {
+    throw new ForbiddenException('Invalid Leads admin workspace source mapping');
+  }
+}
+
+function allowedSourceServicesForAdmin(scope: AdminLeadScope): string[] | undefined {
+  if (scope.isGlobalAdmin) {
+    return undefined;
+  }
+  if (!scope.workspaceId) {
+    throw new ForbiddenException('Missing Auth workspace scope');
+  }
+
+  const sourceMap = configuredWorkspaceSourceMap();
+  const sourceServices = sourceMap[scope.workspaceId];
+  if (!sourceServices) {
+    throw new ForbiddenException('No Leads source mapping for Auth workspace');
+  }
+  return sourceServices;
+}
+
+function scopedAdminLeadWhere(query: LeadQueryDto, scope: AdminLeadScope): Prisma.LeadWhereInput {
+  const allowedSourceServices = allowedSourceServicesForAdmin(scope);
+  const where: Prisma.LeadWhereInput = {};
+
+  if (query.sourceService) {
+    where.sourceService = allowedSourceServices && !allowedSourceServices.includes(query.sourceService)
+      ? { in: [] }
+      : query.sourceService;
+  } else if (allowedSourceServices) {
+    where.sourceService = { in: allowedSourceServices };
+  }
+
+  if (query.startDate || query.endDate) {
+    where.createdAt = {};
+    if (query.startDate) {
+      where.createdAt.gte = new Date(query.startDate);
+    }
+    if (query.endDate) {
+      where.createdAt.lte = new Date(query.endDate);
+    }
+  }
+
+  return where;
 }
 
 @Injectable()
@@ -61,33 +129,22 @@ export class LeadsService {
     };
   }
 
-  async getAdminLeadSummary() {
+  async getAdminLeadSummary(adminUser: AdminAuthUser) {
+    const where = scopedAdminLeadWhere({}, adminUser);
     const [total, confirmed, consented, unsubscribed] = await Promise.all([
-      this.prisma.lead.count(),
-      this.prisma.lead.count({ where: { confirmedAt: { not: null } } }),
-      this.prisma.lead.count({ where: { marketingConsent: true, unsubscribedAt: null } }),
-      this.prisma.lead.count({ where: { unsubscribedAt: { not: null } } }),
+      this.prisma.lead.count({ where }),
+      this.prisma.lead.count({ where: { ...where, confirmedAt: { not: null } } }),
+      this.prisma.lead.count({ where: { ...where, marketingConsent: true, unsubscribedAt: null } }),
+      this.prisma.lead.count({ where: { ...where, unsubscribedAt: { not: null } } }),
     ]);
     return { total, confirmed, consented, unsubscribed };
   }
 
-  async listAdminLeads(query: LeadQueryDto) {
+  async listAdminLeads(query: LeadQueryDto, adminUser: AdminAuthUser) {
     const limit = Math.min(query.limit || 30, 30);
     const page = query.page || 1;
     const skip = (page - 1) * limit;
-    const where: Prisma.LeadWhereInput = {};
-    if (query.sourceService) {
-      where.sourceService = query.sourceService;
-    }
-    if (query.startDate || query.endDate) {
-      where.createdAt = {};
-      if (query.startDate) {
-        where.createdAt.gte = new Date(query.startDate);
-      }
-      if (query.endDate) {
-        where.createdAt.lte = new Date(query.endDate);
-      }
-    }
+    const where = scopedAdminLeadWhere(query, adminUser);
     const [items, total] = await Promise.all([
       this.prisma.lead.findMany({
         where,
@@ -106,9 +163,9 @@ export class LeadsService {
     return { items: items.map((lead) => this.toAdminLeadSummary(lead)), page, limit, total };
   }
 
-  async getAdminLeadById(id: string) {
-    const lead = await this.prisma.lead.findUnique({
-      where: { id },
+  async getAdminLeadById(id: string, adminUser: AdminAuthUser) {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, ...scopedAdminLeadWhere({}, adminUser) },
       select: {
         id: true, status: true, sourceService: true, sourceUrl: true, sourceLabel: true, preferredChannel: true,
         fallbackChannels: true, marketingConsent: true, consentSource: true, consentCapturedAt: true,

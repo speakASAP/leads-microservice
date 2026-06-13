@@ -1347,3 +1347,53 @@ Gate decision:
 Next recommended action:
 
 - Confirm exact Auth tenant/workspace mapping before tenant-scoped admin isolation, or select the next owner-approved Leads runtime slice.
+
+## 2026-06-13 - Goal 20 Auth Workspace-Scoped Admin Isolation
+
+Current focus:
+
+- Owner approved proceeding with tenant/workspace-scoped admin isolation after Goal 19.
+- Implemented sourceService mapping as the first runtime tenant isolation layer for Leads admin reads.
+
+Source context:
+
+- Queried DocsRAG from the in-cluster Leads runtime pod; retrieval returned HTTP 200 and reinforced Auth JWT/RBAC ownership but did not provide concrete workspace schema or claim names.
+- Reviewed Auth UNIFIED_AUTH_CONTRACT and CONSUMER_JWT_VALIDATION_STANDARD.
+- Reviewed Auth role source; no runtime workspace/tenant model was found in inspected Auth source.
+- Reviewed Goal 11.3, which blocks schema changes until tenant mapping is selected and lists sourceService mapping as an option.
+
+Implementation evidence:
+
+- AdminAuthGuard now extracts optional activeWorkspaceId/workspaceId/activeTenantId/tenantId and workspaceIds/tenantIds when Auth returns them.
+- AdminLeadsController passes request.adminUser into summary, list, and detail service methods.
+- LeadsService applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to non-global admin summary, list, and detail reads.
+- global:superadmin remains platform-wide.
+- Non-global admin reads fail closed when workspace claim or mapping is missing.
+- Added LEADS_ADMIN_WORKSPACE_SOURCE_MAP to .env.example and k8s/configmap.yaml with a non-sensitive empty default.
+
+Validation evidence:
+
+- Focused admin tests passed: 3 suites, 20 tests.
+- npm run build passed.
+- npm run lint passed.
+- npm test passed: 12 suites, 69 tests.
+
+Sensitive-data handling:
+
+- No Auth bearer token values, secrets, raw contact values, raw messages, confirmation tokens, private source path/query values, metadata values, production lead rows, or raw consent source values were recorded.
+- Admin responses remain minimized by default.
+
+Contract impact:
+
+- Browser/admin APIs now require workspace scope plus configured sourceService mapping for non-global admin reads.
+- global:superadmin remains platform-wide.
+- Internal service routes, public intake routes, lifecycle storage, campaign eligibility preview, notification behavior, Auth runtime, and Prisma schema are unchanged.
+
+Gate decision:
+
+- Integration readiness accepted for Goal 20. Deployment readiness pending final deploy, health, and admin smoke evidence.
+
+Next recommended action:
+
+- Deploy Goal 20 and then configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once concrete Auth workspace IDs are available.
+
