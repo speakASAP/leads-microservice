@@ -9,8 +9,10 @@
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
   "last_milestone": "goal-20-auth-workspace-scoped-admin-isolation-complete",
-  "next_focus": "Configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available, or select next owner-approved Leads runtime slice",
-  "blockers": [],
+  "next_focus": "Add or confirm concrete Auth workspace/tenant claims, then configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with exact claim values",
+  "blockers": [
+    "Auth workspace/tenant claim contract is not defined for Leads admin source mapping"
+  ],
   "budget_units_used": 0,
   "metrics": {
     "custom": {
@@ -62,7 +64,8 @@
       "goal_20_tests": "passed",
       "admin_workspace_source_mapping": "implemented",
       "goal_20_deployment": "deployed",
-      "goal_20_image": "3cfd822"
+      "goal_20_image": "3cfd822",
+      "goal_20_source_map_configuration": "blocked_no_auth_workspace_ids"
     }
   }
 }

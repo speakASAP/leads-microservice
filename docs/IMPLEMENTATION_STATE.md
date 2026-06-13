@@ -65,7 +65,7 @@ Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once Auth workspace IDs are available, or select the next owner-approved Leads runtime slice.
+Next recommended implementation goal: add or confirm concrete Auth workspace/tenant claims, then configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with exact claim values and approved sourceService lists.
 
 ## Known Blockers
 

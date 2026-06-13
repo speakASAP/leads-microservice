@@ -1407,3 +1407,31 @@ Next recommended action:
 
 - Configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once concrete Auth workspace IDs are available, or select the next owner-approved Leads runtime slice.
 
+
+## 2026-06-13 - Goal 20 Workspace Source Map Configuration Blocked
+
+Current focus:
+
+- Owner approved proceeding with configuring real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries after Goal 20 deployment.
+
+Evidence checked:
+
+- Queried DocsRAG from the in-cluster Leads pod; retrieval returned HTTP 200 but did not return concrete Auth workspace IDs for Leads.
+- Inspected auth-microservice source/docs for workspace, tenant, organization, application, and RBAC model references. Auth currently exposes application-scoped roles and application registrations, not a concrete workspace/tenant claim contract.
+- Reviewed Leads sourceService taxonomy. Stable sourceService values exist, but there is no verified Auth workspace ID to use as the map key.
+
+Decision:
+
+- Do not configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with invented keys. Tenant/workspace admin filtering is an access-control boundary, and using non-Auth logical tenant names as Auth workspace IDs would create misleading isolation evidence.
+
+Sensitive-data handling:
+
+- No Auth tokens, secrets, production user records, raw contact values, production lead rows, raw messages, confirmation tokens, private URLs, or raw consent source values were read or recorded.
+
+Gate decision:
+
+- Blocked pending concrete Auth workspace/tenant claim contract or explicit owner approval to implement Auth workspace claims.
+
+Next recommended action:
+
+- Add or confirm Auth workspace/tenant claims in auth-microservice, then configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with those exact claim values and approved sourceService lists.
