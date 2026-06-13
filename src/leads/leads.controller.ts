@@ -165,6 +165,20 @@ export class LeadsController {
     return result;
   }
 
+  @Get('internal/:id/lifecycle-events')
+  @UseGuards(InternalServiceGuard)
+  async getLeadLifecycleEvents(@Param('id') id: string) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.getLeadLifecycleEvents(id);
+    await this.loggingService.log('info', 'Lead lifecycle events retrieved', {
+      leadId: id,
+      eventCount: result.events.length,
+      contractVersion: result.contractVersion,
+      duration_ms: Date.now() - startedAt,
+    });
+    return result;
+  }
+
   @Get('internal/:id/preferences')
   @UseGuards(InternalServiceGuard)
   async getLeadPreferences(@Param('id') id: string) {

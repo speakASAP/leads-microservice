@@ -41,6 +41,7 @@ describe('LeadsController access controls', () => {
   it('keeps internal preference, unsubscribe, conversion-link, and campaign eligibility routes guarded', () => {
     expect(guardsFor('resolveLeadContact')).toContain(InternalServiceGuard);
     expect(guardsFor('previewCampaignEligibility')).toContain(InternalServiceGuard);
+    expect(guardsFor('getLeadLifecycleEvents')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('updateLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('unsubscribeLead')).toContain(InternalServiceGuard);
@@ -405,5 +406,59 @@ describe('LeadsController lifecycle routing', () => {
     expect(serialized).not.toContain('synthetic-confirmation-token');
     expect(serialized).not.toContain('private/path');
     expect(serialized).not.toContain('jwt');
+  });
+});
+
+
+describe('LeadsController lifecycle event retrieval', () => {
+  it('returns guarded minimized lifecycle events and logs only aggregate metadata', async () => {
+    const { controller, loggingService } = buildController({
+      getLeadLifecycleEvents: jest.fn().mockResolvedValue({
+        leadId: 'lead_synthetic_events',
+        contractVersion: '2026-06-13.lifecycle.v1',
+        events: [
+          {
+            eventId: 'evt_synthetic_4',
+            eventType: 'LeadSubmitted',
+            eventVersion: 1,
+            occurredAt: '2026-06-13T00:00:00.000Z',
+            producer: 'leads-microservice',
+            leadId: 'lead_synthetic_events',
+            correlationId: 'lead_synthetic_events',
+            idempotencyKey: 'lead-submitted:lead_synthetic_events',
+            dataClass: 'minimized',
+            payload: {
+              leadId: 'lead_synthetic_events',
+              sourceService: 'shop-assistant',
+              sourceHost: 'shop.example',
+              contactMethodTypes: ['email'],
+              contactMethodCount: 1,
+              consentEvidencePresent: true,
+            },
+            consumerRoutes: ['crm', 'marketing', 'logging-analytics'],
+            recordedAt: '2026-06-13T00:00:01.000Z',
+          },
+        ],
+      }),
+    });
+
+    const result = await controller.getLeadLifecycleEvents('lead_synthetic_events');
+
+    expect(result.events).toHaveLength(1);
+    expect(loggingService.log).toHaveBeenCalledWith(
+      'info',
+      'Lead lifecycle events retrieved',
+      expect.objectContaining({
+        leadId: 'lead_synthetic_events',
+        eventCount: 1,
+        contractVersion: '2026-06-13.lifecycle.v1',
+      }),
+    );
+
+    const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
+    expect(serializedLog).not.toContain('person@example.test');
+    expect(serializedLog).not.toContain('Synthetic raw product interest message');
+    expect(serializedLog).not.toContain('synthetic-confirmation-token');
+    expect(serializedLog).not.toContain('private/path');
   });
 });

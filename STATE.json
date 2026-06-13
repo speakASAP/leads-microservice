@@ -3,15 +3,13 @@
   "project": "leads-microservice",
   "stage": "production",
   "health": "ok",
-  "cycle": 13,
+  "cycle": 14,
   "last_cycle_at": "2026-06-13T00:00:00Z",
-  "tasks_active": 1,
+  "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
-  "open_task_ids": [
-    "goal-18-durable-lifecycle-event-storage"
-  ],
-  "last_milestone": "goal-17-controlled-contact-resolution-complete",
-  "next_focus": "Goal 18 chunk 18.2: add Prisma-backed durable lifecycle event storage using minimized lifecycle event fields only",
+  "open_task_ids": [],
+  "last_milestone": "goal-18-durable-lifecycle-event-storage-complete",
+  "next_focus": "Next owner-approved action: deploy/apply Goal 18 migration or select Auth-backed admin authentication after exact Auth claim and tenant mapping confirmation",
   "blockers": [],
   "budget_units_used": 0,
   "metrics": {
@@ -51,9 +49,11 @@
       "goal_16_tests": "passed",
       "goal_17": "complete",
       "goal_17_tests": "passed",
-      "goal_18": "active",
+      "goal_18": "complete",
       "goal_18_chunk_18_1": "selected",
-      "next_runtime_slice": "durable_lifecycle_event_storage"
+      "next_runtime_slice": "durable_lifecycle_event_storage",
+      "goal_18_tests": "passed",
+      "goal_18_prisma": "generated-and-validated"
     }
   }
 }
