@@ -1,5 +1,19 @@
 import { LeadsService } from './leads.service';
 
+const approvalEvidence = {
+  approvalId: 'approval_synthetic_25',
+  campaignId: 'campaign_synthetic_25',
+  approvedBy: 'auth_user_synthetic_reviewer',
+  approvedAt: '2026-06-13T20:00:00.000Z',
+  workspaceId: 'workspace_synthetic_25',
+  purposeCode: 'product_nurture' as const,
+  channel: 'email' as const,
+  audienceCount: 12,
+  eligibleCount: 10,
+  contentVersion: 'content_version_synthetic_25',
+  retentionExpectation: 'marketing_retains_until_campaign_audit_window_expires' as const,
+};
+
 function createService() {
   const prisma = {
     lead: {
@@ -47,6 +61,84 @@ describe('LeadsService list bounds', () => {
         take: 30,
       }),
     );
+  });
+});
+
+describe('LeadsService sanitized AI/CRM context', () => {
+  it('returns a minimized one-lead context without sensitive field values', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique.mockResolvedValueOnce({
+      id: 'lead_synthetic_context',
+      status: 'new',
+      sourceService: 'statex',
+      sourceUrl: 'https://statex.example/private/path?token=synthetic-url-token',
+      sourceLabel: 'contact-form',
+      message: 'Synthetic raw product interest message.',
+      preferredChannel: 'email',
+      fallbackChannels: ['telegram'],
+      marketingConsent: true,
+      consentSource: 'private-consent-source:v1',
+      consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+      confirmedAt: null,
+      unsubscribedAt: null,
+      confirmationToken: 'synthetic-confirmation-token',
+      contactMethods: [
+        { type: 'email', value: 'person@example.test' },
+        { type: 'telegram', value: '@synthetic_person' },
+      ],
+      submissions: [
+        {
+          payloadJson: {
+            metadata: {
+              privateCampaign: 'synthetic-private-campaign-value',
+            },
+          },
+        },
+      ],
+    });
+
+    const result = await service.getSanitizedLeadContext('lead_synthetic_context');
+
+    expect(result).toEqual({
+      contractVersion: '2026-06-13.ai-crm-context.v1',
+      context: expect.objectContaining({
+        leadId: 'lead_synthetic_context',
+        sourceHost: 'statex.example',
+        messageLength: 39,
+        contactMethodCount: 2,
+        contactMethodTypes: ['email', 'telegram'],
+        metadataKeys: ['privateCampaign'],
+        consent: {
+          marketingConsent: true,
+          consentSourcePresent: true,
+          consentCapturedAtPresent: true,
+        },
+      }),
+    });
+    expect(prisma.lead.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'lead_synthetic_context' },
+        select: expect.objectContaining({
+          submissions: expect.objectContaining({ take: 1 }),
+        }),
+      }),
+    );
+
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('person@example.test');
+    expect(serialized).not.toContain('@synthetic_person');
+    expect(serialized).not.toContain('Synthetic raw product interest message');
+    expect(serialized).not.toContain('synthetic-confirmation-token');
+    expect(serialized).not.toContain('private/path');
+    expect(serialized).not.toContain('synthetic-url-token');
+    expect(serialized).not.toContain('synthetic-private-campaign-value');
+    expect(serialized).not.toContain('private-consent-source:v1');
+  });
+
+  it('returns not found for missing sanitized context leads', async () => {
+    const { service } = createService();
+
+    await expect(service.getSanitizedLeadContext('lead_missing')).rejects.toThrow('Lead not found');
   });
 });
 
@@ -247,13 +339,22 @@ describe('LeadsService controlled contact resolution', () => {
     const result = await service.resolveLeadContact({
       leadId: 'lead_synthetic_campaign',
       purpose: 'approved_campaign_send',
-      approvalId: 'approval_synthetic_1',
+      approvalEvidence,
       requestedChannels: ['email'],
       campaignPurpose: 'marketing',
       requireConfirmedContact: true,
     });
 
     expect(result.contactMethods).toEqual([{ type: 'email', value: 'person@example.test', isPrimary: true }]);
+    expect(result.approvalEvidence).toEqual(
+      expect.objectContaining({
+        approvalId: 'approval_synthetic_25',
+        campaignId: 'campaign_synthetic_25',
+        purposeCode: 'product_nurture',
+        channel: 'email',
+        humanApprovalReferencePresent: true,
+      }),
+    );
     expect(prisma.lead.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: { in: ['lead_synthetic_campaign'] } },
@@ -289,7 +390,7 @@ describe('LeadsService controlled contact resolution', () => {
     const result = await service.resolveLeadContact({
       leadId: 'lead_synthetic_ineligible_campaign',
       purpose: 'approved_campaign_send',
-      approvalId: 'approval_synthetic_1',
+      approvalEvidence,
       requestedChannels: ['email'],
       campaignPurpose: 'marketing',
       requireConfirmedContact: true,
@@ -298,11 +399,65 @@ describe('LeadsService controlled contact resolution', () => {
     expect(result.contactMethods).toEqual([]);
     expect(result).toEqual(
       expect.objectContaining({
+        approvalEvidence: expect.objectContaining({
+          approvalId: 'approval_synthetic_25',
+          humanApprovalReferencePresent: true,
+        }),
         eligibility: expect.objectContaining({
           eligible: false,
         }),
       }),
     );
+  });
+
+  it('rejects campaign contact resolution without structured approval evidence', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique = jest.fn().mockResolvedValue({
+      id: 'lead_synthetic_missing_approval',
+      marketingConsent: true,
+      consentSource: 'private-consent-source:v1',
+      consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+      unsubscribedAt: null,
+      confirmedAt: new Date('2026-06-13T00:01:00.000Z'),
+      contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+    });
+
+    await expect(
+      service.resolveLeadContact({
+        leadId: 'lead_synthetic_missing_approval',
+        purpose: 'approved_campaign_send',
+        requestedChannels: ['email'],
+        campaignPurpose: 'marketing',
+      }),
+    ).rejects.toThrow('Campaign approval evidence rejected');
+    expect(prisma.lead.findMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects approved campaign resolution when approval channel does not match requested channel', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique = jest.fn().mockResolvedValue({
+      id: 'lead_synthetic_channel_mismatch',
+      marketingConsent: true,
+      consentSource: 'private-consent-source:v1',
+      consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+      unsubscribedAt: null,
+      confirmedAt: new Date('2026-06-13T00:01:00.000Z'),
+      contactMethods: [
+        { type: 'email', value: 'person@example.test', isPrimary: true },
+        { type: 'telegram', value: '@synthetic_person', isPrimary: false },
+      ],
+    });
+
+    await expect(
+      service.resolveLeadContact({
+        leadId: 'lead_synthetic_channel_mismatch',
+        purpose: 'approved_campaign_send',
+        approvalEvidence,
+        requestedChannels: ['telegram'],
+        campaignPurpose: 'marketing',
+      }),
+    ).rejects.toThrow('approval_channel_mismatch');
+    expect(prisma.lead.findMany).not.toHaveBeenCalled();
   });
 });
 

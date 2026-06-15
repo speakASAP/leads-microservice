@@ -8,6 +8,22 @@ import { ContactResolutionDto } from './dto/contact-resolution.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
+import { buildSanitizedAiCrmLeadContext } from './integrations/ai-crm-payload';
+import {
+  buildMarketingApprovalEvidenceSummary,
+  validateMarketingApprovalEvidenceForContactResolution,
+} from './integrations/marketing-approval-evidence';
+
+function metadataFromSubmissionPayload(payloadJson: Prisma.JsonValue | null | undefined): Record<string, unknown> | null {
+  if (!payloadJson || typeof payloadJson !== 'object' || Array.isArray(payloadJson)) {
+    return null;
+  }
+  const metadata = (payloadJson as Record<string, unknown>).metadata;
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return null;
+  }
+  return metadata as Record<string, unknown>;
+}
 
 function sourceHostForAdmin(sourceUrl?: string | null): string | null {
   if (!sourceUrl) {
@@ -302,6 +318,60 @@ export class LeadsService {
     };
   }
 
+  async getSanitizedLeadContext(leadId: string) {
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        status: true,
+        sourceService: true,
+        sourceUrl: true,
+        sourceLabel: true,
+        message: true,
+        preferredChannel: true,
+        fallbackChannels: true,
+        marketingConsent: true,
+        consentSource: true,
+        consentCapturedAt: true,
+        confirmedAt: true,
+        unsubscribedAt: true,
+        confirmationToken: true,
+        contactMethods: { select: { type: true, value: true } },
+        submissions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { payloadJson: true },
+        },
+      },
+    });
+
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    return {
+      contractVersion: '2026-06-13.ai-crm-context.v1',
+      context: buildSanitizedAiCrmLeadContext({
+        id: lead.id,
+        status: lead.status,
+        sourceService: lead.sourceService,
+        sourceUrl: lead.sourceUrl,
+        sourceLabel: lead.sourceLabel,
+        message: lead.message,
+        contactMethods: lead.contactMethods,
+        metadata: metadataFromSubmissionPayload(lead.submissions[0]?.payloadJson),
+        preferredChannel: lead.preferredChannel,
+        fallbackChannels: Array.isArray(lead.fallbackChannels) ? lead.fallbackChannels : null,
+        marketingConsent: lead.marketingConsent,
+        consentSource: lead.consentSource,
+        consentCapturedAt: lead.consentCapturedAt,
+        confirmedAt: lead.confirmedAt,
+        unsubscribedAt: lead.unsubscribedAt,
+        confirmationToken: lead.confirmationToken,
+      }),
+    };
+  }
+
   async previewCampaignEligibility(payload: CampaignEligibilityPreviewDto) {
     const uniqueLeadIds = Array.from(new Set(payload.leadIds));
     const leads = await this.prisma.lead.findMany({
@@ -432,10 +502,6 @@ export class LeadsService {
   }
 
   async resolveLeadContact(payload: ContactResolutionDto) {
-    if (payload.purpose === 'approved_campaign_send' && !payload.approvalId) {
-      throw new NotFoundException('Campaign approval evidence is required');
-    }
-
     const lead = await this.prisma.lead.findUnique({
       where: { id: payload.leadId },
       select: {
@@ -460,7 +526,20 @@ export class LeadsService {
         ? Array.from(new Set(payload.requestedChannels))
         : Array.from(new Set(lead.contactMethods.map((method) => method.type)));
 
+    const approvalEvidence =
+      payload.purpose === 'approved_campaign_send'
+        ? buildMarketingApprovalEvidenceSummary(payload.approvalEvidence ?? {})
+        : undefined;
+
     if (payload.purpose === 'approved_campaign_send') {
+      const approvalEvidenceErrors = validateMarketingApprovalEvidenceForContactResolution(
+        payload.approvalEvidence,
+        requestedChannels,
+      );
+      if (approvalEvidenceErrors.length > 0) {
+        throw new ForbiddenException(`Campaign approval evidence rejected: ${approvalEvidenceErrors.join(';')}`);
+      }
+
       const eligibility = await this.previewCampaignEligibility({
         leadIds: [payload.leadId],
         campaignPurpose: payload.campaignPurpose ?? 'marketing',
@@ -479,6 +558,7 @@ export class LeadsService {
             consentCapturedAtPresent: Boolean(lead.consentCapturedAt),
             unsubscribed: Boolean(lead.unsubscribedAt),
           },
+          approvalEvidence,
           eligibility: item ?? {
             leadId: payload.leadId,
             eligible: false,
@@ -506,6 +586,7 @@ export class LeadsService {
         consentCapturedAtPresent: Boolean(lead.consentCapturedAt),
         unsubscribed: Boolean(lead.unsubscribedAt),
       },
+      ...(approvalEvidence ? { approvalEvidence } : {}),
     };
   }
 

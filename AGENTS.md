@@ -35,10 +35,22 @@ Use the Leads Intent Preservation System for all future work:
 - Start from `docs/IMPLEMENTATION_STATE.md`.
 - Read `docs/IMPLEMENTATION_ORCHESTRATOR.md`.
 - Read `docs/orchestrator/MASTER_PROMPT.md`, `INTENT.md`, `GOALS.md`, `PLAN.md`, `PROJECT_INVARIANTS.md`, `PRE_CODING_GATE.md`, `CONTEXT_PACKAGE.md`, `EXECUTION_PLAN.md`, `READINESS_GATES.md`, `PROMPTS.md`, and `STATUS.md`.
-- Select the active goal or earliest pending goal unless the owner explicitly selects another task.
+- Prefer parallel planning before selecting work: identify independent pending goals, blockers, dependencies, file ownership, and validation ownership so multiple Codex sessions can execute safely in parallel.
+- Select one unblocked goal track for the current session. Do not start two implementation tracks in one worker session unless the owner explicitly asks for a coordinator-only planning update.
 - Before source edits, create or update the goal-specific execution plan, context package, coding prompt, and validation report under `implementation-goals/`.
 - Run the pre-coding gate and block on unresolved execution-critical gaps.
 - After work, record validation evidence in `docs/orchestrator/STATUS.md` and update continuation state.
+
+## Parallel Planning Standard
+
+Planning should maximize safe use of parallel Codex agents:
+
+- Break roadmaps into goal-level tracks that can be owned by different sessions.
+- For each goal, record status, dependencies, blockers, allowed file scope, non-goals, validation commands, and merge/deploy sequencing.
+- Mark a goal as parallel-ready only when it does not require the same source files, migrations, runtime config, deployment slot, or production validation data as another active goal.
+- If two goals touch shared contracts, schemas, Prisma migrations, guarded routes, or deployment configuration, pick one owner and mark the other blocked until the shared surface is merged.
+- Keep safety gates mandatory for every worker: upstream traceability, invariant impact, sensitive-data classification, consent impact, contract/schema impact, replay/determinism review, explicit validation commands, and readiness evidence.
+- Coordinator sessions may update the parallel task board without coding. Worker sessions implement exactly one assigned goal track and append evidence.
 
 Preserved intent: Leads is the consent-aware non-registered lead intake service. It owns lead records, contact methods, submissions, confirmation, preferences, and unsubscribe state. It must not export raw lead data, trigger mass outreach without human review, or take over Auth, Notifications, Marketing, Logging, database infrastructure, or AI ownership.
 
@@ -59,4 +71,22 @@ Do not code when raw lead data export, mass outreach, consent semantics, trusted
 
 ## Active Agents
 <!-- Coordinator-maintained -->
-None.
+- Agent A: Goal 22 - Production Auth Workspace Token Matrix Validation; blocked pending valid approved global/non-global admin tokens; thread 019ec2b5-7c3a-7c41-aee7-b58fccea1367.
+- Agent B: Goal 23 - Admin UI Scope Messaging And Empty-State Hardening; complete; thread 019ec2b5-8ea3-7912-97e3-bbb4eed5a898.
+- Agent C: Goal 24 - Internal Lifecycle Event Replay Consumer Contract; complete for docs/builders/tests; thread 019ec2b8-3bd4-75c2-863a-ef788fe41833.
+- Agent D: Goal 25 - Marketing Approval Evidence Handoff Contract; complete for contract/builders/tests; thread 019ec2b5-9b05-74e3-96a8-38954e713eb6.
+- Agent E: Goal 26 - Product-App Intake Compatibility Matrix; complete for Leads-side matrix; thread 019ec2b5-a1d1-73f2-820a-8a9aaf55cff7.
+- Agent F: Goal 27 - Documentation Ingestion And Orchestrator Freshness; complete documentation-only; thread 019ec2b5-a8ac-7b40-aae4-b0319d7bcad0.
+
+## Recently Completed Agent Lanes
+<!-- Coordinator-maintained -->
+- Agent E: Goal 26 - Product-App Intake Compatibility Matrix; Codex thread `019ec2b5-a1d1-73f2-820a-8a9aaf55cff7` (`Leads Goal 26 - Product Intake Matrix`); completed Leads-side synthetic matrix on 2026-06-13, with cross-repo adoption still blocked pending owner target selection.
+- Agent F: Goal 27 - Documentation Ingestion And Orchestrator Freshness; Codex thread `019ec2b5-a8ac-7b40-aae4-b0319d7bcad0` (`Leads Goal 27 - Orchestrator Freshness`); completed documentation-only refresh on 2026-06-13.
+
+## Company Cross-Agent Standard
+
+This repository also follows `AGENT_OPERATIONS.md`, which points all AI agents to the company cross-agent automation model: readiness scanner, bounded worker agent, worker monitor, and integration validator. Use the validation-debt ledger for known out-of-scope validation failures and preserve the Intent Preservation chain.
+
+## Central Instruction Source
+
+Shared agent rules now live in `/home/ssf/.codex/AGENTS.md` and `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`. Keep this file for repository-specific constraints only; do not duplicate shared operating rules here.

@@ -4,12 +4,15 @@
 
 ## Backlog
 <!-- Human-managed -->
+- No unassigned backlog at this moment. Goal 22 remains active-blocked; Goal 24, Goal 25, and Goal 26 follow-ups require owner selection before new work starts.
 
 ## Active
 <!-- Coordinator-maintained -->
+- 2026-06-13 goal-22-production-auth-workspace-token-matrix-validation-blocked-agent-a
 
 ## Completed
 <!-- Coordinator-append-only -->
+- 2026-06-13 goal-23-admin-ui-scope-messaging-empty-state-hardening-complete
 - 2026-06-13 goal-19-auth-backed-admin-api-authentication-complete
 - 2026-06-13 goal-18-durable-lifecycle-event-storage-complete
 - 2026-06-13 goal-17-controlled-contact-resolution-complete
@@ -38,6 +41,13 @@
 - 2026-06-13 goal-7-frontend-cutover-deployment-path-checked
 - 2026-06-13 goal-10-leads-frontend-landing-and-admin-pages-complete
 - 2026-06-13 goal-10-leads-frontend-landing-and-admin-pages-deployed
-
 - 2026-06-13 goal-20-auth-workspace-scoped-admin-isolation-complete
-
+- 2026-06-13 goal-21-sanitized-ai-crm-context-api-complete-deployed
+- 2026-06-13 parallel-planning-refactor-complete
+- 2026-06-13 parallel-goal-threads-assigned
+- 2026-06-13 goal-26-product-app-intake-compatibility-matrix-leads-side-complete
+- 2026-06-13 goal-27-documentation-ingestion-orchestrator-freshness-complete
+- 2026-06-13 goal-24-internal-lifecycle-event-replay-consumer-contract-complete
+- 2026-06-13 goal-25-marketing-approval-evidence-handoff-contract-complete
+- 2026-06-13 goal-28-parallel-integration-validation-deployment-readiness-complete
+- 2026-06-13 goal-28-goal23-26-integration-deployed

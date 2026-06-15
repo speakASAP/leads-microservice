@@ -144,3 +144,28 @@ For documentation-only changes, revert the changed docs. For code changes, use a
 - [ ] Implementation complete.
 - [ ] Verification evidence recorded.
 - [ ] Continuation state updated.
+
+
+## Goal 27 Documentation-Only Execution Addendum
+
+Date: 2026-06-13.
+
+Selected goal: Goal 27 - Documentation Ingestion And Orchestrator Freshness.
+
+Scope: documentation and state only: `docs/orchestrator/*`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, `docs/IMPLEMENTATION_STATE.md`, `implementation-goals/README.md`, `TASKS.md`, `STATE.json`, and `AGENTS.md`.
+
+Goal impact: preserves the Leads IPS chain by making active, completed, blocked, and assigned parallel work explicit after Goal 21 deployment and Goals 22-27 thread assignment.
+
+Invariants checked: `LEADS-INV-001`, `LEADS-INV-002`, `LEADS-INV-003`, `LEADS-INV-004`, `LEADS-INV-005`, `LEADS-INV-006`, `LEADS-INV-007`, `LEADS-INV-008`, `LEADS-INV-009`, and `LEADS-INV-010` are preserved because the lane changes documentation/state only and performs no runtime mutation.
+
+Sensitive-data classification: `none`; no data-bearing examples, tokens, secrets, raw lead rows, contact values, raw messages, confirmation tokens, private URLs, metadata values, or raw consent source values are recorded.
+
+Consent impact: no consent, unsubscribe, confirmation, or preference semantics change.
+
+Contract/schema impact: no API, DTO, Prisma schema, notification, Auth, Marketing, CRM, AI, deployment, or production behavior change.
+
+Replay/determinism impact: documentation scans and DocsRAG ingestion/retrieval checks are read-only for Leads runtime data. DocsRAG ingestion refreshes documentation indexes only.
+
+Pre-coding gate result: pass for documentation-only updates. Goal-specific `implementation-goals/GOAL-27-*` files were not created because the assigned file scope only allowed `implementation-goals/README.md`; this addendum and the status evidence serve as the execution artifacts for the documentation lane.
+
+Validation commands: documentation file presence scan, missing-marker scan, secret-pattern scan, DocsRAG ingestion trigger, DocsRAG agent-context retrieval metadata check, and remote git status review.

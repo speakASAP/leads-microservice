@@ -5,7 +5,7 @@ id: LEADS-IMPLEMENTATION-ORCHESTRATOR
 status: approved
 owner: leads-owner
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-06-13
 completeness_level: complete
 upstream:
   - ../BUSINESS.md
@@ -19,7 +19,7 @@ downstream:
 
 ## Command
 
-When the owner says `LEADS ORCHESTRATOR: continue implementation`, continue from `docs/IMPLEMENTATION_STATE.md` and the active or earliest pending goal in `docs/orchestrator/GOALS.md`.
+When the owner says `LEADS ORCHESTRATOR: continue implementation`, continue from `docs/IMPLEMENTATION_STATE.md`, inspect the parallel execution board in `docs/orchestrator/PLAN.md`, and select one unblocked assigned goal track. If no assignment exists, propose the set of parallel-ready goals before coding.
 
 ## Mission
 
@@ -44,7 +44,9 @@ Coordinate future Leads work so implementation preserves the original lead-intak
 
 ## Coordinator Duties
 
-- Select one goal chunk.
+- Build or refresh the parallel execution board.
+- Identify independent goal tracks, blockers, dependency edges, file ownership, validation ownership, and merge/deploy sequencing.
+- Select one unblocked goal chunk for the current worker session.
 - Preserve intent and ownership boundaries.
 - Build a minimal context package.
 - Fill an execution plan.
@@ -53,6 +55,8 @@ Coordinate future Leads work so implementation preserves the original lead-intak
 - Delegate or implement only the selected chunk.
 - Validate with evidence.
 - Update status and continuation state.
+
+Coordinator-only planning sessions may update roadmap, blocker, and assignment documents without touching runtime source. They must still run documentation-only readiness checks.
 
 ## Worker Contract
 
@@ -71,6 +75,13 @@ Workers must receive:
 - expected evidence.
 
 If these fields are missing for execution-critical behavior, create a blocker instead of coding.
+
+## Parallel Worker Rules
+
+- One worker session owns one goal track and its named file scope.
+- Workers must not edit another active worker's owned files unless the coordinator updates the board first.
+- Shared schema, migration, public contract, deployment config, and production validation changes serialize through a single owner.
+- A worker may mark downstream goals unblocked only after validation evidence is recorded and continuation state is updated.
 
 ## Validation Contract
 

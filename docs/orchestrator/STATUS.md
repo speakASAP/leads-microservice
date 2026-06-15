@@ -1526,3 +1526,565 @@ Leads production validation:
 Result:
 
 - Real Auth admin-token validation is complete for the global admin path. The Vault-backed source map remains deployed and present at runtime; non-global source filtering remains covered by implementation tests and runtime map presence checks.
+
+## 2026-06-13 - Goal 21 Sanitized AI/CRM Context API
+
+Current focus:
+- Selected next runtime slice after Goal 20 and real Auth admin token validation: Goal 21 - Sanitized AI/CRM Context API.
+- Completed guarded one-lead sanitized context retrieval for trusted internal consumers.
+- Deployment not performed because explicit deployment approval was not requested or granted.
+
+Source context:
+- Reviewed implementation state, orchestrator docs, Goal 5 AI/CRM boundary, Goal 9 sanitized context builder/tests, Leads controller/service, internal-service guard, and focused tests.
+- DocsRAG retrieval from the in-cluster Leads pod returned HTTP 500; repo-local source-of-truth docs and Goal 5/9 contracts were used. No token value was printed.
+
+Implementation evidence:
+- Added Goal 21 artifacts before source edits.
+- Added guarded GET /api/leads/internal/:id/sanitized-context.
+- Added LeadsService.getSanitizedLeadContext using buildSanitizedAiCrmLeadContext.
+- Added focused guard, logging, omission, and missing-lead tests.
+
+Validation evidence:
+- npm test -- --runTestsByPath src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts: passed, 2 suites, 29 tests.
+- npm run build: passed.
+- npm run lint: passed.
+- npm test: passed, 12 suites, 74 tests.
+- Final missing-marker and secret-pattern scans: run after this entry.
+
+Sensitive-data handling:
+- Synthetic values only.
+- Serialized responses omit contact values, raw message text, confirmation tokens, private source URL path/query values, metadata values, and raw consent source values.
+- Logs include aggregate/minimized context metadata only.
+- No production lead row, real contact value, raw message, confirmation token, private URL, metadata value, raw consent source value, Auth token, service token, or Vault secret was printed or recorded.
+
+Contract impact:
+- New guarded internal API only: GET /api/leads/internal/:id/sanitized-context.
+- No public API, admin API, schema, Auth, notification, campaign, contact resolution, AI/CRM outbound export, production mutation, or deployment change.
+
+Gate decision:
+- Integration readiness accepted. Deployment readiness not evaluated because deployment was not explicitly approved.
+
+Next recommended action:
+- Deploy Goal 21 after explicit owner approval, or select the next Leads runtime slice.
+## 2026-06-13 - Parallel Planning Refactor
+
+Current focus:
+
+- Owner-selected planning update: refactor Leads planning so future work can be split across parallel Codex sessions with explicit blockers and ownership boundaries.
+- Runtime code changes: none.
+- Deployment: not required.
+
+Source context:
+
+- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, `docs/orchestrator/MASTER_PROMPT.md`, `GOALS.md`, `PLAN.md`, `PROMPTS.md`, `STATUS.md`, `TASKS.md`, `STATE.json`, `implementation-goals/README.md`, and `AGENTS.md`.
+- Checked DocsRAG credential availability from the plain SSH shell on `alfares`; `JWT_TOKEN` was not set. This documentation-only planning update used repo-local source-of-truth docs and records the credential limitation.
+- Preserved existing Goal 21 state as "Sanitized AI/CRM Context API complete and deployed" and avoided reusing that goal number for new parallel tracks.
+
+Implementation evidence:
+
+- Updated `AGENTS.md` with a global Parallel Planning Standard for Codex sessions.
+- Updated `docs/IMPLEMENTATION_ORCHESTRATOR.md` so coordinator sessions refresh a parallel execution board before assigning work.
+- Updated `docs/orchestrator/MASTER_PROMPT.md` so every session checks parallel-ready, blocked, serialized, and owner-selection tracks.
+- Updated `docs/orchestrator/PLAN.md` with a parallel planning gate and a parallel-ready board for Goals 22-27.
+- Updated `docs/orchestrator/GOALS.md` with Goal 21 state plus Goals 22-27, including suggested agents, allowed file scope, blockers, chunks, and acceptance criteria.
+- Updated `docs/orchestrator/PROMPTS.md` with a Parallel Coordinator Prompt and handoff prompts for Goals 21-27.
+- Updated `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, `STATE.json`, and `implementation-goals/README.md` to reflect the parallel planning state.
+
+Parallel-ready tracks:
+
+- Goal 22 - Production Auth Workspace Token Matrix Validation: Agent A; blocked only for positive non-global scoped reads until approved workspace tokens exist.
+- Goal 23 - Admin UI Scope Messaging And Empty-State Hardening: Agent B; ready if Goal 20 API response shape is unchanged.
+- Goal 24 - Internal Lifecycle Event Replay Consumer Contract: Agent C; docs/builders/tests ready, runtime route changes serialized.
+- Goal 25 - Marketing Approval Evidence Handoff Contract: Agent D; docs/builders/tests ready, runtime approval storage blocked until ownership is confirmed.
+- Goal 26 - Product-App Intake Compatibility Matrix: Agent E; Leads-side synthetic matrix ready, cross-repo edits blocked until owner selects apps.
+- Goal 27 - Documentation Ingestion And Orchestrator Freshness: Agent F; documentation-only ready, DocsRAG retrieval requires in-cluster token path or limitation note.
+
+Validation evidence:
+
+- Documentation-only validation was run after the edit and recorded in the current session.
+- Sensitive-data handling: no secrets, tokens, raw contact values, raw messages, confirmation tokens, private URLs, or production lead rows were added to docs.
+- Contract impact: planning-only. Runtime API, schema, Auth, Notifications, Marketing, CRM, AI, deployment, and production behavior are unchanged.
+- Consent impact: planning-only. Consent, unsubscribe, confirmation, and outreach behavior are unchanged.
+
+Gate decision:
+
+- Documentation-only readiness accepted pending final remote validation commands.
+
+Next unfinished tracks:
+
+- Assign one agent each to Goals 22-27.
+## 2026-06-13 - Parallel Goal Threads Assigned
+
+Current focus:
+
+- Owner requested Goals 22-27 be assigned to separate Codex threads for parallel execution.
+- Goal 21 deployment is already complete; these assignments are post-deploy parallel workstreams.
+- Each thread received remote-first Leads instructions, IPS gates, sensitive-data restrictions, no-deploy/no-production-mutation limits, and shared-doc append-only conflict guidance.
+
+Assigned threads:
+
+- Agent A / Goal 22 - Production Auth Workspace Token Matrix Validation: `Leads Goal 22 - Auth Token Matrix` (`019ec2b5-7c3a-7c41-aee7-b58fccea1367`).
+- Agent B / Goal 23 - Admin UI Scope Messaging And Empty-State Hardening: `Leads Goal 23 - Admin UI States` (`019ec2b5-8ea3-7912-97e3-bbb4eed5a898`).
+- Agent C / Goal 24 - Internal Lifecycle Event Replay Consumer Contract: `Leads Goal 24 - Lifecycle Replay Contract` (`019ec2b8-3bd4-75c2-863a-ef788fe41833`).
+- Agent D / Goal 25 - Marketing Approval Evidence Handoff Contract: `Leads Goal 25 - Marketing Approval Evidence` (`019ec2b5-9b05-74e3-96a8-38954e713eb6`).
+- Agent E / Goal 26 - Product-App Intake Compatibility Matrix: `Leads Goal 26 - Product Intake Matrix` (`019ec2b5-a1d1-73f2-820a-8a9aaf55cff7`).
+- Agent F / Goal 27 - Documentation Ingestion And Orchestrator Freshness: `Leads Goal 27 - Orchestrator Freshness` (`019ec2b5-a8ac-7b40-aae4-b0319d7bcad0`).
+
+Coordination notes:
+
+- Agents must work on `alfares` in `/home/ssf/Documents/Github/leads-microservice` and must not save project changes under local `/Users/Sergej.Stasok/Documents`.
+- Agents must not deploy, mutate production lead data, print secrets/tokens, print production lead rows, or export raw lead data.
+- Shared docs require append-only/status-safe updates unless the goal explicitly owns the documentation integration lane.
+- Goal 27 is the documentation/integration-owner lane for reconciling orchestrator state after parallel work completes.
+
+Next recommended action:
+
+- Monitor the six assigned threads and integrate completed work in conflict-safe order.
+
+## 2026-06-13 - Goal 22 Production Auth Workspace Token Matrix Validation
+
+Current focus:
+
+- Agent A selected Goal 22 - Production Auth Workspace Token Matrix Validation.
+- Runtime code changes: none.
+- Deployment: not performed.
+- Production mutation: not performed.
+
+Source context:
+
+- Reviewed `AGENTS.md`, implementation state, implementation orchestrator, orchestrator plan/goals/gates/status, Goal 19/20 auth artifacts, `src/auth/admin-auth.guard.ts`, `src/leads/admin-leads.controller.ts`, and `src/leads/leads.service.ts`.
+- Queried DocsRAG from the in-cluster Leads runtime pod. Retrieval returned HTTP 500 for the Goal 22 query, so repo-local source-of-truth docs and live smoke checks were used. Token values were not printed.
+
+Implementation evidence:
+
+- Added Goal 22 context package, execution plan, coding prompt, goal summary, and validation report under `implementation-goals/`.
+- Updated `docs/IMPLEMENTATION_STATE.md` with the new positive-global-token blocker.
+- No source, schema, deployment, runtime config, smoke script, or production data changes were made.
+
+Validation evidence:
+
+- `GET https://leads.alfares.cz/health` returned HTTP 200.
+- `GET https://leads.alfares.cz/api/admin/leads` without bearer credentials returned HTTP 401.
+- Admin list and summary with an invalid placeholder bearer credential returned HTTP 401.
+- Existing Kubernetes token candidates were checked in memory only: `auth:JWT_TOKEN`, `leads:JWT_TOKEN`, `runlayer:JWT_TOKEN`, and `runlayer:ORCHESTRATOR_USER_JWT` were present but Auth validation returned HTTP 401 for all candidates.
+- A fresh Auth login using stored test credentials was intentionally not run because this task forbids production mutation.
+
+Sensitive-data handling:
+
+- No token value, secret value, password value, production user identifier, production lead row, raw contact value, raw message, confirmation token, private URL, metadata value, or raw consent source value was printed or recorded.
+
+Gate decision:
+
+- Negative-path production validation accepted.
+- Positive global admin read is blocked until a currently valid approved token is available through a non-mutating path.
+- Positive non-global workspace/app-scoped source validation is blocked until owner-provided workspace admin tokens or approved synthetic staging tokens are available.
+
+Next required handoff:
+
+- Owner should provide a currently valid global admin token and at least one valid non-global workspace/app-scoped admin token, or approve a synthetic non-production token path with exact endpoint scope.
+
+## 2026-06-13 - Goal 26 Product-App Intake Compatibility Matrix
+
+Current focus:
+
+- Assigned parallel worker track: Agent E, Goal 26 - Product-App Intake Compatibility Matrix.
+- Completed Leads-side synthetic compatibility matrix for approved product-app source services and supported contact method types.
+- Deployment: not requested and not performed.
+- Production mutation: not performed.
+
+Source context:
+
+- Reviewed BUSINESS.md, SYSTEM.md, AGENTS.md, TASKS.md, STATE.json, docs/IMPLEMENTATION_STATE.md, docs/IMPLEMENTATION_ORCHESTRATOR.md, and the required orchestrator docs.
+- Reviewed Goal 11 product-app taxonomy, Goal 12 product-app builder tests, src/leads/integrations/product-app-intake.ts, src/leads/integrations/product-app-intake.spec.ts, and src/leads/dto/create-lead.dto.ts.
+- DocsRAG query from the in-cluster Leads pod returned HTTP 500. No retrieved text, token value, secret, production lead row, or contact value was recorded; repo-local source-of-truth docs were used.
+- Remote git tree was already dirty before Goal 26 edits; unrelated prior changes were preserved and not reverted.
+
+Implementation evidence:
+
+- Added implementation-goals/GOAL-26-product-app-intake-compatibility-matrix.md.
+- Added Goal 26 execution plan, context package, coding prompt, and validation report artifacts.
+- Added src/leads/integrations/product-app-intake-matrix.fixtures.ts.
+- Added src/leads/integrations/product-app-intake-matrix.spec.ts.
+- Fixture matrix covers 9 approved source services times 3 supported contact method types, for 27 synthetic payloads.
+
+Validation evidence:
+
+- npm test -- --runTestsByPath src/leads/integrations/product-app-intake-matrix.spec.ts src/leads/integrations/product-app-intake.spec.ts: passed, 2 suites, 8 tests.
+- npm run build: passed.
+- Missing-marker scan across docs/orchestrator, implementation state, implementation-goals, and AGENTS.md: passed with no matches.
+- Secret-pattern scan using /tmp/leads-secret-patterns.txt across docs, AGENTS.md, TASKS.md, implementation-goals, and Goal 26 source files: passed with no matches.
+
+Sensitive-data handling:
+
+- Synthetic values only.
+- No production lead rows, real contact values, raw production messages, confirmation tokens, private URLs, metadata values, raw consent source values, JWTs, session tokens, service tokens, or secrets were printed or recorded.
+
+Contract impact:
+
+- Validates CreateLeadDto compatibility for the existing POST /api/leads/submit request shape only.
+- No public API behavior change, internal API behavior change, Prisma schema change, product-app code change, notification behavior change, campaign execution, AI/CRM export, production mutation, or deployment.
+
+Gate decision:
+
+- Integration readiness accepted for the Leads-side synthetic matrix.
+- Deployment readiness not evaluated because deployment was not requested and runtime behavior did not change.
+
+Blockers and handoff:
+
+- Cross-repo app edits remain blocked until the owner selects exact target apps and repositories.
+- Production intake mutation validation remains blocked until the owner approves exact synthetic payloads.
+- Goal 27 remains the documentation integration lane for reconciling shared orchestrator state after parallel Goal 22-27 work completes.
+
+Next unfinished action:
+
+- Owner/integration lane should choose target product app repositories for cross-repo adoption or keep Goal 26 as Leads-side complete with blocked cross-repo follow-ups.
+
+
+## 2026-06-13 - Goal 27 Documentation Ingestion And Orchestrator Freshness
+
+Current focus:
+
+- Assigned parallel Agent F lane: Goal 27 - Documentation Ingestion And Orchestrator Freshness.
+- Runtime code changes: none.
+- Deployment: not performed.
+
+Source context:
+
+- Reviewed `AGENTS.md`, `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, and the orchestrator pack.
+- Reviewed Goal 21 validation/deployment evidence and the parallel Goal 22-27 assignment state.
+- Plain SSH shell still does not expose `JWT_TOKEN`.
+- DocsRAG ingestion was triggered from the in-cluster Leads runtime pod without printing token values; trigger returned HTTP 202 with a job id present and status `running` for `leads-microservice`.
+- DocsRAG agent-context retrieval was retried from the in-cluster Leads runtime pod after ingestion; it returned HTTP 500 with no context. Repo-local source-of-truth docs were used for the refresh, and the DocsRAG runtime limitation is recorded.
+
+Pre-coding gate:
+
+- Goal: Goal 27 - Documentation Ingestion And Orchestrator Freshness.
+- Chunk: 27.1 through 27.4.
+- Repository root: `/home/ssf/Documents/Github/leads-microservice` on `alfares`.
+- Git status: existing dirty remote tree included docs/state files and runtime files from other lanes; this documentation lane did not revert unrelated work.
+- Execution artifacts: updated reusable orchestrator execution addendum and status evidence. Goal-specific `implementation-goals/GOAL-27-*` files were not created because this assigned lane allowed only `implementation-goals/README.md` under `implementation-goals/`.
+- Sensitive-data classification: `none`.
+- Consent impact: no consent, unsubscribe, confirmation, or preference behavior change.
+- Contract/schema impact: no API, DTO, Prisma schema, notification, Auth, Marketing, CRM, AI, deployment, or production behavior change.
+- Replay/determinism impact: documentation scans and DocsRAG ingestion/retrieval metadata checks do not mutate Leads runtime data.
+- Result: pass for documentation-only updates.
+
+Implementation evidence:
+
+- Marked Goal 27 complete in `docs/orchestrator/GOALS.md` and checked chunks 27.1-27.4.
+- Refreshed `docs/orchestrator/PLAN.md` so Goals 22-26 are active assigned tracks and Goal 27 is listed as completed.
+- Refreshed `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, `STATE.json`, `AGENTS.md`, and `implementation-goals/README.md` so active, completed, blocked, and assigned parallel state agree.
+- Updated `docs/IMPLEMENTATION_ORCHESTRATOR.md` metadata date and `docs/orchestrator/EXECUTION_PLAN.md` with the Goal 27 documentation-only execution addendum.
+- Corrected stale Goal 21 task wording to complete/deployed.
+
+Validation evidence:
+
+- Documentation-only validation commands passed: documentation file presence listed 146 markdown files; missing-marker scan returned no matches; docs-scope count-only secret-pattern scan returned `goal27_docs_secret_pattern_matches=0 files_scanned=151`; `python3 -m json.tool STATE.json` passed; `git diff --check` passed for the documentation/state files.
+- DocsRAG ingestion trigger: HTTP 202, job id present, status `running`, repo `leads-microservice`.
+- DocsRAG retrieval after ingestion: HTTP 500 from agent-context; no context captured; token values were not printed.
+- Sensitive-data handling: no secrets, tokens, production lead rows, raw contact values, raw messages, confirmation tokens, private URLs, metadata values, or raw consent source values were added to docs or output.
+
+Gate decision:
+
+- Documentation-only readiness accepted. Runtime validation and deployment are not required because no source, schema, secret, deployment, or production data behavior changed.
+
+Next unfinished tracks:
+
+- Goal 22 - blocked after Agent A negative-path validation; positive global and non-global scoped reads require valid owner-approved tokens or an approved synthetic path.
+- Goal 23 - active Agent B; validation report remains pre-validation.
+- Goal 24 - active Agent C for docs/tests; runtime route changes require owner-selected consumer and serialization.
+- Goal 25 - active Agent D; validation report remains pending final validation.
+- Goal 26 - complete for Leads-side synthetic matrix; cross-repo product app edits require owner-selected target repositories.
+
+## 2026-06-13 - Goal 24 Internal Lifecycle Event Replay Consumer Contract Complete
+
+Current focus:
+
+- Agent C completed Goal 24 docs/builders/tests scope for internal lifecycle event replay.
+- Runtime route changes: none; still serialized until the owner selects the first replay consumer and route shape.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed remote-first Leads instructions, implementation state, orchestrator docs, Goal 11 lifecycle contracts, Goal 12 lifecycle builders, Goal 18 durable lifecycle event storage/retrieval evidence, lifecycle event builders, router, and existing guarded lifecycle event retrieval tests.
+- DocsRAG plain SSH check had no `JWT_TOKEN`; two in-cluster DocsRAG queries reached the service but returned HTTP 500. No retrieved text, token value, secret, production lead row, or contact value was recorded. Repo-local source-of-truth docs were used.
+
+Implementation evidence:
+
+- Added Goal 24 execution artifacts and replay contract under `implementation-goals/GOAL-24-*`.
+- Added `src/leads/integrations/lifecycle-replay-contract.ts` with contract version `2026-06-13.lifecycle-replay.v1`, max 30 event bound, one-lead consumer-filtered replay response, deterministic sort/cursor behavior, ownership constraints, and event payload allow-list sanitization.
+- Added `src/leads/integrations/lifecycle-replay-contract.spec.ts` covering bounds, consumer filtering, deterministic replay order/cursor, unknown-payload dropping, and sensitive synthetic marker omission.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts src/leads/integrations/lifecycle-events.spec.ts src/leads/integrations/lifecycle-event-router.service.spec.ts`: passed, 3 suites, 11 tests.
+- `npm run build`: passed.
+- Missing-marker scan across orchestrator docs, implementation state, implementation goals, and AGENTS: no matches.
+- Narrow credential scan over Goal 24 artifacts and touched lifecycle replay files: no matches.
+- Unsafe replay-flag scan for true contact/raw/campaign/notification flags: no matches.
+
+Sensitive-data handling:
+
+- Only synthetic test markers were used. No token value, secret value, production lead row, real contact value, raw production message, confirmation token, private URL value, metadata value, raw consent source value, session token, or campaign content was printed or recorded.
+- Replay output constraints explicitly keep contact values, raw messages, campaign execution, and notification dispatch disabled.
+
+Contract impact:
+
+- Source-level builder/contract only. No public API, internal route, Prisma schema, migration, Logging API, Notifications API, Marketing API, Auth API, AI, CRM, deployment, or environment contract changed.
+- Logging remains centralized log owner. Leads only serves minimized lifecycle evidence it owns.
+
+Gate decision:
+
+- Pass for Goal 24 docs/builders/tests scope. Runtime replay route remains blocked until owner selection of the first consumer and serialized guarded API implementation.
+
+Next handoff:
+
+- Coordinator/owner can select the first replay consumer and route shape for a future serialized runtime goal, or leave the builder dormant until needed.
+
+
+## 2026-06-13 - Goal 25 Marketing Approval Evidence Handoff Contract Complete
+
+Current focus:
+
+- Agent D completed Goal 25 - Marketing Approval Evidence Handoff Contract.
+- Runtime source changes: guarded contact-resolution DTO/service contract tightened for approved campaign sends, plus approval-evidence helper and focused tests.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `BUSINESS.md`, `SYSTEM.md`, `AGENTS.md`, `TASKS.md`, `STATE.json`, `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, orchestrator docs, Goal 11 Marketing eligibility, Goal 16 eligibility preview, and Goal 17 controlled contact resolution.
+- Attempted DocsRAG retrieval from the in-cluster Leads runtime pod for Goal 25 context. Retrieval returned HTTP 500, so repo-local source-of-truth contracts were used. Token values were not printed.
+- Worked with the existing dirty remote tree and did not revert unrelated parallel-agent changes.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-25-marketing-approval-evidence-handoff-contract.md`.
+- Added Goal 25 execution plan, context package, coding prompt, and validation report artifacts.
+- Added `src/leads/integrations/marketing-approval-evidence.ts` with bounded purpose codes, retention expectations, required evidence-field checks, channel checks, and audit-safe approval summary builder.
+- Added `src/leads/integrations/marketing-approval-evidence.spec.ts`.
+- Updated `src/leads/dto/contact-resolution.dto.ts` so `approved_campaign_send` requires structured `approvalEvidence`.
+- Updated `src/leads/leads.service.ts` so approved campaign contact resolution requires structured approval evidence, exactly one requested channel, approval-channel match, and eligibility re-check before returning contact values.
+- Updated `src/leads/leads.controller.ts` and focused tests so contact-resolution logs include only audit-safe approval metadata.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/marketing-approval-evidence.spec.ts src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts`: passed, 3 suites, 35 tests.
+- `npm run build`: passed.
+- Missing-marker scan passed with no matches.
+- Goal 25 secret scan over docs/artifacts/new approval-evidence files passed.
+- `npm test`: passed, 15 suites, 86 tests.
+- Broad source scan noted existing `confirmationToken` code identifier false positives only; no literal token values were recorded.
+
+Contract and safety evidence:
+
+- Contract now requires affirmative consent eligibility evidence, no unsubscribe state, bounded Marketing purpose code, retention expectation, and a Marketing-owned human approval reference before approved campaign contact resolution.
+- Leads does not store approval records, store campaign content, execute campaigns, initiate outbound sends, call Notifications for campaign dispatch, export raw batches, mutate production data, or deploy.
+- Approval summaries/log metadata omit contact values, campaign content, raw messages, confirmation tokens, private URLs, raw consent source values, and metadata values.
+
+Known blockers:
+
+- Runtime approval storage remains blocked until the owner explicitly selects a Leads-owned approval evidence slice; storage remains Marketing-owned for this contract.
+- Campaign execution and mass outreach remain blocked without human review and owner approval.
+
+Next unfinished handoff:
+
+- Marketing integration can adapt to the structured `approvalEvidence` object for approved contact-resolution calls.
+- Final integration owner should reconcile shared `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, `STATE.json`, and the parallel execution board after all parallel agents finish.
+
+
+## 2026-06-13 - Goal 24 Agent C Validation Confirmation
+
+Current focus:
+
+- Agent C completed Goal 24 - Internal Lifecycle Event Replay Consumer Contract for docs/builders/tests scope.
+- Runtime route changes: none.
+- Schema/migration changes: none.
+- Deployment: not requested and not performed.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts`: passed, 3 tests.
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts src/leads/integrations/lifecycle-events.spec.ts src/leads/integrations/lifecycle-event-router.service.spec.ts`: passed, 3 suites, 11 tests.
+- `npm run build`: passed.
+- Missing-marker scan across orchestrator docs, implementation state, implementation goals, and AGENTS: passed with no matches.
+- Narrow sensitive-pattern scan over Goal 24 artifacts and `src/leads/integrations/lifecycle-replay-contract.ts`: passed with no matches.
+- Fixture coverage scan confirmed sensitive-looking synthetic red-team markers appear only in `lifecycle-replay-contract.spec.ts` fixtures and negative `not.toContain` assertions.
+
+Contract and safety evidence:
+
+- Replay contract version `2026-06-13.lifecycle-replay.v1` is one-lead scoped, consumer-route filtered, bounded to 30 events, and minimized through event-type payload allowlists.
+- Response constraints explicitly identify Leads as evidence owner and Logging as centralized log owner.
+- No raw lead export, public route, internal route change, storage change, migration, campaign execution, notification dispatch, AI/CRM export, production mutation, or deployment was performed.
+
+Known blocker:
+
+- Runtime replay route remains blocked until the owner selects the first consumer and serialized guarded API implementation scope.
+
+## 2026-06-13 - Coordinator Parallel Results Reconciliation
+
+Current focus:
+
+- Checked results from the assigned Goal 22-27 Codex threads.
+- Goal 22 is blocked after negative-path validation because no valid approved positive admin tokens are available.
+- Goal 23 remains active in Agent B thread.
+- Goal 24 is complete for docs/builders/tests; runtime replay route remains blocked until the owner selects the first consumer.
+- Goal 25 is complete for contract/builders/tests; runtime approval storage remains blocked unless owner selects a Leads-owned approval evidence slice.
+- Goal 26 is complete for Leads-side synthetic matrix; cross-repo product-app adoption remains blocked until target repositories are selected.
+- Goal 27 is complete documentation-only; DocsRAG ingestion returned HTTP 202 and retrieval still returned HTTP 500.
+
+Coordination updates:
+
+- Reconciled AGENTS.md, TASKS.md, STATE.json, and docs/orchestrator/GOALS.md for completed/blocker state.
+- Preserved Agent B active Goal 23 files and did not overwrite in-progress frontend validation.
+
+Next recommended action:
+
+- Wait for Goal 23 to finish, then run integration validation across accumulated Goal 23-26 runtime/test changes before any deployment.
+
+
+## 2026-06-13 - Goal 23 Admin UI Scope Messaging And Empty-State Hardening Complete
+
+Current focus:
+
+- Agent B completed Goal 23 - Admin UI Scope Messaging And Empty-State Hardening.
+- Runtime source changes: static admin browser assets and focused UI tests only.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed `AGENTS.md`, `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, orchestrator docs, Goal 23 board entries, `public/admin.html`, `public/admin.js`, `public/styles.css`, `src/leads/admin-leads.controller.ts`, `src/leads/leads.service.ts`, and `package.json`.
+- Attempted DocsRAG retrieval from the in-cluster Leads runtime pod for Goal 23 context. Retrieval returned HTTP 500; token values were not printed. Repo-local source-of-truth docs were used.
+- Worked with the existing dirty remote tree and did not revert unrelated parallel-agent changes.
+
+Implementation evidence:
+
+- Added Goal 23 execution artifacts under `implementation-goals/GOAL-23-*`.
+- Updated `public/admin.js` with token-missing, unauthorized/forbidden, scoped-empty, and hidden-detail UI states.
+- Updated `public/admin.js` so selected rows fetch the existing admin detail endpoint and handle 404 as unavailable/hidden without exposing cross-workspace existence.
+- Updated `public/admin.js` to avoid rendering lead IDs and source metadata fields in browser list/detail views while keeping minimized source service, status, contact method type/count, consent label/evidence presence, preference, and timestamps.
+- Added `public/admin.spec.ts` focused UI tests for token-missing, scoped-empty, unauthorized, and hidden-detail states using synthetic/unauthenticated data only.
+- Added minimal empty-state styling in `public/styles.css`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath public/admin.spec.ts`: passed, 1 suite, 4 tests.
+- `npm run build`: passed.
+- `npm run lint`: passed.
+- Admin UI sensitive-data scan over `public/admin.js`, `public/admin.spec.ts`, and `public/styles.css`: no matches after final cleanup.
+- Missing-marker scan across Goal 23 artifacts and shared state docs: no matches.
+- Browser screenshots were not created; validation used synthetic/unauthenticated Jest coverage to avoid token or production lead exposure.
+
+Safety evidence:
+
+- No raw contact values, raw messages, confirmation tokens, private URL path/query values, metadata values, token values, secret material, production lead rows, or raw consent source values were printed or persisted.
+- No public API, internal API, database schema, Auth, Notifications, Marketing, Logging, AI/CRM, deployment, or production mutation behavior changed.
+
+Gate decision:
+
+- Pass. Goal 23 is complete for Agent B scope.
+
+Next handoff:
+
+- Coordinator/integration owner can keep Goal 23 marked done and continue monitoring remaining parallel Goals 24-25 plus Goal 22 token blockers. No deployment was performed by Agent B.
+
+## 2026-06-13 - Goal 28 Parallel Integration Validation And Deployment Readiness
+
+Current focus:
+
+- Coordinator reviewed parallel Goal 22-27 thread results and completed serialized integration validation after Goal 23 finished.
+- Goal 22 remains blocked for positive global/non-global admin token validation.
+- Goals 23, 24, 25, 26, and 27 are complete for their assigned scopes.
+- Deployment was not performed; deployment remains owner-approval gated.
+
+Integration validation evidence:
+
+- npm test: passed, 16 suites, 90 tests.
+- npm run build: passed.
+- npm run lint: passed.
+- Missing-marker scan across docs, implementation-goals, public assets, and Leads source: passed with no matches.
+- Secret-pattern scan across docs, implementation-goals, public assets, and Leads source: passed with no matches.
+- git diff --check over AGENTS.md, STATE.json, TASKS.md, docs, implementation-goals, public, and src/leads: passed.
+
+Sensitive-data handling:
+
+- No production lead rows, real contact values, raw messages, confirmation token values, private URL values, metadata values, raw consent source values, JWTs, service tokens, or secret values were printed or persisted.
+- Test output included synthetic lead and metadata key names only.
+
+Gate decision:
+
+- Integration readiness accepted for accumulated Goal 23-26 changes.
+- Deployment readiness is ready for owner approval but not executed.
+
+Next recommended action:
+
+- Owner may approve deployment of accumulated Goal 23-26 changes, or provide valid approved admin tokens to unblock Goal 22 positive-token validation.
+
+## 2026-06-13 - Goal 28 Deployment Completed
+
+Current focus:
+
+- Owner approved deployment of accumulated Goal 23-26 changes after integration validation passed.
+- Deployment was run from the remote repository on alfares.
+
+Deployment evidence:
+
+- Ran ./scripts/deploy.sh goal23-26-integration-20260613.
+- Image build succeeded with local image sha256:68ae5be6a6fc118176a7997302bf43093353238e87f58cb51bf366dfbe4f1583.
+- Image push succeeded for localhost:5000/leads-microservice:goal23-26-integration-20260613 with digest sha256:9b86840d5d3c40f255a3b3e2228ba9a8a2e8c727b717c6e71bb3569a749ab3b7.
+- Deploy script applied ConfigMap, ExternalSecret, Service, Ingress, and Deployment.
+- Because the deployment template still uses latest and initially reported unchanged, forced rollout restart was run with kubectl rollout restart deployment/leads-microservice, then rollout status completed successfully.
+- Running pod imageID confirms localhost:5000/leads-microservice@sha256:9b86840d5d3c40f255a3b3e2228ba9a8a2e8c727b717c6e71bb3569a749ab3b7.
+
+Post-deploy validation evidence:
+
+- External health returned {status:ok}.
+- Deployment readiness showed 1 ready replica and 1 updated replica.
+- Unauthenticated GET https://leads.alfares.cz/api/admin/leads returned HTTP 401.
+- GET https://leads.alfares.cz/admin returned HTTP 200 and a 4775 byte admin page.
+- Deploy script pod-local health check passed and ExternalSecret readiness was true.
+
+Sensitive-data handling:
+
+- No production lead rows, contact values, raw messages, confirmation token values, JWTs, internal tokens, private URLs, metadata values, raw consent source values, or secret values were printed or persisted.
+
+Gate decision:
+
+- Deployment accepted for accumulated Goal 23-26 changes.
+- Goal 22 positive token validation remains blocked until valid approved admin tokens or an approved synthetic path are available.
+
+Next recommended action:
+
+- Provide valid approved admin tokens to unblock Goal 22, or select one blocked follow-up: Goal 24 runtime replay consumer, Goal 25 approval storage ownership, or Goal 26 target product-app repositories.
+
+
+
+## 2026-06-14 - Next Goal Readiness Review
+
+Current focus:
+
+- Reviewed remaining plan state after Goal 28 deployment.
+- Goal 22 remains the only active assigned track and is blocked after negative-path validation because valid approved positive Auth tokens are unavailable.
+- Goals 23, 24, 25, 26, 27, and 28 are complete for their assigned scopes.
+- No new parallel worker threads were started because every remaining candidate requires owner input or credentials.
+
+Remaining owner-gated options:
+
+- Goal 22 positive-token validation: provide a valid approved global admin token and a valid approved non-global workspace admin token, or approve a synthetic staging-token path.
+- Goal 24 runtime replay route: select the first trusted internal consumer and route shape before serialized guarded API implementation.
+- Goal 25 approval storage: explicitly decide whether approval evidence remains Marketing-owned only or whether Leads should add a dedicated approval-evidence storage slice.
+- Goal 26 cross-repo adoption: select target product-app repositories before editing StateX, Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, or another app.
+
+Coordination updates:
+
+- Reconciled `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/PLAN.md`, and `TASKS.md` so the active board matches the latest Goal 28 deployment evidence.
+- Preserved the blocker list and did not change runtime source, schema, migrations, environment, deployment config, or production data.
+
+Validation evidence:
+
+- Missing-marker scan across orchestrator docs, implementation state, implementation goals, and AGENTS: passed with no matches.
+- Secret-pattern scan across docs, AGENTS.md, TASKS.md, and implementation-goals: passed with no matches.
+- git diff --check over reconciled documentation files: passed.
+
+Next recommended action:
+
+- Owner should pick one gated path: unblock Goal 22 with approved tokens, select Goal 24 first replay consumer, choose Goal 25 approval-storage ownership, or name Goal 26 target product repositories.

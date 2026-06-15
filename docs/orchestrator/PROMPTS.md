@@ -4,7 +4,11 @@ Use these prompts when the owner asks to implement or continue Leads work.
 
 ## Universal Session Prompt
 
-Read `docs/orchestrator/MASTER_PROMPT.md`, `INTENT.md`, `GOALS.md`, `PLAN.md`, `PROJECT_INVARIANTS.md`, `PRE_CODING_GATE.md`, `READINESS_GATES.md`, and `STATUS.md`. Identify the active or earliest pending chunk. Restate the preserved Leads intent and ownership boundaries affected by the chunk. Complete only that chunk, verify it, append status evidence, and leave the next chunk clearly named.
+Read `docs/orchestrator/MASTER_PROMPT.md`, `INTENT.md`, `GOALS.md`, `PLAN.md`, `PROJECT_INVARIANTS.md`, `PRE_CODING_GATE.md`, `READINESS_GATES.md`, and `STATUS.md`. Refresh the parallel execution board, blockers, dependencies, file ownership, and active sessions. Select one owner-assigned or unblocked parallel-ready goal track for this session. Restate the preserved Leads intent and ownership boundaries affected by the track. Complete only that track or chunk, verify it, append status evidence, and leave the next parallel-ready and blocked tracks clearly named.
+
+## Parallel Coordinator Prompt
+
+Use this prompt when the owner asks to plan, refactor plans, or prepare work for multiple agents. Do not edit runtime source. Refresh `GOALS.md`, `PLAN.md`, `IMPLEMENTATION_STATE.md`, `TASKS.md`, `STATE.json`, and `STATUS.md` so work is split into independent goal tracks with blockers, dependencies, allowed file scope, validation ownership, and merge/deploy sequencing. Mark each track as `parallel-ready`, `blocked`, `serialized`, or `needs-owner-selection`. Run documentation-only readiness checks.
 
 ## Goal 1 Prompt
 
@@ -33,3 +37,31 @@ Implement the next unfinished chunk of "Goal 6 - Operational Smoke And Documenta
 ## Goal 11 Prompt
 
 Implement the next unfinished chunk of "Goal 11 - Ecosystem Lead Lifecycle Contracts." Preserve Leads as the consent-aware non-registered warm-contact ledger. Define ecosystem contracts before runtime code. Do not move registered identity, campaign execution, notification delivery, payment ownership, logging storage, or AI model ownership into Leads. Use minimized events and guarded APIs by default; raw contact reveal, campaign launch, AI enrichment, or CRM export requires explicit owner approval and validation evidence.
+
+## Goal 21 Prompt
+
+Goal 21 - Sanitized AI/CRM Context API is complete and deployed. Preserve minimized AI/CRM context only and do not add raw lead export, AI enrichment, CRM workflow ownership, or production mutation.
+
+## Goal 22 Prompt
+
+Implement "Goal 22 - Production Auth Workspace Token Matrix Validation." Validate deployed admin Auth behavior with masked/minimized output only. Positive non-global workspace scoped validation is blocked until owner-provided workspace admin tokens or approved synthetic staging tokens are available. Do not print tokens or production lead rows.
+
+## Goal 23 Prompt
+
+Implement "Goal 23 - Admin UI Scope Messaging And Empty-State Hardening." Improve scoped-empty, hidden-detail, unauthorized, and token-missing admin UI states without changing admin API contracts or exposing raw lead data.
+
+## Goal 24 Prompt
+
+Implement "Goal 24 - Internal Lifecycle Event Replay Consumer Contract." Start with docs, builders, and tests unless the owner selects a runtime route. Keep replay guarded, bounded, deterministic, and minimized.
+
+## Goal 25 Prompt
+
+Implement "Goal 25 - Marketing Approval Evidence Handoff Contract." Define approval evidence handoff for Marketing without storing campaign content, executing campaigns, initiating outreach, or exporting raw contacts.
+
+## Goal 26 Prompt
+
+Implement "Goal 26 - Product-App Intake Compatibility Matrix." Build Leads-side synthetic compatibility fixtures and tests. Do not edit product app repositories or submit production intake payloads unless the owner selects exact targets and payloads.
+
+## Goal 27 Prompt
+
+Implement "Goal 27 - Documentation Ingestion And Orchestrator Freshness." Keep this documentation-only unless separately approved. Refresh state, blockers, parallel execution board, DocsRAG evidence, and continuation instructions.

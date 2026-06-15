@@ -41,6 +41,7 @@ describe('LeadsController access controls', () => {
   it('keeps internal preference, unsubscribe, conversion-link, and campaign eligibility routes guarded', () => {
     expect(guardsFor('resolveLeadContact')).toContain(InternalServiceGuard);
     expect(guardsFor('previewCampaignEligibility')).toContain(InternalServiceGuard);
+    expect(guardsFor('getSanitizedLeadContext')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadLifecycleEvents')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('updateLeadPreferences')).toContain(InternalServiceGuard);
@@ -86,10 +87,83 @@ describe('LeadsController contact resolution', () => {
         requestedChannelCount: 1,
         returnedContactMethodCount: 1,
         approvalEvidencePresent: false,
+        approvalPurposeCode: null,
+        approvalChannel: null,
       }),
     );
     const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
     expect(serializedLog).not.toContain('person@example.test');
+    expect(serializedLog).not.toContain('Synthetic campaign body');
+  });
+
+  it('logs approved campaign contact resolution with approval summary metadata only', async () => {
+    const { controller, loggingService } = buildController({
+      resolveLeadContact: jest.fn().mockResolvedValue({
+        leadId: 'lead_synthetic_campaign',
+        purpose: 'approved_campaign_send',
+        resolvedAt: '2026-06-13T04:00:00.000Z',
+        contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+        approvalEvidence: {
+          approvalId: 'approval_synthetic_25',
+          campaignId: 'campaign_synthetic_25',
+          approvedAt: '2026-06-13T20:00:00.000Z',
+          purposeCode: 'product_nurture',
+          channel: 'email',
+          audienceCount: 12,
+          eligibleCount: 10,
+          retentionExpectation: 'marketing_retains_until_campaign_audit_window_expires',
+          humanApprovalReferencePresent: true,
+          approvedByPresent: true,
+          workspaceIdPresent: true,
+          contentVersionPresent: true,
+        },
+        consent: {
+          marketingConsent: true,
+          consentCapturedAtPresent: true,
+          unsubscribed: false,
+        },
+      }),
+    });
+
+    await controller.resolveLeadContact({
+      leadId: 'lead_synthetic_campaign',
+      purpose: 'approved_campaign_send',
+      requestedChannels: ['email'],
+      approvalEvidence: {
+        approvalId: 'approval_synthetic_25',
+        campaignId: 'campaign_synthetic_25',
+        approvedBy: 'auth_user_synthetic_reviewer',
+        approvedAt: '2026-06-13T20:00:00.000Z',
+        workspaceId: 'workspace_synthetic_25',
+        purposeCode: 'product_nurture',
+        channel: 'email',
+        audienceCount: 12,
+        eligibleCount: 10,
+        contentVersion: 'content_version_synthetic_25',
+        retentionExpectation: 'marketing_retains_until_campaign_audit_window_expires',
+      },
+      campaignPurpose: 'marketing',
+      requireConfirmedContact: true,
+    });
+
+    expect(loggingService.log).toHaveBeenCalledWith(
+      'info',
+      'Lead contact resolved via internal API',
+      expect.objectContaining({
+        leadId: 'lead_synthetic_campaign',
+        purpose: 'approved_campaign_send',
+        requestedChannelCount: 1,
+        returnedContactMethodCount: 1,
+        approvalEvidencePresent: true,
+        approvalPurposeCode: 'product_nurture',
+        approvalChannel: 'email',
+      }),
+    );
+    const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
+    expect(serializedLog).not.toContain('person@example.test');
+    expect(serializedLog).not.toContain('Synthetic campaign body');
+    expect(serializedLog).not.toContain('content_version_synthetic_25');
+    expect(serializedLog).not.toContain('auth_user_synthetic_reviewer');
   });
 });
 
@@ -156,6 +230,71 @@ describe('LeadsController campaign eligibility preview', () => {
         requested: 1,
         eligible: 1,
         ineligible: 0,
+      }),
+    );
+
+    const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
+    expect(serializedLog).not.toContain('person@example.test');
+    expect(serializedLog).not.toContain('Synthetic raw product interest message');
+    expect(serializedLog).not.toContain('synthetic-confirmation-token');
+    expect(serializedLog).not.toContain('private/path');
+    expect(serializedLog).not.toContain('private-consent-source');
+  });
+});
+
+describe('LeadsController sanitized AI/CRM context', () => {
+  it('returns minimized context and logs only aggregate metadata', async () => {
+    const { controller, loggingService } = buildController({
+      getSanitizedLeadContext: jest.fn().mockResolvedValue({
+        contractVersion: '2026-06-13.ai-crm-context.v1',
+        context: {
+          leadId: 'lead_synthetic_context',
+          status: 'new',
+          sourceService: 'statex',
+          sourceLabel: 'contact-form',
+          sourceHost: 'statex.example',
+          messageLength: 38,
+          contactMethodCount: 1,
+          contactMethodTypes: ['email'],
+          metadataKeys: ['privateCampaign'],
+          consent: {
+            marketingConsent: true,
+            consentSourcePresent: true,
+            consentCapturedAtPresent: true,
+          },
+          preference: {
+            preferredChannel: 'email',
+            fallbackChannelCount: 0,
+          },
+          lifecycle: {
+            confirmed: false,
+            unsubscribed: false,
+          },
+        },
+      }),
+    });
+
+    const result = await controller.getSanitizedLeadContext('lead_synthetic_context');
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        contractVersion: '2026-06-13.ai-crm-context.v1',
+        context: expect.objectContaining({
+          leadId: 'lead_synthetic_context',
+          contactMethodTypes: ['email'],
+          messageLength: 38,
+        }),
+      }),
+    );
+    expect(loggingService.log).toHaveBeenCalledWith(
+      'info',
+      'Lead sanitized AI/CRM context retrieved',
+      expect.objectContaining({
+        leadId: 'lead_synthetic_context',
+        contactMethodCount: 1,
+        contactMethodTypes: ['email'],
+        metadataKeyCount: 1,
+        consentSourcePresent: true,
       }),
     );
 

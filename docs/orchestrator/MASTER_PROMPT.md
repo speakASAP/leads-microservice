@@ -23,13 +23,14 @@ Leads exists to collect contact submissions without registration, preserve conse
 1. Work on the remote repository at `/home/ssf/Documents/Github/leads-microservice` on `alfares`.
 2. Read `BUSINESS.md`, `SYSTEM.md`, `AGENTS.md`, `TASKS.md`, `STATE.json`, `docs/IMPLEMENTATION_STATE.md`, and this orchestrator pack.
 3. Query DocsRAG before broad architecture or ecosystem work when credentials are available; record when unavailable.
-4. Identify the active goal in `docs/IMPLEMENTATION_STATE.md` or the earliest active/pending goal in `docs/orchestrator/GOALS.md`, unless the owner selects another goal.
-5. Restate the preserved intent and affected ownership boundary.
-6. Fill the execution plan, context package, invariant review, sensitive-data classification, consent impact, contract impact, replay/determinism plan, and validation plan.
-7. Run the pre-coding gate before source edits.
-8. Implement only the selected chunk.
-9. Run readiness checks and append evidence to `docs/orchestrator/STATUS.md`.
-10. Update continuation state before ending.
+4. Refresh the parallel execution board: list unblocked goals, blocked goals, blockers, dependencies, file ownership, validation ownership, and merge/deploy sequencing.
+5. Identify one active or owner-assigned goal track for this session. If none is assigned, propose the parallel-ready set and stop before coding unless the owner authorizes a specific track.
+6. Restate the preserved intent and affected ownership boundary.
+7. Fill the execution plan, context package, invariant review, sensitive-data classification, consent impact, contract impact, replay/determinism plan, and validation plan.
+8. Run the pre-coding gate before source edits.
+9. Implement only the selected chunk.
+10. Run readiness checks and append evidence to `docs/orchestrator/STATUS.md`.
+11. Update continuation state and the parallel execution board before ending.
 
 ## Completion Standard
 
@@ -41,6 +42,7 @@ A goal is complete only when:
 - validation commands are recorded with pass/fail summaries;
 - `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` reflect the current state when applicable;
 - the next action is concrete.
+- parallel follow-up state is clear: which goals are unblocked, blocked, active, or done.
 
 ## Stop Conditions
 
