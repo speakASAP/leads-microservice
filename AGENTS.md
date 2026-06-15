@@ -1,3 +1,16 @@
+# Repository Agent Instructions
+
+Shared rules live here:
+
+- Codex profile: `/home/ssf/.codex/AGENTS.md`
+- Cross-agent standard: `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`
+- Repository operations: `AGENT_OPERATIONS.md`
+
+Read those first, then follow the repository-specific notes below and the current planning/status files.
+
+
+## Repository-Specific Notes
+
 # Agents: leads-microservice
 
 ## Remote-First Working Rule
@@ -71,6 +84,10 @@ Do not code when raw lead data export, mass outreach, consent semantics, trusted
 
 ## Active Agents
 <!-- Coordinator-maintained -->
+- Goal 22 token validation: Codex thread 019ec9bb-426c-7f10-aaa3-63922c110bc6 active from 2026-06-15; docs/status and masked smoke validation only.
+- Goal 24 FlipFlop replay consumer: Codex thread 019ec9bb-44d9-7523-81b8-2627d271dc9f active from 2026-06-15; Leads replay route/contract plus FlipFlop consumer scope.
+- Goal 25 Leads-owned approval evidence storage: Codex thread 019ec9bb-4908-7f10-b35b-5cdb3132bc87 active from 2026-06-15; migration-owner lane, no campaign execution.
+- Goal 26 FlipFlop product-app intake adoption: Codex thread 019ec9bb-8b2a-7571-89bd-bbefb7cf78fb active from 2026-06-15; FlipFlop integration lane, no production lead mutation.
 - Agent A: Goal 22 - Production Auth Workspace Token Matrix Validation; blocked pending valid approved global/non-global admin tokens; thread 019ec2b5-7c3a-7c41-aee7-b58fccea1367.
 - Agent B: Goal 23 - Admin UI Scope Messaging And Empty-State Hardening; complete; thread 019ec2b5-8ea3-7912-97e3-bbb4eed5a898.
 - Agent C: Goal 24 - Internal Lifecycle Event Replay Consumer Contract; complete for docs/builders/tests; thread 019ec2b8-3bd4-75c2-863a-ef788fe41833.
@@ -82,11 +99,3 @@ Do not code when raw lead data export, mass outreach, consent semantics, trusted
 <!-- Coordinator-maintained -->
 - Agent E: Goal 26 - Product-App Intake Compatibility Matrix; Codex thread `019ec2b5-a1d1-73f2-820a-8a9aaf55cff7` (`Leads Goal 26 - Product Intake Matrix`); completed Leads-side synthetic matrix on 2026-06-13, with cross-repo adoption still blocked pending owner target selection.
 - Agent F: Goal 27 - Documentation Ingestion And Orchestrator Freshness; Codex thread `019ec2b5-a8ac-7b40-aae4-b0319d7bcad0` (`Leads Goal 27 - Orchestrator Freshness`); completed documentation-only refresh on 2026-06-13.
-
-## Company Cross-Agent Standard
-
-This repository also follows `AGENT_OPERATIONS.md`, which points all AI agents to the company cross-agent automation model: readiness scanner, bounded worker agent, worker monitor, and integration validator. Use the validation-debt ledger for known out-of-scope validation failures and preserve the Intent Preservation chain.
-
-## Central Instruction Source
-
-Shared agent rules now live in `/home/ssf/.codex/AGENTS.md` and `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`. Keep this file for repository-specific constraints only; do not duplicate shared operating rules here.
