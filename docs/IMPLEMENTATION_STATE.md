@@ -20,11 +20,11 @@ downstream:
 ## Current State
 
 - Stage: production.
-- Health: `ok` after Goal 10 deployment.
-- Current owner-selected task: Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
-- Runtime source changes in the latest completed runtime task: Auth-backed admin guard now captures workspace/tenant claims, admin APIs pass admin scope into service reads, and Leads applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to non-global admin summary/list/detail reads.
-- Latest implementation change: Goal 20 now supports Vault-backed Auth role source mapping for non-global admin reads while keeping global:superadmin platform-wide.
-- Deployment: completed after owner approval. Goal 18 migration applied, Goal 20 Vault-backed Auth role source mapping deployed as image 3c2ef66, health and admin 401 smoke checks passed.
+- Health: `ok` after Goal 28 deployment of accumulated Goal 23-26 changes.
+- Current owner-selected task: none; Goal 22 positive-token validation remains blocked.
+- Runtime source changes in the latest completed runtime task: Goal 28 integrated and deployed Goal 23 admin UI hardening, Goal 24 lifecycle replay contract builders/tests, Goal 25 marketing approval evidence handoff contract, and Goal 26 product-app intake compatibility matrix.
+- Latest implementation change: Goal 28 deployed accumulated Goal 23-26 changes with integration validation passing.
+- Deployment: completed after owner approval. Goal 28 deployed image tag goal23-26-integration-20260613; rollout, health, ExternalSecret readiness, unauthenticated admin 401, and admin page smoke checks passed.
 
 ## Preserved Intent Summary
 
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
+Goal 22 is blocked after negative-path production validation pending approved positive-token inputs. Goals 23, 24, 25, 26, 27, and 28 are complete for their assigned scopes. Future Goal 24 runtime replay route work, Goal 25 approval storage, and Goal 26 cross-repo adoption remain owner-selection gated.
 
 ## Completed Goals
 
@@ -62,19 +62,30 @@ Goal 20 - Auth Workspace-Scoped Admin Isolation is complete and deployed.
 - Goal 18 - Durable Lifecycle Event Storage: complete on 2026-06-13.
 - Goal 19 - Auth-Backed Admin API Authentication: complete and deployed on 2026-06-13.
 - Goal 20 - Auth Workspace-Scoped Admin Isolation: complete and deployed on 2026-06-13.
+- Goal 21 - Sanitized AI/CRM Context API: complete and deployed on 2026-06-13.
+- Goal 23 - Admin UI Scope Messaging And Empty-State Hardening: complete on 2026-06-13.
+- Goal 24 - Internal Lifecycle Event Replay Consumer Contract: complete for docs/builders/tests on 2026-06-13; runtime route blocked pending owner-selected first consumer.
+- Goal 26 - Product-App Intake Compatibility Matrix: complete for Leads-side synthetic matrix on 2026-06-13.
+- Goal 27 - Documentation Ingestion And Orchestrator Freshness: complete on 2026-06-13.
+- Goal 28 - Parallel Integration Validation And Deployment Readiness: complete and deployed on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended implementation goal: validate production Auth admin tokens against the Vault-backed LEADS_ADMIN_WORKSPACE_SOURCE_MAP, then select the next Leads runtime slice.
+Next recommended action: resolve Goal 22 token blockers, or select one owner-gated follow-up: Goal 24 runtime replay consumer, Goal 25 Leads-owned approval storage, or Goal 26 target product-app repositories.
 
 ## Known Blockers
 
-- None.
+- Goal 22 positive non-global workspace admin validation is blocked until owner-provided workspace admin tokens or approved synthetic staging tokens are available.
+- Goal 22 positive global admin production read is also blocked until a currently valid already-issued global admin token is provided, or the owner explicitly approves a non-mutating synthetic validation path. Existing Kubernetes token candidates were present but Auth rejected them on 2026-06-13.
+- Goal 24 runtime route changes are serialized until the owner selects a first consumer and any guarded API changes are coordinated.
+- Goal 25 runtime approval storage is blocked until approval evidence ownership is confirmed.
+- Goal 26 cross-repo product-app edits are blocked until the owner selects target repositories.
+- Goal 27 DocsRAG ingestion trigger succeeded from the in-cluster runtime path, but agent-context retrieval returned HTTP 500 after ingestion; the plain SSH shell still lacks `JWT_TOKEN`.
 
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. Select the next owner-approved implementation goal or deployment action and create/update goal-specific artifacts before source edits.
+2. Use the parallel execution board in `docs/orchestrator/PLAN.md`; Goal 22 is blocked, Goals 23-28 are complete for their assigned scopes, and Goal 24/25/26 follow-ups require owner selection before new worker threads start.
 3. Preserve service boundaries: Leads owns non-registered intake/consent/preferences/unsubscribe; Auth owns identity/RBAC/tenancy; Marketing owns campaigns; Notifications owns delivery; CRM owns funnel workflow once implemented.
 4. Do not implement raw lead export, mass outreach, campaign execution, AI enrichment, or production lead mutation without explicit owner approval and validation evidence.
 5. Record validation and continuation evidence before ending.

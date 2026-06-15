@@ -142,7 +142,9 @@ export class LeadsController {
       purpose: result.purpose,
       requestedChannelCount: payload.requestedChannels?.length ?? null,
       returnedContactMethodCount: result.contactMethods.length,
-      approvalEvidencePresent: Boolean(payload.approvalId),
+      approvalEvidencePresent: Boolean(payload.approvalEvidence?.approvalId),
+      approvalPurposeCode: payload.approvalEvidence?.purposeCode ?? null,
+      approvalChannel: payload.approvalEvidence?.channel ?? null,
       duration_ms: Date.now() - startedAt,
     });
     return result;
@@ -160,6 +162,24 @@ export class LeadsController {
       requested: result.summary.requested,
       eligible: result.summary.eligible,
       ineligible: result.summary.ineligible,
+      duration_ms: Date.now() - startedAt,
+    });
+    return result;
+  }
+
+  @Get('internal/:id/sanitized-context')
+  @UseGuards(InternalServiceGuard)
+  async getSanitizedLeadContext(@Param('id') id: string) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.getSanitizedLeadContext(id);
+    await this.loggingService.log('info', 'Lead sanitized AI/CRM context retrieved', {
+      leadId: id,
+      contractVersion: result.contractVersion,
+      contactMethodCount: result.context.contactMethodCount,
+      contactMethodTypes: result.context.contactMethodTypes,
+      metadataKeyCount: result.context.metadataKeys.length,
+      consentSourcePresent: result.context.consent.consentSourcePresent,
+      consentCapturedAtPresent: result.context.consent.consentCapturedAtPresent,
       duration_ms: Date.now() - startedAt,
     });
     return result;

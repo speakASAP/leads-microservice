@@ -409,3 +409,266 @@ Acceptance criteria:
 - Admin responses remain minimized and do not expose raw lead data.
 - No Auth runtime, Prisma schema, public intake, internal service guard, outreach, AI/CRM export, or notification behavior changes.
 
+## Goal 21 - Sanitized AI/CRM Context API
+
+Status: done
+
+Parallel status: completed and deployed.
+
+Intent: Provide a guarded, minimized context API for approved AI/CRM analysis without exporting raw lead data or moving AI/CRM ownership into Leads.
+
+Blockers:
+
+- Any raw lead export, AI enrichment, CRM workflow ownership, or production mutation remains blocked unless the owner approves exact fields, destination, retention, and validation evidence.
+
+Acceptance criteria:
+
+- Sanitized context omits raw contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, raw consent source values, JWTs, session tokens, and campaign content.
+- API access remains guarded and minimized.
+- Build/tests and sensitive-data scans are recorded in goal evidence.
+- Deployment evidence is recorded separately; future deployment changes still require owner approval.
+
+## Goal 22 - Production Auth Workspace Token Matrix Validation
+
+Status: blocked after partial validation
+
+Parallel status: Agent A completed negative-path validation; positive global and non-global scoped reads remain blocked on owner-approved valid tokens.
+
+Intent: Validate the deployed Goal 20 admin isolation behavior with real or owner-approved synthetic Auth tokens without printing tokens, raw lead data, or production lead rows.
+
+Suggested owner: Agent A.
+
+Allowed file scope:
+
+- `implementation-goals/GOAL-22-*`
+- `docs/orchestrator/STATUS.md`
+- `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json` when state changes
+- smoke scripts or validation notes only if approved by the owner
+
+Blockers:
+
+- Positive non-global workspace admin validation requires owner-provided workspace admin tokens or approved synthetic staging tokens.
+- Production mutation is blocked unless the owner approves exact synthetic payloads.
+
+Chunks:
+
+- [ ] 22.1 Create execution artifacts and pass the pre-coding gate.
+- [ ] 22.2 Validate unauthenticated and invalid-token admin rejection.
+- [ ] 22.3 Validate global superadmin platform-wide read with masked outputs only.
+- [ ] 22.4 Validate non-global workspace source scoping when approved tokens are available.
+- [ ] 22.5 Record evidence without secrets, raw contact values, raw messages, confirmation tokens, or production lead rows.
+
+Acceptance criteria:
+
+- Health and admin rejection smoke checks pass.
+- Any real-token validation records token presence, role/scope class, endpoint status, and masked/minimized response shape only.
+- Non-global admin reads are either validated with approved tokens or remain blocked with a concrete token requirement.
+- No source change, schema change, raw lead export, outreach, AI/CRM export, or production mutation is introduced.
+
+## Goal 23 - Admin UI Scope Messaging And Empty-State Hardening
+
+Status: complete
+
+Parallel status: complete by Agent B; no runtime API contract change introduced.
+
+Intent: Improve the admin browser shell so scoped admins understand empty or hidden results without exposing raw lead data or Auth internals.
+
+Suggested owner: Agent B.
+
+Allowed file scope:
+
+- admin frontend static assets and focused UI tests
+- `implementation-goals/GOAL-23-*`
+- status/state docs when the goal state changes
+
+Blockers:
+
+- Runtime API contract changes are serialized behind the owner of the admin API track.
+- Browser screenshots must use synthetic, unauthenticated, or masked data only.
+
+Chunks:
+
+- [x] 23.1 Create execution artifacts and pass the pre-coding gate.
+- [x] 23.2 Add scoped-empty, hidden-detail, unauthorized, and token-missing UI states.
+- [x] 23.3 Add focused UI tests or browser validation for those states.
+- [x] 23.4 Validate build, lint/tests, screenshots, and sensitive-data scans.
+
+Acceptance criteria:
+
+- Admin UI does not show raw contact values, raw messages, confirmation tokens, private URL path/query values, metadata values, tokens, or secret material.
+- Empty scoped reads and hidden details are clear to operators without revealing another workspace exists.
+- No API, schema, Auth, outreach, AI/CRM, notification, or deployment behavior changes are included unless separately approved.
+
+## Goal 24 - Internal Lifecycle Event Replay Consumer Contract
+
+Status: done
+
+Parallel status: docs/builders/tests complete by Agent C; serialized for runtime route changes.
+
+Intent: Define and test how trusted internal consumers can replay minimized lifecycle events without making Leads the logging owner or exposing raw lead data.
+
+Suggested owner: Agent C.
+
+Allowed file scope:
+
+- lifecycle contract docs, builders, DTOs, focused tests
+- `implementation-goals/GOAL-24-*`
+- status/state docs when the goal state changes
+
+Blockers:
+
+- Runtime route changes require owner selection of first consumer and must serialize with any guarded API changes.
+- Any new durable storage or Prisma migration is blocked behind a dedicated migration owner.
+
+Chunks:
+
+- [x] 24.1 Create execution artifacts and pass the pre-coding gate.
+- [x] 24.2 Define replay request/response contract and consumer constraints.
+- [x] 24.3 Add minimized contract builders and focused tests.
+- [x] 24.4 Validate build, tests, determinism, and sensitive-data scans.
+
+Acceptance criteria:
+
+- Replay contract is bounded, guarded, deterministic, and minimized.
+- Payloads omit contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, raw consent source values, JWTs, session tokens, and campaign content.
+- Logging remains the centralized log owner; Leads only serves its own minimized lifecycle evidence.
+
+## Goal 25 - Marketing Approval Evidence Handoff Contract
+
+Status: done
+
+Parallel status: completed by Agent D for docs/builders/tests; runtime approval storage remains blocked until ownership is confirmed.
+
+Intent: Specify how Marketing can provide human approval evidence for campaign contact resolution while Leads preserves consent, unsubscribe, and no-mass-outreach boundaries.
+
+Suggested owner: Agent D.
+
+Allowed file scope:
+
+- marketing eligibility/approval contract docs, builders, DTOs, focused tests
+- `implementation-goals/GOAL-25-*`
+- status/state docs when the goal state changes
+
+Blockers:
+
+- Approval storage ownership must remain Marketing unless the owner explicitly selects a Leads-owned approval evidence slice.
+- Campaign execution and mass outreach are blocked without human review and owner approval.
+
+Chunks:
+
+- [x] 25.1 Create execution artifacts and pass the pre-coding gate.
+- [x] 25.2 Define approval evidence fields, purpose codes, retention expectation, and audit-safe summaries.
+- [x] 25.3 Add focused tests proving no campaign content or contact export is added.
+- [x] 25.4 Validate build, tests, and sensitive-data scans.
+
+Acceptance criteria:
+
+- Contract requires affirmative consent evidence, no unsubscribe state, bounded purpose, and human approval reference before contact resolution.
+- Leads does not execute campaigns, store campaign content, or initiate outbound sends.
+- No raw contact export, AI export, CRM export, production mutation, schema migration, or deployment is included unless separately approved.
+
+## Goal 26 - Product-App Intake Compatibility Matrix
+
+Status: done for Leads-side synthetic matrix
+
+Parallel status: Agent E completed Leads-side matrix; cross-repo app edits remain blocked until owner selects target apps.
+
+Intent: Prove approved product-app intake payloads remain compatible with Leads public validation and source taxonomy.
+
+Suggested owner: Agent E.
+
+Allowed file scope:
+
+- product source taxonomy docs/tests and synthetic fixtures in Leads
+- `implementation-goals/GOAL-26-*`
+- status/state docs when the goal state changes
+
+Blockers:
+
+- Editing StateX, Shop Assistant, Buzzos, FlipFlop, SpeakUp, Marathon, or other product apps is blocked until the owner selects that app and repository.
+- Production intake mutation validation is blocked without exact owner-approved synthetic payloads.
+
+Chunks:
+
+- [x] 26.1 Create execution artifacts and pass the pre-coding gate.
+- [x] 26.2 Build synthetic payload fixtures for approved source services and contact method types.
+- [x] 26.3 Validate fixtures against `CreateLeadDto` without sending production submissions.
+- [x] 26.4 Record compatibility risks and cross-repo follow-ups.
+
+Acceptance criteria:
+
+- Synthetic matrix covers approved product-app source services and supported contact methods.
+- Tests use synthetic values only and do not submit to production.
+- No product-app code, raw contact export, campaign execution, AI/CRM export, schema change, or deployment is included.
+
+## Goal 27 - Documentation Ingestion And Orchestrator Freshness
+
+Status: done
+
+Parallel status: completed by Agent F as documentation-only integration lane.
+
+Intent: Keep the Leads orchestrator, implementation state, DocsRAG evidence, and parallel execution board current after recent runtime goals.
+
+Owner: Agent F. Completed on 2026-06-13.
+
+Allowed file scope:
+
+- `docs/orchestrator/*`
+- `docs/IMPLEMENTATION_ORCHESTRATOR.md`
+- `docs/IMPLEMENTATION_STATE.md`
+- `implementation-goals/README.md`
+- `TASKS.md`
+- `STATE.json`
+- `AGENTS.md`
+
+Blockers:
+
+- Plain SSH shell lacks `JWT_TOKEN`; in-cluster ingestion returned HTTP 202, and in-cluster agent-context retrieval returned HTTP 500 after ingestion.
+
+Chunks:
+
+- [x] 27.1 Create or update documentation-only execution artifacts and pass the pre-coding gate.
+- [x] 27.2 Refresh current state, completed goals, active blockers, and parallel execution board.
+- [x] 27.3 Run documentation-only validation and DocsRAG retrieval when available.
+- [x] 27.4 Record continuation evidence.
+
+Acceptance criteria:
+
+- Orchestrator docs and state files agree on active, pending, blocked, and parallel-ready goals.
+- Documentation-only checks pass.
+- DocsRAG retrieval evidence is recorded, or the credential/runtime limitation is explicit.
+- No runtime source, schema, deployment, secret, production mutation, raw lead export, outreach, AI/CRM export, or notification behavior changes are included.
+
+## Goal 28 - Parallel Integration Validation And Deployment Readiness
+
+Status: done
+
+Parallel status: serialized integration lane completed by coordinator after Goals 23-27 results; deployment remains owner-approval gated.
+
+Intent: Validate accumulated Goal 23-26 runtime/test changes together before any deployment, while preserving Goal 22 token blocker and all sensitive-data boundaries.
+
+Owner: coordinator.
+
+Allowed file scope:
+
+- validation/status/state docs
+- no runtime source edits unless validation reveals an integration defect
+
+Blockers:
+
+- Deployment requires explicit owner approval.
+- Goal 22 positive token matrix remains blocked until valid approved global and non-global admin tokens or an approved synthetic path are available.
+
+Chunks:
+
+- [x] 28.1 Review parallel thread results for Goals 22-27.
+- [x] 28.2 Reconcile completed, active, and blocked state.
+- [x] 28.3 Run full integration validation across accumulated Goal 23-26 changes.
+- [x] 28.4 Record deployment-readiness evidence without deploying.
+
+Acceptance criteria:
+
+- Full test suite, build, lint, missing-marker scan, secret-pattern scan, and diff check pass.
+- Goal 22 token blockers remain explicit.
+- No deployment, production mutation, raw lead export, outreach, AI/CRM export, or notification behavior is performed without owner approval.
+

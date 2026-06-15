@@ -39,6 +39,16 @@ This directory stores durable goal records and goal-specific execution artifacts
 | Goal 15 - Lifecycle Routing And Auth Conversion Linkage | done | `GOAL-15-lifecycle-routing-auth-conversion-linkage.md` |
 | Goal 16 - Marketing Campaign Eligibility Preview | done | `GOAL-16-marketing-campaign-eligibility-preview.md` |
 | Goal 17 - Controlled Contact Resolution | done | `GOAL-17-controlled-contact-resolution.md` |
+| Goal 18 - Durable Lifecycle Event Storage | done | `GOAL-18-durable-lifecycle-event-storage.md` |
+| Goal 19 - Auth-Backed Admin API Authentication | done | `GOAL-19-auth-backed-admin-api-authentication.md` |
+| Goal 20 - Auth Workspace-Scoped Admin Isolation | done | `GOAL-20-auth-workspace-scoped-admin-isolation.md` |
+| Goal 21 - Sanitized AI/CRM Context API | done, deployed | `GOAL-21-sanitized-ai-crm-context-api.md` |
+| Goal 22 - Production Auth Workspace Token Matrix Validation | blocked after partial validation, Agent A | `GOAL-22-production-auth-workspace-token-matrix-validation.md` |
+| Goal 23 - Admin UI Scope Messaging And Empty-State Hardening | done | `GOAL-23-admin-ui-scope-messaging-empty-state-hardening.md` |
+| Goal 24 - Internal Lifecycle Event Replay Consumer Contract | done for docs/builders/tests; runtime route blocked pending owner consumer selection | `GOAL-24-internal-lifecycle-event-replay-consumer-contract.md` |
+| Goal 25 - Marketing Approval Evidence Handoff Contract | active, Agent D docs/tests | artifacts owned by Agent D |
+| Goal 26 - Product-App Intake Compatibility Matrix | done for Leads-side synthetic matrix | `GOAL-26-product-app-intake-compatibility-matrix.md` |
+| Goal 27 - Documentation Ingestion And Orchestrator Freshness | done, documentation-only | evidence in `docs/orchestrator/STATUS.md`; assigned scope did not include new GOAL-27 files |
 
 ## Required Artifacts For Future Coding
 
