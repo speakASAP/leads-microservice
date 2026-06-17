@@ -196,6 +196,26 @@ describe('lifecycle replay contract', () => {
     expectNoSensitiveLeadData(JSON.stringify(response));
   });
 
+
+  it("maps flipflop-service replay to product-app lifecycle routes only", () => {
+    const response = buildLifecycleReplayResponse(
+      {
+        leadId: "lead_synthetic_replay",
+        consumer: "flipflop-service",
+        purpose: "consumer_reconciliation",
+        requestedAt,
+        limit: MAX_LIFECYCLE_REPLAY_EVENTS,
+      },
+      records,
+    );
+
+    expect(response.consumer).toBe("flipflop-service");
+    expect(response.bounds.limit).toBe(MAX_LIFECYCLE_REPLAY_EVENTS);
+    expect(response.events.map((event) => event.eventType)).toEqual(["LeadSubmitted"]);
+    expect(response.events[0].consumerRoutes).toContain("product-apps");
+    expectNoSensitiveLeadData(JSON.stringify(response));
+  });
+
   it('clamps replay limits to the maximum contract bound', () => {
     const response = buildLifecycleReplayResponse(
       {

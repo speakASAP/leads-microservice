@@ -27,6 +27,7 @@ model Lead {
   contactMethods  LeadContactMethod[]
   submissions     LeadSubmission[]
   lifecycleEvents LeadLifecycleEvent[]
+  marketingApprovalEvidence LeadMarketingApprovalEvidence[]
 
   @@index([createdAt])
   @@index([sourceService])
@@ -53,6 +54,34 @@ model LeadSubmission {
 
   @@index([leadId])
   @@index([createdAt])
+}
+
+model LeadMarketingApprovalEvidence {
+  id                             String   @id @default(uuid())
+  leadId                         String
+  idempotencyKey                 String   @unique
+  approvalId                     String
+  campaignId                     String
+  approvedAt                     DateTime
+  purposeCode                    String
+  channel                        String
+  audienceCount                  Int
+  eligibleCount                  Int
+  retentionExpectation           String
+  humanApprovalReferencePresent  Boolean  @default(false)
+  approvedByPresent              Boolean  @default(false)
+  workspaceIdPresent             Boolean  @default(false)
+  contentVersionPresent          Boolean  @default(false)
+  eligibilityEligible            Boolean
+  eligibilityReasons             Json?
+  returnedContactMethodCount     Int      @default(0)
+  recordedAt                     DateTime @default(now())
+  lead                           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, recordedAt])
+  @@index([approvalId])
+  @@index([campaignId])
+  @@index([recordedAt])
 }
 
 

@@ -2088,3 +2088,252 @@ Validation evidence:
 Next recommended action:
 
 - Owner should pick one gated path: unblock Goal 22 with approved tokens, select Goal 24 first replay consumer, choose Goal 25 approval-storage ownership, or name Goal 26 target product repositories.
+
+
+## 2026-06-15 - Owner Approval And Parallel Goal Reactivation
+
+Current focus:
+
+- Owner approved creating or locating validation tokens for Goal 22 without printing or persisting token values.
+- Owner selected `flipflop-service` as the first Leads lifecycle replay consumer and the concrete product-app adoption target.
+- Owner approved remaining gated work, including a Leads-owned approval evidence storage slice while preserving Marketing campaign ownership.
+
+Parallel assignments:
+
+- Goal 22 token validation: thread 019ec9bb-426c-7f10-aaa3-63922c110bc6; docs/status and masked smoke validation only.
+- Goal 24 FlipFlop replay consumer runtime path: thread 019ec9bb-44d9-7523-81b8-2627d271dc9f; guarded bounded replay route/consumer scope.
+- Goal 25 Leads-owned approval evidence storage: thread 019ec9bb-4908-7f10-b35b-5cdb3132bc87; migration-owner lane, no campaign execution.
+- Goal 26 FlipFlop product-app intake adoption: thread 019ec9bb-8b2a-7571-89bd-bbefb7cf78fb; FlipFlop integration lane, no production lead mutation.
+
+Coordination rules:
+
+- Token values, JWT payloads with identifying data, Vault secrets, raw lead rows, contact values, raw messages, confirmation tokens, private URLs, metadata values, and raw consent source values must not be printed or persisted.
+- Goal 25 owns any Prisma migration. If Goal 24 needs schema work, it must block and hand off rather than creating a competing migration.
+- Final integration and deployment remain serialized in this coordinator thread after worker evidence returns.
+
+Next recommended action:
+
+- Monitor active worker threads, then merge and validate in conflict-safe order: Goal 22 evidence, Goal 26 FlipFlop app changes, Goal 24 replay route, Goal 25 migration/storage, final integration validation, then deployment readiness.
+
+
+## 2026-06-15 - Goal 25 Leads-Owned Approval Evidence Storage Follow-Up
+
+Current focus:
+
+- Processed owner-approved Goal 25 follow-up in the migration-owner lane.
+- Preserved Marketing ownership of approval records, campaign content, audience decisions, execution jobs, and delivery outcomes.
+- Added a minimized Leads-owned `LeadMarketingApprovalEvidence` reference/audit store for approved campaign contact-resolution evidence only.
+
+Implementation evidence:
+
+- Added Prisma schema model and migration: `prisma/migrations/20260615_add_marketing_approval_evidence/migration.sql`.
+- Stored fields are limited to Lead relation, idempotency key, Marketing approval/campaign references, approval timestamp, bounded purpose/channel/counts/retention expectation, presence booleans, eligibility result/reasons, returned contact-method count, and recorded timestamp.
+- Stored fields exclude contact values, campaign content, raw lead messages, confirmation tokens, raw consent source values, private URLs, metadata values, approver value, workspace value, and content-version value.
+- Approved campaign contact resolution now persists minimized evidence only after approval validation and eligibility re-check.
+- Missing, mismatched, or malformed approval evidence is rejected before storage.
+
+Validation evidence:
+
+- `npm run prisma:generate`: passed.
+- `npm test -- --runTestsByPath src/leads/integrations/marketing-approval-evidence.spec.ts src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts`: passed, 3 suites, 38 tests.
+- `npx prisma validate`: passed.
+- `npm run build`: blocked by out-of-scope Goal 24 duplicate `rawMessagesIncluded` declaration in `src/leads/integrations/lifecycle-replay-contract.ts`.
+- `git diff --check` over Goal 25 schema/source/docs/state files: passed.
+- Missing-marker scan over orchestrator docs, implementation state, Goal 25 artifacts, `TASKS.md`, and `STATE.json`: passed with no matches.
+- Real-secret scan over touched Goal 25 docs/source/schema/state files: passed with no matches. A broader exploratory scan flagged expected synthetic test sentinels and historic docs mentions only.
+- Post-concurrent-edit focused Jest rerun: blocked before Goal 25 service assertions by out-of-scope Goal 24 `consumerRoutes` typing in `src/leads/leads.service.ts`; helper-only Goal 25 approval evidence spec still passed.
+
+DocsRAG evidence:
+
+- SSH shell lacks `JWT_TOKEN`; RAG retrieval was unavailable in this worker context. Repo-local Goal 16, Goal 17, Goal 25, invariants, and implementation-state docs were used.
+
+Sensitive-data handling:
+
+- No secrets, token values, raw lead rows, contact values, raw messages, confirmation tokens, private URLs, raw consent source values, metadata values, or campaign content were printed or persisted.
+
+Parallel safety:
+
+- Goal 25 remains the only migration-owner lane.
+- Goal 24 must not introduce competing schema work.
+- Final integration/deployment remains in the source coordinator thread after the Goal 24 build blocker is resolved.
+
+Next recommended action:
+
+- Resolve the Goal 24 replay build/test blockers, then run final integration validation including Goal 25 migration/storage before deployment readiness.
+
+## 2026-06-15 - Goal 24 Runtime Replay Consumer Path For FlipFlop
+
+Current focus:
+
+- Owner-selected follow-up: FlipFlop service is the first trusted internal consumer for Leads lifecycle replay.
+- Runtime code changes: guarded Leads replay route, replay query DTO, replay service method, replay contract consumer mapping, focused tests, and minimal FlipFlop consumer client/config/verifier.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Queried DocsRAG from the plain SSH shell first; `JWT_TOKEN` was unavailable.
+- Queried DocsRAG from the deployed Leads runtime pod without printing the token; DocsRAG returned HTTP 500 for the Goal 24 FlipFlop query.
+- Used repo-local source-of-truth docs and existing Goal 24 artifacts for the narrow runtime route/client scope.
+- Reviewed Leads lifecycle replay contract, durable lifecycle event retrieval, internal guard, controller/service tests, and FlipFlop shared client/config patterns.
+
+Implementation evidence:
+
+- Added `src/leads/dto/lifecycle-replay-query.dto.ts`.
+- Updated `src/leads/integrations/lifecycle-replay-contract.ts` to support `consumer=flipflop-service` mapped to `product-apps` route membership.
+- Added `GET /api/leads/internal/:id/lifecycle-replay`, guarded by `InternalServiceGuard`.
+- Added `LeadsService.getLeadLifecycleReplay`, one-lead scoped, consumer-scoped, time-bound capable, storage-read bounded to `limit + 1`, and output-clamped to max 30.
+- Added focused Leads tests proving guard coverage, FlipFlop route filtering, bounded replay, and sensitive-field omission.
+- Added FlipFlop `shared/clients/leads-client.service.ts`, exported it from shared clients, added `LEADS_SERVICE_URL`, mapped `LEADS_INTERNAL_SERVICE_TOKEN` by secret name only, and added `npm run verify:leads-lifecycle-replay`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts`: passed, 3 suites, 40 tests.
+- `npm run build`: passed.
+- FlipFlop `npm run verify:leads-lifecycle-replay`: passed.
+- FlipFlop `./shared/node_modules/.bin/tsc -p shared/tsconfig.json --noEmit`: passed.
+- Missing-marker scans over touched Leads/FlipFlop docs and source returned no matches.
+- Sensitive-pattern scans over touched source/docs returned no secret values; remaining hits were token/header names or negative verifier assertions only.
+- `git diff --check` over touched Leads and FlipFlop files passed.
+- Sensitive-data handling: synthetic red-team values only; no production lead rows, real contact values, confirmation tokens, private URLs, service tokens, or secrets were printed or persisted.
+- Contract impact: new guarded internal route only. Public intake/list/detail contracts are unchanged. No schema migration, raw lead export, campaign execution, notification dispatch, AI/CRM export, or production mutation.
+- Replay/determinism: replay response is one-lead scoped, consumer-scoped to `flipflop-service`, mapped to existing `product-apps` route membership, deterministically ordered, and bounded to 30 output events.
+- Shared-file conflict note: this task touched `src/leads/leads.controller.ts` and `src/leads/leads.service.ts`; any future Goal 25 runtime storage/controller work should serialize with these files.
+
+Gate decision:
+
+- Integration readiness accepted for source changes. Deployment readiness not evaluated because deployment was not requested.
+
+Next unfinished chunks:
+
+- Deploy only after the source thread/integration owner approves final integration and confirms runtime trust/token provisioning for `flipflop-service` against Leads `TRUSTED_INTERNAL_SERVICES` policy.
+
+
+## 2026-06-15 - Goal 22 Production Auth Workspace Token Matrix Validation Complete
+
+Current focus:
+
+- Completed Goal 22 after owner approval to create or locate approved Auth admin tokens without printing or persisting token values.
+- Preserved Auth ownership of identity/RBAC and Leads ownership of masked, source-scoped admin reads.
+- No Leads runtime source, schema, deployment, or production lead data was changed.
+
+Validation evidence:
+
+- Plain SSH DocsRAG token remained unavailable; in-cluster DocsRAG retrieval from the Leads pod returned HTTP 500 for the Goal 22 query. Token values were not printed.
+- Live Leads admin workspace source map was present and parseable; only role/scope keys and source counts were inspected, not the Vault value.
+- Owner-approved masked smoke ran inside the Auth pod with runtime DB access. It created two synthetic Auth validation users, assigned one global role class and one non-global app-admin role class, logged in through live Auth, validated the tokens through Auth, exercised deployed Leads admin summary/list endpoints, and removed both synthetic users.
+- Auth token validation returned HTTP 201 with valid true for both role classes: global superadmin and non-global app admin.
+- Leads health returned HTTP 200.
+- Global admin summary returned HTTP 200 with aggregate counts total 33, confirmed 4, consented 0, unsubscribed 0.
+- Global admin list returned HTTP 200 with response keys items/limit/page/total, itemCount 1, total 33, and first-item key shape only.
+- Non-global scoped admin summary returned HTTP 200 with aggregate counts total 3, confirmed 0, consented 0, unsubscribed 0.
+- Non-global scoped admin list returned HTTP 200 with response keys items/limit/page/total, itemCount 1, total 3, and first-item key shape only.
+- Non-global out-of-scope source filter returned HTTP 200 with itemCount 0 and total 0.
+- Cleanup evidence: 2 synthetic Auth validation users removed.
+
+Sensitive-data handling:
+
+- No bearer token, generated password, JWT payload, email value, user id value, Vault secret value, raw production lead row, contact value, raw message, confirmation token, private URL, metadata value, or raw consent source value was printed or persisted.
+- Evidence recorded only HTTP status codes, role/scope classes, response key shapes, aggregate counts, and cleanup count.
+
+Decision:
+
+- Goal 22 is complete.
+- Goal 22 is removed from active blockers and active task state.
+- Goals 24, 25, and 26 remain active and require serialized final integration validation before deployment readiness.
+
+## 2026-06-15 - Integrated Goal 24 And Goal 25 Validation Blocker Cleared
+
+Current focus:
+
+- Continued from the plan next action after DNS access to `alfares` was restored.
+- Resolved the recorded coordinator blocker by validating the integrated Goal 24 replay source and Goal 25 approval-evidence storage together in the remote worktree.
+- Runtime source edits in this session: none. Existing worker source changes were preserved.
+- Deployment: not requested and not performed.
+
+Source context:
+
+- Reviewed remote `docs/orchestrator/PLAN.md`, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`, `STATE.json`, Goal 24 and Goal 25 validation reports, and the dirty remote worktree.
+- Queried DocsRAG from the deployed Leads runtime pod without printing the token; DocsRAG returned HTTP 500, matching the existing Goal 27 limitation. Repo-local source-of-truth docs were used.
+- Confirmed Goal 22 is complete and the next actionable coordinator item was clearing the Goal 24 replay validation blocker that was preventing Goal 25 final integration evidence.
+
+Validation evidence:
+
+- `npm run build`: passed.
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts`: passed, 3 suites and 40 tests.
+- `npm test`: passed, 16 suites and 97 tests.
+- `npm run lint`: passed.
+- `npx prisma generate`: passed.
+- `npx prisma validate`: passed.
+
+Sensitive-data handling:
+
+- No bearer token, generated password, JWT payload, service token, Vault value, raw production lead row, contact value, raw message, confirmation token, private URL, metadata value, raw consent source value, campaign content, or secret value was printed or persisted.
+- Test output contained synthetic log values only.
+
+Contract and consent impact:
+
+- No additional source behavior changed in this coordinator session.
+- Existing integrated Goal 24 route remains guarded, one-lead scoped, consumer-scoped to `flipflop-service`, deterministic, and bounded to 30 replay events.
+- Existing integrated Goal 25 storage remains minimized and does not store contact values, campaign content, raw messages, confirmation tokens, raw consent source values, private URLs, metadata values, approver values, workspace values, or content-version values.
+- Campaign execution, mass outreach, raw lead export, notification dispatch, AI enrichment, and production lead mutation remain forbidden without separate owner approval.
+
+Gate decision:
+
+- Integration readiness accepted for the current remote worktree state covering Goal 24 replay source and Goal 25 approval-evidence storage.
+- The prior Goal 24 duplicate `rawMessagesIncluded` / `consumerRoutes` blocker is no longer present in the integrated source.
+- Deployment readiness is not claimed; deployment remains pending owner approval and any required final release smoke plan.
+
+Next recommended action:
+
+- Review Goal 26 cross-repo evidence next; after that, obtain owner approval for deployment of the integrated Goal 24, Goal 25, and Goal 26 changes if the release should proceed.
+
+## 2026-06-15 - Goal 24/25/26 Integration Deployment Complete
+
+Current focus:
+
+- Owner approved proceeding with deployment after Goal 24/25 integrated validation and Goal 26 evidence review.
+- Deployment was run from `/home/ssf/Documents/Github/leads-microservice` on `alfares`.
+- Runtime deployment scope: integrated Goal 24 FlipFlop lifecycle replay route, Goal 25 minimized marketing approval evidence storage/migration, and Goal 26 Leads-side product-app intake matrix evidence.
+
+Pre-deploy validation evidence:
+
+- Goal 26 evidence review confirmed Leads-side synthetic matrix coverage for approved source services and supported contact method types; no production intake mutation was used.
+- `npm test -- --runTestsByPath src/leads/integrations/product-app-intake-matrix.spec.ts src/leads/integrations/product-app-intake.spec.ts`: passed, 2 suites and 8 tests.
+- `npm run build`: passed.
+- `npm run lint`: passed.
+- `npx prisma validate`: passed.
+- `npm test`: passed, 16 suites and 97 tests.
+
+Deployment evidence:
+
+- Initial `./scripts/deploy.sh --help` probe failed because the script treats its first argument as an image tag; no rollout occurred from that invalid tag.
+- Ran `./scripts/deploy.sh goal24-26-integration-20260615`.
+- Image build succeeded with local image sha256:2e2826a2d90088fc4228767e6c4dc4ef5ec879db0bec9ad8d46571005cada02d.
+- Image push succeeded for `localhost:5000/leads-microservice:goal24-26-integration-20260615` and `latest` with digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`.
+- Deploy script applied ConfigMap, ExternalSecret, Service, Ingress, and Deployment, then reported pod-local health and ExternalSecret readiness passed.
+- Because the Deployment template still references `latest`, forced rollout restart was run with `kubectl -n statex-apps rollout restart deployment/leads-microservice`; rollout status completed successfully.
+- Running pod imageID confirms `localhost:5000/leads-microservice@sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`.
+- New pod logs show Prisma migration `20260615_add_marketing_approval_evidence` applied successfully before Nest startup.
+
+Post-deploy validation evidence:
+
+- External health returned `{"status":"ok"}`.
+- Deployment readiness showed 1 ready replica and 1 updated replica.
+- Unauthenticated `GET https://leads.alfares.cz/api/admin/leads` returned HTTP 401.
+- `GET https://leads.alfares.cz/admin` returned HTTP 200 with 4775 bytes.
+- New pod logs show `GET /api/leads/internal/:id/lifecycle-replay` route mapped.
+
+Sensitive-data handling:
+
+- No bearer token, generated password, JWT payload, service token, Vault value, raw production lead row, contact value, raw message, confirmation token, private URL, metadata value, raw consent source value, campaign content, or secret value was printed or persisted.
+- Migration and smoke evidence record statuses, route presence, image digests, and response status/size only.
+
+Gate decision:
+
+- Deployment accepted for Goal 24/25/26 integration.
+- Goal 25 migration is applied in production.
+- No runtime goal is active after this deployment.
+
+Next recommended action:
+
+- Monitor post-deploy health and select the next owner-approved goal track.

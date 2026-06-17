@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -10,9 +10,15 @@ import { LeadQueryDto } from './dto/lead-query.dto';
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 import { buildSanitizedAiCrmLeadContext } from './integrations/ai-crm-payload';
 import {
+  buildMarketingApprovalEvidenceStorageRecord,
   buildMarketingApprovalEvidenceSummary,
   validateMarketingApprovalEvidenceForContactResolution,
 } from './integrations/marketing-approval-evidence';
+import {
+  buildLifecycleReplayResponse,
+  LifecycleReplayPurpose,
+  normalizeLifecycleReplayLimit,
+} from "./integrations/lifecycle-replay-contract";
 
 function metadataFromSubmissionPayload(payloadJson: Prisma.JsonValue | null | undefined): Record<string, unknown> | null {
   if (!payloadJson || typeof payloadJson !== 'object' || Array.isArray(payloadJson)) {
@@ -110,6 +116,45 @@ function scopedAdminLeadWhere(query: LeadQueryDto, scope: AdminLeadScope): Prism
   }
 
   return where;
+}
+
+
+const FLIPFLOP_REPLAY_CONSUMER = "flipflop-service";
+const lifecycleReplayPurposes = new Set<LifecycleReplayPurpose>([
+  "consumer_reconciliation",
+  "incident_replay",
+  "consent_audit",
+  "conversion_linkage_replay",
+]);
+
+type LifecycleReplayQuery = {
+  consumer?: string | null;
+  purpose?: LifecycleReplayPurpose | string | null;
+  limit?: number | string | null;
+  fromOccurredAt?: string | null;
+  toOccurredAt?: string | null;
+};
+
+function parseOptionalReplayDate(value: string | null | undefined, fieldName: string): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new BadRequestException(`${fieldName} must be a valid ISO date`);
+  }
+
+  return parsed;
+}
+
+function parseOptionalReplayLimit(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 @Injectable()
@@ -548,6 +593,21 @@ export class LeadsService {
       });
       const item = eligibility.items[0];
       if (!item?.eligible) {
+        const storageRecord = buildMarketingApprovalEvidenceStorageRecord(
+          lead.id,
+          payload.approvalEvidence ?? {},
+          item ?? { eligible: false, reasons: ['invalid_lead_id'] },
+          0,
+        );
+        await this.prisma.leadMarketingApprovalEvidence.upsert({
+          where: { idempotencyKey: storageRecord.idempotencyKey },
+          update: {
+            eligibilityEligible: storageRecord.eligibilityEligible,
+            eligibilityReasons: storageRecord.eligibilityReasons,
+            returnedContactMethodCount: storageRecord.returnedContactMethodCount,
+          },
+          create: storageRecord,
+        });
         return {
           leadId: lead.id,
           purpose: payload.purpose,
@@ -575,6 +635,24 @@ export class LeadsService {
         value: method.value,
         isPrimary: method.isPrimary,
       }));
+
+    if (payload.purpose === 'approved_campaign_send') {
+      const storageRecord = buildMarketingApprovalEvidenceStorageRecord(
+        lead.id,
+        payload.approvalEvidence ?? {},
+        { eligible: true, reasons: ['eligible_contact_resolution'] },
+        contactMethods.length,
+      );
+      await this.prisma.leadMarketingApprovalEvidence.upsert({
+        where: { idempotencyKey: storageRecord.idempotencyKey },
+        update: {
+          eligibilityEligible: storageRecord.eligibilityEligible,
+          eligibilityReasons: storageRecord.eligibilityReasons,
+          returnedContactMethodCount: storageRecord.returnedContactMethodCount,
+        },
+        create: storageRecord,
+      });
+    }
 
     return {
       leadId: lead.id,
@@ -624,6 +702,80 @@ export class LeadsService {
         recordedAt: event.recordedAt.toISOString(),
       })),
     };
+  }
+
+
+  async getLeadLifecycleReplay(leadId: string, query: LifecycleReplayQuery) {
+    const consumer = String(query.consumer ?? "").trim();
+    if (consumer !== FLIPFLOP_REPLAY_CONSUMER) {
+      throw new ForbiddenException("Lifecycle replay consumer is not approved");
+    }
+
+    const purpose = (query.purpose ?? "consumer_reconciliation") as LifecycleReplayPurpose;
+    if (!lifecycleReplayPurposes.has(purpose)) {
+      throw new BadRequestException("Lifecycle replay purpose is not supported");
+    }
+
+    const fromOccurredAt = parseOptionalReplayDate(query.fromOccurredAt, "fromOccurredAt");
+    const toOccurredAt = parseOptionalReplayDate(query.toOccurredAt, "toOccurredAt");
+    const limit = normalizeLifecycleReplayLimit(parseOptionalReplayLimit(query.limit));
+
+    const lead = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { id: true } });
+    if (!lead) {
+      throw new NotFoundException("Lead not found");
+    }
+
+    const where: Prisma.LeadLifecycleEventWhereInput = { leadId };
+    if (fromOccurredAt || toOccurredAt) {
+      const occurredAt: Prisma.DateTimeFilter = {};
+      if (fromOccurredAt) {
+        occurredAt.gte = fromOccurredAt;
+      }
+      if (toOccurredAt) {
+        occurredAt.lte = toOccurredAt;
+      }
+      where.occurredAt = occurredAt;
+    }
+
+    const events = await this.prisma.leadLifecycleEvent.findMany({
+      where,
+      orderBy: [{ occurredAt: "asc" }, { eventId: "asc" }],
+      take: limit + 1,
+      select: {
+        eventId: true,
+        eventType: true,
+        eventVersion: true,
+        occurredAt: true,
+        producer: true,
+        leadId: true,
+        correlationId: true,
+        idempotencyKey: true,
+        dataClass: true,
+        payload: true,
+        consumerRoutes: true,
+        recordedAt: true,
+      },
+    });
+
+    const replayRecords = events.map((event) => ({
+      ...event,
+      consumerRoutes: Array.isArray(event.consumerRoutes)
+        ? event.consumerRoutes.filter((route): route is string => typeof route === "string")
+        : [],
+    }));
+
+    return buildLifecycleReplayResponse(
+      {
+        leadId,
+        consumer: FLIPFLOP_REPLAY_CONSUMER,
+        purpose,
+        requestedAt: new Date(),
+        limit,
+        fromOccurredAt,
+        toOccurredAt,
+      },
+      replayRecords,
+    );
   }
 
   async getLeadPreferences(leadId: string) {

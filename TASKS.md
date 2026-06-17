@@ -4,14 +4,18 @@
 
 ## Backlog
 <!-- Human-managed -->
-- No unassigned backlog at this moment. Goal 22 remains active-blocked; Goal 24, Goal 25, and Goal 26 follow-ups require owner selection before new work starts.
+- No unassigned backlog at this moment. Goal 24/25/26 integration deployment is complete; next work requires owner selection.
 
 ## Active
 <!-- Coordinator-maintained -->
-- 2026-06-13 goal-22-production-auth-workspace-token-matrix-validation-blocked-agent-a
+- None
 
 ## Completed
 <!-- Coordinator-append-only -->
+- 2026-06-15 goal-22-production-auth-workspace-token-matrix-validation-complete
+- 2026-06-15 goal-24-25-integrated-validation-passed
+- 2026-06-15 goal-26-coordinator-review-complete
+- 2026-06-15 goal-24-25-26-integration-deployed
 - 2026-06-13 goal-23-admin-ui-scope-messaging-empty-state-hardening-complete
 - 2026-06-13 goal-19-auth-backed-admin-api-authentication-complete
 - 2026-06-13 goal-18-durable-lifecycle-event-storage-complete

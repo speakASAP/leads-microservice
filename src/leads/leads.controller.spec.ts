@@ -43,6 +43,7 @@ describe('LeadsController access controls', () => {
     expect(guardsFor('previewCampaignEligibility')).toContain(InternalServiceGuard);
     expect(guardsFor('getSanitizedLeadContext')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadLifecycleEvents')).toContain(InternalServiceGuard);
+    expect(guardsFor("getLeadLifecycleReplay")).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('updateLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('unsubscribeLead')).toContain(InternalServiceGuard);
@@ -600,4 +601,55 @@ describe('LeadsController lifecycle event retrieval', () => {
     expect(serializedLog).not.toContain('synthetic-confirmation-token');
     expect(serializedLog).not.toContain('private/path');
   });
+
+
+  it("returns guarded flipflop lifecycle replay and logs only aggregate metadata", async () => {
+    const { controller, loggingService } = buildController({
+      getLeadLifecycleReplay: jest.fn().mockResolvedValue({
+        contractVersion: "2026-06-13.lifecycle-replay.v1",
+        leadId: "lead_synthetic_replay",
+        consumer: "flipflop-service",
+        purpose: "consumer_reconciliation",
+        bounds: { limit: 30, eventCount: 1 },
+        events: [
+          {
+            eventId: "evt_synthetic_replay",
+            eventType: "LeadSubmitted",
+            dataClass: "minimized",
+            payload: {
+              leadId: "lead_synthetic_replay",
+              sourceService: "flipflop-service",
+              contactMethodTypes: ["email"],
+              contactMethodCount: 1,
+            },
+          },
+        ],
+      }),
+    });
+
+    const result = await controller.getLeadLifecycleReplay("lead_synthetic_replay", {
+      consumer: "flipflop-service",
+      purpose: "consumer_reconciliation",
+      limit: 30,
+    });
+
+    expect(result.consumer).toBe("flipflop-service");
+    expect(loggingService.log).toHaveBeenCalledWith(
+      "info",
+      "Lead lifecycle replay retrieved",
+      expect.objectContaining({
+        leadId: "lead_synthetic_replay",
+        consumer: "flipflop-service",
+        purpose: "consumer_reconciliation",
+        eventCount: 1,
+        contractVersion: "2026-06-13.lifecycle-replay.v1",
+      }),
+    );
+    const serializedLog = JSON.stringify(loggingService.log.mock.calls[0]?.[2]);
+    expect(serializedLog).not.toContain("person@example.test");
+    expect(serializedLog).not.toContain("Synthetic raw product interest message");
+    expect(serializedLog).not.toContain("synthetic-confirmation-token");
+    expect(serializedLog).not.toContain("private/path");
+  });
+
 });

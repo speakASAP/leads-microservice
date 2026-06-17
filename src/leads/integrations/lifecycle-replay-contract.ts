@@ -1,17 +1,28 @@
-import { LeadLifecycleConsumer } from './lifecycle-event-router.service';
+import { LeadLifecycleConsumer } from "./lifecycle-event-router.service";
 
-export const LIFECYCLE_REPLAY_CONTRACT_VERSION = '2026-06-13.lifecycle-replay.v1';
+export const LIFECYCLE_REPLAY_CONTRACT_VERSION = "2026-06-13.lifecycle-replay.v1";
 export const MAX_LIFECYCLE_REPLAY_EVENTS = 30;
 
 export type LifecycleReplayPurpose =
-  | 'consumer_reconciliation'
-  | 'incident_replay'
-  | 'consent_audit'
-  | 'conversion_linkage_replay';
+  | "consumer_reconciliation"
+  | "incident_replay"
+  | "consent_audit"
+  | "conversion_linkage_replay";
+
+export type LifecycleReplayConsumer = LeadLifecycleConsumer | "flipflop-service";
+
+const ROUTED_CONSUMER_BY_REPLAY_CONSUMER: Record<LifecycleReplayConsumer, LeadLifecycleConsumer> = {
+  auth: "auth",
+  crm: "crm",
+  marketing: "marketing",
+  "logging-analytics": "logging-analytics",
+  "product-apps": "product-apps",
+  "flipflop-service": "product-apps",
+};
 
 export type LifecycleReplayRequest = {
   leadId: string;
-  consumer: LeadLifecycleConsumer;
+  consumer: LifecycleReplayConsumer;
   purpose: LifecycleReplayPurpose;
   requestedAt?: Date | string | null;
   limit?: number | null;
@@ -43,7 +54,7 @@ export type LifecycleReplayEvent = {
   leadId: string;
   correlationId?: string;
   idempotencyKey?: string;
-  dataClass: 'minimized';
+  dataClass: "minimized";
   payload: Record<string, unknown>;
   consumerRoutes: string[];
   recordedAt: string | null;
@@ -52,12 +63,12 @@ export type LifecycleReplayEvent = {
 export type LifecycleReplayResponse = {
   contractVersion: typeof LIFECYCLE_REPLAY_CONTRACT_VERSION;
   leadId: string;
-  consumer: LeadLifecycleConsumer;
+  consumer: LifecycleReplayConsumer;
   purpose: LifecycleReplayPurpose;
   requestedAt: string | null;
-  dataClass: 'minimized';
-  evidenceOwner: 'leads-microservice';
-  centralizedLogOwner: 'logging-microservice';
+  dataClass: "minimized";
+  evidenceOwner: "leads-microservice";
+  centralizedLogOwner: "logging-microservice";
   constraints: {
     guardRequired: true;
     maxEvents: typeof MAX_LIFECYCLE_REPLAY_EVENTS;
@@ -79,32 +90,32 @@ export type LifecycleReplayResponse = {
 
 const ALLOWED_PAYLOAD_FIELDS_BY_EVENT_TYPE: Record<string, string[]> = {
   LeadSubmitted: [
-    'leadId',
-    'status',
-    'sourceService',
-    'sourceLabel',
-    'sourceHost',
-    'contactMethodTypes',
-    'contactMethodCount',
-    'preferredChannel',
-    'fallbackChannelCount',
-    'marketingConsent',
-    'consentEvidencePresent',
-    'confirmed',
-    'unsubscribed',
-    'createdAt',
+    "leadId",
+    "status",
+    "sourceService",
+    "sourceLabel",
+    "sourceHost",
+    "contactMethodTypes",
+    "contactMethodCount",
+    "preferredChannel",
+    "fallbackChannelCount",
+    "marketingConsent",
+    "consentEvidencePresent",
+    "confirmed",
+    "unsubscribed",
+    "createdAt",
   ],
-  LeadConfirmed: ['leadId', 'sourceService', 'confirmedAt'],
+  LeadConfirmed: ["leadId", "sourceService", "confirmedAt"],
   LeadPreferenceUpdated: [
-    'leadId',
-    'marketingConsent',
-    'consentEvidencePresent',
-    'preferredChannel',
-    'fallbackChannelCount',
-    'unsubscribedAt',
-    'updatedAt',
+    "leadId",
+    "marketingConsent",
+    "consentEvidencePresent",
+    "preferredChannel",
+    "fallbackChannelCount",
+    "unsubscribedAt",
+    "updatedAt",
   ],
-  LeadConvertedToUser: ['leadId', 'userId', 'sourceService', 'linkMethod', 'linkedAt'],
+  LeadConvertedToUser: ["leadId", "userId", "sourceService", "linkMethod", "linkedAt"],
 };
 
 function toIsoString(value?: Date | string | null): string | null {
@@ -125,7 +136,7 @@ function timestamp(value?: Date | string | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function normalizeLimit(limit?: number | null): number {
+export function normalizeLifecycleReplayLimit(limit?: number | null): number {
   if (!Number.isFinite(limit ?? NaN)) {
     return MAX_LIFECYCLE_REPLAY_EVENTS;
   }
@@ -134,7 +145,7 @@ function normalizeLimit(limit?: number | null): number {
 }
 
 function recordPayload(payload: unknown): Record<string, unknown> {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     return {};
   }
 
@@ -146,7 +157,7 @@ function uniqueSortedStrings(value: unknown): string[] {
     return [];
   }
 
-  return Array.from(new Set(value.filter((item): item is string => typeof item === 'string'))).sort();
+  return Array.from(new Set(value.filter((item): item is string => typeof item === "string"))).sort();
 }
 
 function sanitizePayload(eventType: string, payload: unknown): Record<string, unknown> {
@@ -161,7 +172,7 @@ function sanitizePayload(eventType: string, payload: unknown): Record<string, un
       return result;
     }
 
-    result[field] = field === 'contactMethodTypes' ? uniqueSortedStrings(source[field]) : source[field];
+    result[field] = field === "contactMethodTypes" ? uniqueSortedStrings(source[field]) : source[field];
     return result;
   }, {});
 }
@@ -170,8 +181,13 @@ function replayCursor(event: LifecycleReplayEvent): string {
   return `${event.occurredAt}#${event.eventId}`;
 }
 
-function isRoutedToConsumer(record: LifecycleReplayRecord, consumer: LeadLifecycleConsumer): boolean {
-  return Array.isArray(record.consumerRoutes) && record.consumerRoutes.includes(consumer);
+export function lifecycleRouteConsumerForReplayConsumer(consumer: LifecycleReplayConsumer): LeadLifecycleConsumer {
+  return ROUTED_CONSUMER_BY_REPLAY_CONSUMER[consumer];
+}
+
+function isRoutedToConsumer(record: LifecycleReplayRecord, consumer: LifecycleReplayConsumer): boolean {
+  const routedConsumer = lifecycleRouteConsumerForReplayConsumer(consumer);
+  return Array.isArray(record.consumerRoutes) && record.consumerRoutes.includes(routedConsumer);
 }
 
 function isWithinTimeBounds(record: LifecycleReplayRecord, request: LifecycleReplayRequest): boolean {
@@ -190,14 +206,14 @@ export function buildLifecycleReplayResponse(
   request: LifecycleReplayRequest,
   records: LifecycleReplayRecord[],
 ): LifecycleReplayResponse {
-  const limit = normalizeLimit(request.limit);
+  const limit = normalizeLifecycleReplayLimit(request.limit);
   const matchingRecords = records
     .filter((record) => record.leadId === request.leadId)
     .filter((record) => isRoutedToConsumer(record, request.consumer))
     .filter((record) => isWithinTimeBounds(record, request))
     .sort((left, right) => {
-      const leftOccurredAt = toIsoString(left.occurredAt) ?? '';
-      const rightOccurredAt = toIsoString(right.occurredAt) ?? '';
+      const leftOccurredAt = toIsoString(left.occurredAt) ?? "";
+      const rightOccurredAt = toIsoString(right.occurredAt) ?? "";
       return leftOccurredAt.localeCompare(rightOccurredAt) || left.eventId.localeCompare(right.eventId);
     });
 
@@ -206,10 +222,10 @@ export function buildLifecycleReplayResponse(
       eventId: record.eventId,
       eventType: record.eventType,
       eventVersion: record.eventVersion,
-      occurredAt: toIsoString(record.occurredAt) ?? '',
+      occurredAt: toIsoString(record.occurredAt) ?? "",
       producer: record.producer,
       leadId: record.leadId,
-      dataClass: 'minimized',
+      dataClass: "minimized",
       payload: sanitizePayload(record.eventType, record.payload),
       consumerRoutes: Array.isArray(record.consumerRoutes) ? [...record.consumerRoutes].sort() : [],
       recordedAt: toIsoString(record.recordedAt),
@@ -233,9 +249,9 @@ export function buildLifecycleReplayResponse(
     consumer: request.consumer,
     purpose: request.purpose,
     requestedAt: toIsoString(request.requestedAt),
-    dataClass: 'minimized',
-    evidenceOwner: 'leads-microservice',
-    centralizedLogOwner: 'logging-microservice',
+    dataClass: "minimized",
+    evidenceOwner: "leads-microservice",
+    centralizedLogOwner: "logging-microservice",
     constraints: {
       guardRequired: true,
       maxEvents: MAX_LIFECYCLE_REPLAY_EVENTS,

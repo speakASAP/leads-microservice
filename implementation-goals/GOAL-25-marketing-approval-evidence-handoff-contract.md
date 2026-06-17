@@ -74,3 +74,18 @@ Leads must reject approved campaign contact resolution when approval evidence is
 - No Prisma schema or migration change.
 - No production lead read or mutation validation.
 - No deployment.
+
+## 2026-06-15 Leads-Owned Storage Follow-Up
+
+Owner decision: Leads may own a minimized approval-evidence reference store for contact-resolution audit evidence while Marketing remains the owner of approval records, campaign content, audience decisions, execution jobs, and delivery outcomes.
+
+Storage slice:
+
+- Dedicated `LeadMarketingApprovalEvidence` table related to one `Lead`.
+- Stores only Marketing reference IDs (`approvalId`, `campaignId`), approval timestamp, bounded purpose code, channel, counts, retention expectation, presence booleans, eligibility result/reasons, returned contact-method count, idempotency key, and record timestamp.
+- Does not store contact values, campaign content, raw messages, confirmation tokens, raw consent source values, metadata values, approver value, workspace value, or content-version value.
+- Writes only after structured approval evidence passes validation and eligibility is re-checked.
+- Records eligible and ineligible contact-resolution outcomes, but does not write rejected malformed/missing/mismatched approval evidence.
+- Uses idempotent upsert keyed by lead, approval, campaign, channel, and approval timestamp.
+
+The original no-storage non-goal above is superseded only for this minimized Leads-owned evidence slice. Campaign execution, outbound sends, Notifications dispatch, raw batch export, production mutation validation, and deployment remain out of scope.
