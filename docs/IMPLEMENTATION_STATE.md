@@ -5,7 +5,7 @@ id: LEADS-IMPLEMENTATION-STATE
 status: active
 owner: leads-owner
 created: 2026-06-12
-last_updated: 2026-06-13
+last_updated: 2026-06-15
 completeness_level: complete
 upstream:
   - ../BUSINESS.md
@@ -21,10 +21,10 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 28 deployment of accumulated Goal 23-26 changes.
-- Current owner-selected task: none; Goal 22 positive-token validation remains blocked.
-- Runtime source changes in the latest completed runtime task: Goal 28 integrated and deployed Goal 23 admin UI hardening, Goal 24 lifecycle replay contract builders/tests, Goal 25 marketing approval evidence handoff contract, and Goal 26 product-app intake compatibility matrix.
-- Latest implementation change: Goal 28 deployed accumulated Goal 23-26 changes with integration validation passing.
-- Deployment: completed after owner approval. Goal 28 deployed image tag goal23-26-integration-20260613; rollout, health, ExternalSecret readiness, unauthenticated admin 401, and admin page smoke checks passed.
+- Current owner-selected task: none active after owner-approved Goal 24/25/26 integration deployment.
+- Runtime source changes in the latest completed runtime task: Goal 24 FlipFlop lifecycle replay route, Goal 25 minimized marketing approval evidence storage, and Goal 26 Leads-side product-app intake matrix evidence.
+- Latest implementation change: owner-approved deployment completed for Goal 24/25/26 integration.
+- Deployment: completed after owner approval. Image tag `goal24-26-integration-20260615` was built and pushed with digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`; forced rollout restart pulled the new digest, Goal 25 migration applied successfully, health passed, unauthenticated admin returned 401, and admin page returned 200.
 
 ## Preserved Intent Summary
 
@@ -32,7 +32,7 @@ Leads is the consent-aware intake service for non-registered contact submissions
 
 ## Active Goal
 
-Goal 22 is blocked after negative-path production validation pending approved positive-token inputs. Goals 23, 24, 25, 26, 27, and 28 are complete for their assigned scopes. Future Goal 24 runtime replay route work, Goal 25 approval storage, and Goal 26 cross-repo adoption remain owner-selection gated.
+No runtime goal is active. Goal 24/25/26 integration was validated and deployed on 2026-06-15 after owner approval.
 
 ## Completed Goals
 
@@ -63,29 +63,26 @@ Goal 22 is blocked after negative-path production validation pending approved po
 - Goal 19 - Auth-Backed Admin API Authentication: complete and deployed on 2026-06-13.
 - Goal 20 - Auth Workspace-Scoped Admin Isolation: complete and deployed on 2026-06-13.
 - Goal 21 - Sanitized AI/CRM Context API: complete and deployed on 2026-06-13.
+- Goal 22 - Production Auth Workspace Token Matrix Validation: complete on 2026-06-15.
 - Goal 23 - Admin UI Scope Messaging And Empty-State Hardening: complete on 2026-06-13.
-- Goal 24 - Internal Lifecycle Event Replay Consumer Contract: complete for docs/builders/tests on 2026-06-13; runtime route blocked pending owner-selected first consumer.
+- Goal 24 - Internal Lifecycle Event Replay Consumer Contract: complete for docs/builders/tests on 2026-06-13; FlipFlop runtime replay path integrated and validated on 2026-06-15.
 - Goal 26 - Product-App Intake Compatibility Matrix: complete for Leads-side synthetic matrix on 2026-06-13.
 - Goal 27 - Documentation Ingestion And Orchestrator Freshness: complete on 2026-06-13.
 - Goal 28 - Parallel Integration Validation And Deployment Readiness: complete and deployed on 2026-06-13.
 
 ## Next Recommended Goal
 
-Next recommended action: resolve Goal 22 token blockers, or select one owner-gated follow-up: Goal 24 runtime replay consumer, Goal 25 Leads-owned approval storage, or Goal 26 target product-app repositories.
+Next recommended action: monitor post-deploy health and select the next owner-approved goal track.
 
 ## Known Blockers
 
-- Goal 22 positive non-global workspace admin validation is blocked until owner-provided workspace admin tokens or approved synthetic staging tokens are available.
-- Goal 22 positive global admin production read is also blocked until a currently valid already-issued global admin token is provided, or the owner explicitly approves a non-mutating synthetic validation path. Existing Kubernetes token candidates were present but Auth rejected them on 2026-06-13.
-- Goal 24 runtime route changes are serialized until the owner selects a first consumer and any guarded API changes are coordinated.
-- Goal 25 runtime approval storage is blocked until approval evidence ownership is confirmed.
-- Goal 26 cross-repo product-app edits are blocked until the owner selects target repositories.
+- Campaign execution, mass outreach, raw lead export, AI enrichment, notification dispatch, and production lead mutation remain forbidden unless a future owner-approved task defines exact scope and validation evidence.
 - Goal 27 DocsRAG ingestion trigger succeeded from the in-cluster runtime path, but agent-context retrieval returned HTTP 500 after ingestion; the plain SSH shell still lacks `JWT_TOKEN`.
 
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. Use the parallel execution board in `docs/orchestrator/PLAN.md`; Goal 22 is blocked, Goals 23-28 are complete for their assigned scopes, and Goal 24/25/26 follow-ups require owner selection before new worker threads start.
+2. Use the parallel execution board in `docs/orchestrator/PLAN.md`; Goal 24/25/26 integration is deployed as of 2026-06-15 and no runtime goal is active.
 3. Preserve service boundaries: Leads owns non-registered intake/consent/preferences/unsubscribe; Auth owns identity/RBAC/tenancy; Marketing owns campaigns; Notifications owns delivery; CRM owns funnel workflow once implemented.
 4. Do not implement raw lead export, mass outreach, campaign execution, AI enrichment, or production lead mutation without explicit owner approval and validation evidence.
 5. Record validation and continuation evidence before ending.

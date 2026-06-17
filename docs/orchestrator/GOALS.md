@@ -430,9 +430,9 @@ Acceptance criteria:
 
 ## Goal 22 - Production Auth Workspace Token Matrix Validation
 
-Status: blocked after partial validation
+Status: done
 
-Parallel status: Agent A completed negative-path validation; positive global and non-global scoped reads remain blocked on owner-approved valid tokens.
+Parallel status: complete after owner-approved masked synthetic Auth validation path; synthetic Auth validation users were removed after the smoke.
 
 Intent: Validate the deployed Goal 20 admin isolation behavior with real or owner-approved synthetic Auth tokens without printing tokens, raw lead data, or production lead rows.
 
@@ -447,16 +447,15 @@ Allowed file scope:
 
 Blockers:
 
-- Positive non-global workspace admin validation requires owner-provided workspace admin tokens or approved synthetic staging tokens.
-- Production mutation is blocked unless the owner approves exact synthetic payloads.
+- None for Goal 22. Positive global and non-global scoped validation passed with masked evidence. Production mutation remains generally blocked unless the owner approves exact synthetic payloads.
 
 Chunks:
 
-- [ ] 22.1 Create execution artifacts and pass the pre-coding gate.
-- [ ] 22.2 Validate unauthenticated and invalid-token admin rejection.
-- [ ] 22.3 Validate global superadmin platform-wide read with masked outputs only.
-- [ ] 22.4 Validate non-global workspace source scoping when approved tokens are available.
-- [ ] 22.5 Record evidence without secrets, raw contact values, raw messages, confirmation tokens, or production lead rows.
+- [x] 22.1 Create execution artifacts and pass the pre-coding gate.
+- [x] 22.2 Validate unauthenticated and invalid-token admin rejection.
+- [x] 22.3 Validate global superadmin platform-wide read with masked outputs only.
+- [x] 22.4 Validate non-global workspace source scoping when approved tokens are available.
+- [x] 22.5 Record evidence without secrets, raw contact values, raw messages, confirmation tokens, or production lead rows.
 
 Acceptance criteria:
 
@@ -643,7 +642,7 @@ Acceptance criteria:
 
 Status: done
 
-Parallel status: serialized integration lane completed by coordinator after Goals 23-27 results; deployment remains owner-approval gated.
+Parallel status: serialized integration lane completed and deployed after owner approval.
 
 Intent: Validate accumulated Goal 23-26 runtime/test changes together before any deployment, while preserving Goal 22 token blocker and all sensitive-data boundaries.
 
@@ -656,8 +655,7 @@ Allowed file scope:
 
 Blockers:
 
-- Deployment requires explicit owner approval.
-- Goal 22 positive token matrix remains blocked until valid approved global and non-global admin tokens or an approved synthetic path are available.
+- None. Goal 28 deployment was completed after owner approval. Goal 22 positive token matrix is complete.
 
 Chunks:
 
@@ -669,6 +667,6 @@ Chunks:
 Acceptance criteria:
 
 - Full test suite, build, lint, missing-marker scan, secret-pattern scan, and diff check pass.
-- Goal 22 token blockers remain explicit.
-- No deployment, production mutation, raw lead export, outreach, AI/CRM export, or notification behavior is performed without owner approval.
+- Goal 22 token validation is complete with masked evidence.
+- Deployment evidence is recorded after owner approval; no raw lead export, outreach, AI/CRM export, or notification behavior was performed.
 

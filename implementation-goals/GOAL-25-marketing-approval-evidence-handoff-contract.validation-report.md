@@ -85,3 +85,56 @@ Pass.
 ## Next Action
 
 Marketing integration can adapt to the structured `approvalEvidence` request contract. Any durable approval storage in Leads remains blocked until the owner explicitly selects a Leads-owned approval evidence slice.
+
+## 2026-06-15 Follow-Up Validation - Leads-Owned Minimized Storage
+
+Status: implemented and integrated; final build, focused tests, full tests, lint, and Prisma validation passed after the Goal 24 replay blocker cleared.
+
+Implementation evidence:
+
+- Added Prisma model and migration for `LeadMarketingApprovalEvidence`.
+- Added runtime validation for bounded approval channel, purpose, retention expectation, timestamp, and counts before storage.
+- Added minimized storage record builder that omits campaign content, contact values, raw consent source values, approver value, workspace value, and content-version value.
+- Updated approved campaign contact resolution to upsert minimized evidence after approval validation and eligibility re-check.
+- Valid approved evidence writes eligible and ineligible contact-resolution outcomes.
+- Missing, mismatched, or malformed approval evidence is rejected before storage.
+
+Commands run:
+
+- `npm run prisma:generate`: passed.
+- `npm test -- --runTestsByPath src/leads/integrations/marketing-approval-evidence.spec.ts src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts`: passed, 3 suites, 38 tests.
+- `npx prisma validate`: passed.
+- `npm run build`: initially blocked by out-of-scope Goal 24 replay source, then passed on 2026-06-15 after the integrated replay source was valid.
+- `git diff --check` over Goal 25 schema/source/docs/state files: passed.
+- Missing-marker scan over orchestrator docs, implementation state, Goal 25 artifacts, `TASKS.md`, and `STATE.json`: passed with no matches.
+- Real-secret scan over touched Goal 25 docs/source/schema/state files: passed with no matches. A broader exploratory scan flagged expected synthetic test sentinels and historic docs mentions only.
+- Post-concurrent-edit rerun of the focused Jest command on 2026-06-15: passed as part of `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts`, 3 suites and 40 tests.
+
+Sensitive-data evidence:
+
+- Storage tests assert serialized records do not contain synthetic campaign content, contact value, raw consent source value, approver value, workspace value, or content-version value.
+- No production lead rows, real contact values, raw messages, confirmation tokens, JWTs, private URLs, metadata values, raw consent source values, or secrets were printed or persisted.
+
+Blockers:
+
+- No source validation blocker remains in the integrated remote tree.
+- Deployment was not run in this session and remains owner-controlled.
+
+Decision:
+
+- Goal 25 storage slice is integrated and validated with the Goal 24 replay lane.
+
+## 2026-06-15 Integrated Validation Addendum
+
+Commands run after the Goal 24 replay source blocker cleared:
+
+- `npm run build`: passed.
+- `npm test -- --runTestsByPath src/leads/integrations/lifecycle-replay-contract.spec.ts src/leads/leads.controller.spec.ts src/leads/leads.service.spec.ts`: passed, 3 suites and 40 tests.
+- `npm test`: passed, 16 suites and 97 tests.
+- `npm run lint`: passed.
+- `npx prisma generate`: passed.
+- `npx prisma validate`: passed.
+
+Sensitive-data handling: validation used synthetic test values only. No bearer token, service token, JWT payload, raw production lead row, contact value, raw message, confirmation token, private URL, metadata value, raw consent source value, campaign content, or secret value was printed or persisted.
+
+Decision: integration readiness accepted for Goal 25 storage with Goal 24 replay source present. Deployment readiness still requires an owner deployment decision.

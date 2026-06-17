@@ -70,3 +70,28 @@ Approved campaign contact resolution must require structured Marketing approval 
 - `npm run build`
 - missing-marker scan
 - secret-pattern scan
+
+## 2026-06-15 Follow-Up Context
+
+Owner approval unblocks a minimized Leads-owned approval evidence store. The current implementation keeps Marketing-owned approval records request-scoped in the DTO and audit-safe summary. The follow-up adds persistence only for minimized reference/audit fields:
+
+- `approvalId`, `campaignId`, `approvedAt`, purpose code, channel, audience/eligible counts, retention expectation.
+- Presence booleans for approver, workspace, and content version instead of raw values.
+- Eligibility result/reasons and returned contact-method count.
+- Deterministic idempotency key for retries.
+
+Still excluded:
+
+- campaign content;
+- contact values;
+- raw lead messages;
+- confirmation tokens;
+- raw consent source values;
+- private URLs;
+- metadata values;
+- approver value;
+- workspace value;
+- content-version value;
+- campaign execution or notification dispatch.
+
+DocsRAG note: `JWT_TOKEN` is unavailable in this SSH shell, so RAG retrieval could not be performed from the worker context. Repo-local source-of-truth docs and Goal 16/17/25 artifacts were used.

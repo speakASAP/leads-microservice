@@ -25,6 +25,9 @@ function createService() {
     leadLifecycleEvent: {
       findMany: jest.fn().mockResolvedValue([]),
     },
+    leadMarketingApprovalEvidence: {
+      upsert: jest.fn().mockResolvedValue({}),
+    },
   };
 
   return {
@@ -360,6 +363,32 @@ describe('LeadsService controlled contact resolution', () => {
         where: { id: { in: ['lead_synthetic_campaign'] } },
       }),
     );
+    expect(prisma.leadMarketingApprovalEvidence.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          idempotencyKey:
+            'marketing-approval-evidence:lead_synthetic_campaign:approval_synthetic_25:campaign_synthetic_25:email:2026-06-13T20:00:00.000Z',
+        },
+        create: expect.objectContaining({
+          leadId: 'lead_synthetic_campaign',
+          approvalId: 'approval_synthetic_25',
+          campaignId: 'campaign_synthetic_25',
+          purposeCode: 'product_nurture',
+          channel: 'email',
+          approvedByPresent: true,
+          workspaceIdPresent: true,
+          contentVersionPresent: true,
+          eligibilityEligible: true,
+          eligibilityReasons: ['eligible_contact_resolution'],
+          returnedContactMethodCount: 1,
+        }),
+      }),
+    );
+    const serializedStorage = JSON.stringify(prisma.leadMarketingApprovalEvidence.upsert.mock.calls[0]?.[0]);
+    expect(serializedStorage).not.toContain('person@example.test');
+    expect(serializedStorage).not.toContain('content_version_synthetic_25');
+    expect(serializedStorage).not.toContain('auth_user_synthetic_reviewer');
+    expect(serializedStorage).not.toContain('workspace_synthetic_25');
   });
 
   it('does not resolve campaign contacts when eligibility re-check fails', async () => {
@@ -408,6 +437,17 @@ describe('LeadsService controlled contact resolution', () => {
         }),
       }),
     );
+    expect(prisma.leadMarketingApprovalEvidence.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          leadId: 'lead_synthetic_ineligible_campaign',
+          approvalId: 'approval_synthetic_25',
+          eligibilityEligible: false,
+          eligibilityReasons: expect.arrayContaining(['unsubscribed']),
+          returnedContactMethodCount: 0,
+        }),
+      }),
+    );
   });
 
   it('rejects campaign contact resolution without structured approval evidence', async () => {
@@ -431,6 +471,7 @@ describe('LeadsService controlled contact resolution', () => {
       }),
     ).rejects.toThrow('Campaign approval evidence rejected');
     expect(prisma.lead.findMany).not.toHaveBeenCalled();
+    expect(prisma.leadMarketingApprovalEvidence.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects approved campaign resolution when approval channel does not match requested channel', async () => {
@@ -458,6 +499,37 @@ describe('LeadsService controlled contact resolution', () => {
       }),
     ).rejects.toThrow('approval_channel_mismatch');
     expect(prisma.lead.findMany).not.toHaveBeenCalled();
+    expect(prisma.leadMarketingApprovalEvidence.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed approval evidence before storage', async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique = jest.fn().mockResolvedValue({
+      id: 'lead_synthetic_malformed_approval',
+      marketingConsent: true,
+      consentSource: 'private-consent-source:v1',
+      consentCapturedAt: new Date('2026-06-13T00:00:00.000Z'),
+      unsubscribedAt: null,
+      confirmedAt: new Date('2026-06-13T00:01:00.000Z'),
+      contactMethods: [{ type: 'email', value: 'person@example.test', isPrimary: true }],
+    });
+
+    await expect(
+      service.resolveLeadContact({
+        leadId: 'lead_synthetic_malformed_approval',
+        purpose: 'approved_campaign_send',
+        approvalEvidence: {
+          ...approvalEvidence,
+          approvedAt: 'not-a-date',
+          audienceCount: 1,
+          eligibleCount: 2,
+        },
+        requestedChannels: ['email'],
+        campaignPurpose: 'marketing',
+      }),
+    ).rejects.toThrow('invalid_approved_at');
+    expect(prisma.lead.findMany).not.toHaveBeenCalled();
+    expect(prisma.leadMarketingApprovalEvidence.upsert).not.toHaveBeenCalled();
   });
 });
 
@@ -524,6 +596,99 @@ describe('LeadsService lifecycle event retrieval', () => {
 });
 
 
+
+
+describe("LeadsService lifecycle replay", () => {
+  it("returns bounded flipflop-service replay without raw lead fields", async () => {
+    const { prisma, service } = createService();
+    prisma.lead.findUnique.mockResolvedValueOnce({ id: "lead_synthetic_replay" });
+    prisma.leadLifecycleEvent.findMany.mockResolvedValueOnce([
+      {
+        eventId: "evt_synthetic_product_app",
+        eventType: "LeadSubmitted",
+        eventVersion: 1,
+        occurredAt: new Date("2026-06-13T00:00:00.000Z"),
+        producer: "leads-microservice",
+        leadId: "lead_synthetic_replay",
+        correlationId: "lead_synthetic_replay",
+        idempotencyKey: "lead-submitted:lead_synthetic_replay",
+        dataClass: "minimized",
+        payload: {
+          leadId: "lead_synthetic_replay",
+          sourceService: "flipflop-service",
+          sourceHost: "flipflop.example",
+          sourceUrl: "https://flipflop.example/private/path?jwt=synthetic-jwt",
+          contactMethods: [{ type: "email", value: "person@example.test" }],
+          message: "Synthetic raw product interest message",
+          contactMethodTypes: ["email"],
+          contactMethodCount: 1,
+          consentEvidencePresent: true,
+          confirmationToken: "synthetic-confirmation-token",
+        },
+        consumerRoutes: ["product-apps", "logging-analytics"],
+        recordedAt: new Date("2026-06-13T00:00:01.000Z"),
+      },
+      {
+        eventId: "evt_synthetic_marketing_only",
+        eventType: "LeadPreferenceUpdated",
+        eventVersion: 1,
+        occurredAt: new Date("2026-06-13T00:01:00.000Z"),
+        producer: "leads-microservice",
+        leadId: "lead_synthetic_replay",
+        dataClass: "minimized",
+        payload: { leadId: "lead_synthetic_replay", marketingConsent: true },
+        consumerRoutes: ["marketing"],
+        recordedAt: new Date("2026-06-13T00:01:01.000Z"),
+      },
+    ]);
+
+    const result = await service.getLeadLifecycleReplay("lead_synthetic_replay", {
+      consumer: "flipflop-service",
+      purpose: "consumer_reconciliation",
+      limit: "500",
+      fromOccurredAt: "2026-06-13T00:00:00.000Z",
+    });
+
+    expect(result.consumer).toBe("flipflop-service");
+    expect(result.bounds.limit).toBe(30);
+    expect(result.bounds.eventCount).toBe(1);
+    expect(result.events.map((event) => event.eventId)).toEqual(["evt_synthetic_product_app"]);
+    expect(prisma.leadLifecycleEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          leadId: "lead_synthetic_replay",
+          occurredAt: { gte: new Date("2026-06-13T00:00:00.000Z") },
+        },
+        take: 31,
+        select: expect.not.objectContaining({
+          message: true,
+          confirmationToken: true,
+          contactMethods: true,
+          submissions: true,
+        }),
+      }),
+    );
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain("person@example.test");
+    expect(serialized).not.toContain("Synthetic raw product interest message");
+    expect(serialized).not.toContain("synthetic-confirmation-token");
+    expect(serialized).not.toContain("private/path");
+    expect(serialized).not.toContain("synthetic-jwt");
+  });
+
+  it("rejects lifecycle replay consumers other than flipflop-service", async () => {
+    const { prisma, service } = createService();
+
+    await expect(
+      service.getLeadLifecycleReplay("lead_synthetic_replay", {
+        consumer: "marketing",
+        purpose: "consumer_reconciliation",
+      }),
+    ).rejects.toThrow("Lifecycle replay consumer is not approved");
+    expect(prisma.lead.findUnique).not.toHaveBeenCalled();
+    expect(prisma.leadLifecycleEvent.findMany).not.toHaveBeenCalled();
+  });
+});
 describe('LeadsService Auth-backed admin views', () => {
   it('returns masked admin list without raw message, contact value, token, source path, or consent source', async () => {
     const { prisma, service } = createService();

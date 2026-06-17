@@ -2,7 +2,7 @@
 
 ## Status
 
-active - Agent C
+complete - runtime replay consumer path for FlipFlop added on 2026-06-15
 
 ## Vision
 
@@ -35,6 +35,7 @@ Internal lifecycle replay contract for trusted consumers:
 - [x] 24.2 Define replay request/response contract and consumer constraints.
 - [x] 24.3 Add minimized contract builders and focused tests.
 - [x] 24.4 Validate build, tests, determinism, and sensitive-data scans.
+- [x] 24.5 Add guarded runtime replay route for owner-selected first consumer `flipflop-service`.
 
 ## Execution Plan
 
@@ -49,7 +50,7 @@ See `GOAL-24-internal-lifecycle-event-replay-contract.coding-prompt.md`.
 - `src/leads/integrations/lifecycle-replay-contract.ts`
 - `src/leads/integrations/lifecycle-replay-contract.spec.ts`
 
-No controller, route, schema, migration, deployment config, or production data changes are included.
+Runtime route added: `GET /api/leads/internal/:id/lifecycle-replay`, guarded by `InternalServiceGuard`, accepting only `consumer=flipflop-service`. No schema, migration, deployment config, raw lead export, campaign execution, notification dispatch, AI/CRM export, or production data changes are included.
 
 ## Validation
 

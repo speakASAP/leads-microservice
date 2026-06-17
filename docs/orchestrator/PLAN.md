@@ -24,11 +24,11 @@ Runtime implementation within a worker remains single-track: one worker implemen
 
 ## Active Goal
 
-Goal 22 is blocked after negative-path validation. Goals 23, 24, 25, 26, 27, and 28 are complete for their assigned scopes. Goal 21 remains complete and deployed.
+Goals 22, 23, 24, 25, 26, 27, and 28 are complete for their current approved scopes. Goal 24/25/26 integration is deployed as `goal24-26-integration-20260615`. Goal 21 remains complete and deployed.
 
 ## Next Goal Selection
 
-Default next action: resolve Goal 22 token blockers, or select one owner-gated follow-up track for Goal 24 runtime replay, Goal 25 approval storage, or Goal 26 cross-repo product-app adoption.
+Default next action: monitor post-deploy health and select the next owner-approved goal track.
 
 When a user explicitly selects another task, record the selected goal, chunk, preserved intent, dependencies, blockers, allowed file scope, and reason in `docs/orchestrator/STATUS.md` before coding.
 
@@ -54,22 +54,21 @@ For each `parallel-ready` goal, record:
 
 ## Parallel Execution Board
 
-Current baseline: Goals 1-21 are complete and deployed where deployment was approved. Goal 22 is blocked after negative-path validation. Goals 23-28 are complete for their assigned scopes, with Goal 28 deployed. No next runtime slice has been owner-selected.
+Current baseline: Goals 1-28 are complete for their current approved scopes and deployed where deployment was approved. Goal 24/25/26 integration deployed on 2026-06-15 with image digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`.
 
 ### Active Assigned Tracks
 
 | Goal | Track | Owner | Status | Allowed scope | Blockers | Validation |
 | --- | --- | --- | --- | --- | --- | --- |
-| Goal 22 | Production Auth Workspace Token Matrix Validation | Agent A | blocked after partial validation | docs/status, admin smoke scripts or validation notes only unless owner approves source changes | Need valid approved global and non-global workspace admin tokens or approved synthetic staging tokens for positive scoped reads | health check and admin 401 negative-path validation passed; positive masked reads blocked |
+| None | No active assigned track | Coordinator | idle | Select next owner-approved goal | None | Post-deploy health monitoring |
 
 ### Completed Parallel Tracks
 
 | Goal | Track | Owner | Evidence |
 | --- | --- | --- | --- |
+| Goal 22 | Production Auth Workspace Token Matrix Validation | Agent A | Complete on 2026-06-15 with masked global and non-global token matrix validation; token values were not printed or persisted. |
+| Goal 24/25/26 | Integrated replay, approval evidence storage, and product-app matrix release | Coordinator | Deployed on 2026-06-15 as `goal24-26-integration-20260615`; migration applied, health passed, admin 401 smoke passed, admin page smoke passed. |
 | Goal 23 | Admin UI Scope Messaging And Empty-State Hardening | Agent B | Complete and deployed through Goal 28. |
-| Goal 24 | Internal Lifecycle Event Replay Consumer Contract | Agent C | Docs/builders/tests complete; runtime route remains blocked pending owner-selected first consumer. |
-| Goal 25 | Marketing Approval Evidence Handoff Contract | Agent D | Contract/builders/tests complete and deployed through Goal 28; Leads-owned approval storage remains owner-gated. |
-| Goal 26 | Product-App Intake Compatibility Matrix | Agent E | Leads-side synthetic matrix complete and deployed through Goal 28; cross-repo app adoption remains blocked pending owner-selected target repositories. |
 | Goal 27 | Documentation Ingestion And Orchestrator Freshness | Agent F | Documentation-only validation passed; DocsRAG ingestion returned HTTP 202; retrieval returned HTTP 500 after ingestion and is recorded as a DocsRAG runtime limitation. |
 | Goal 28 | Parallel Integration Validation And Deployment Readiness | Coordinator | Integration validation passed; accumulated Goal 23-26 changes deployed as goal23-26-integration-20260613. |
 

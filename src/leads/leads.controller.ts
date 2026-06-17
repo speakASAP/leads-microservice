@@ -6,6 +6,7 @@ import { ContactResolutionDto } from './dto/contact-resolution.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { LeadQueryDto } from './dto/lead-query.dto';
 import { LinkLeadToUserDto } from './dto/link-lead-to-user.dto';
+import { LifecycleReplayQueryDto } from "./dto/lifecycle-replay-query.dto";
 import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 import { LoggingService } from '../logging/logging.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -192,6 +193,22 @@ export class LeadsController {
     const result = await this.leadsService.getLeadLifecycleEvents(id);
     await this.loggingService.log('info', 'Lead lifecycle events retrieved', {
       leadId: id,
+      eventCount: result.events.length,
+      contractVersion: result.contractVersion,
+      duration_ms: Date.now() - startedAt,
+    });
+    return result;
+  }
+
+  @Get("internal/:id/lifecycle-replay")
+  @UseGuards(InternalServiceGuard)
+  async getLeadLifecycleReplay(@Param("id") id: string, @Query() query: LifecycleReplayQueryDto) {
+    const startedAt = Date.now();
+    const result = await this.leadsService.getLeadLifecycleReplay(id, query);
+    await this.loggingService.log("info", "Lead lifecycle replay retrieved", {
+      leadId: id,
+      consumer: result.consumer,
+      purpose: result.purpose,
       eventCount: result.events.length,
       contractVersion: result.contractVersion,
       duration_ms: Date.now() - startedAt,

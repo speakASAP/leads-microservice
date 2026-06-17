@@ -44,6 +44,26 @@ export interface MarketingApprovalEvidenceSummary {
   contentVersionPresent: boolean;
 }
 
+export interface MarketingApprovalEvidenceStorageRecord {
+  leadId: string;
+  idempotencyKey: string;
+  approvalId: string;
+  campaignId: string;
+  approvedAt: Date;
+  purposeCode: MarketingApprovalPurposeCode;
+  channel: MarketingApprovalChannel;
+  audienceCount: number;
+  eligibleCount: number;
+  retentionExpectation: MarketingApprovalRetentionExpectation;
+  humanApprovalReferencePresent: boolean;
+  approvedByPresent: boolean;
+  workspaceIdPresent: boolean;
+  contentVersionPresent: boolean;
+  eligibilityEligible: boolean;
+  eligibilityReasons: string[];
+  returnedContactMethodCount: number;
+}
+
 const REQUIRED_FIELDS: Array<keyof MarketingApprovalEvidenceInput> = [
   'approvalId',
   'campaignId',
@@ -87,6 +107,40 @@ export function validateMarketingApprovalEvidenceForContactResolution(
   if (evidence?.channel && requestedChannels.length === 1 && evidence.channel !== requestedChannels[0]) {
     reasons.push('approval_channel_mismatch');
   }
+  if (evidence?.channel && !['email', 'telegram', 'whatsapp'].includes(evidence.channel)) {
+    reasons.push('invalid_approval_channel');
+  }
+  if (evidence?.purposeCode && !MARKETING_APPROVAL_PURPOSE_CODES.includes(evidence.purposeCode)) {
+    reasons.push('invalid_purpose_code');
+  }
+  if (
+    evidence?.retentionExpectation &&
+    !MARKETING_APPROVAL_RETENTION_EXPECTATIONS.includes(evidence.retentionExpectation)
+  ) {
+    reasons.push('invalid_retention_expectation');
+  }
+  if (evidence?.approvedAt && Number.isNaN(Date.parse(evidence.approvedAt))) {
+    reasons.push('invalid_approved_at');
+  }
+  if (
+    evidence?.audienceCount !== undefined &&
+    (!Number.isInteger(evidence.audienceCount) || evidence.audienceCount < 0)
+  ) {
+    reasons.push('invalid_audience_count');
+  }
+  if (
+    evidence?.eligibleCount !== undefined &&
+    (!Number.isInteger(evidence.eligibleCount) || evidence.eligibleCount < 0)
+  ) {
+    reasons.push('invalid_eligible_count');
+  }
+  if (
+    Number.isInteger(evidence?.audienceCount) &&
+    Number.isInteger(evidence?.eligibleCount) &&
+    (evidence?.eligibleCount ?? 0) > (evidence?.audienceCount ?? 0)
+  ) {
+    reasons.push('eligible_count_exceeds_audience_count');
+  }
   return reasons;
 }
 
@@ -106,5 +160,40 @@ export function buildMarketingApprovalEvidenceSummary(
     approvedByPresent: Boolean(evidence.approvedBy),
     workspaceIdPresent: Boolean(evidence.workspaceId),
     contentVersionPresent: Boolean(evidence.contentVersion),
+  };
+}
+
+export function buildMarketingApprovalEvidenceStorageRecord(
+  leadId: string,
+  evidence: MarketingApprovalEvidenceInput,
+  eligibility: { eligible: boolean; reasons?: string[] },
+  returnedContactMethodCount: number,
+): MarketingApprovalEvidenceStorageRecord {
+  const summary = buildMarketingApprovalEvidenceSummary(evidence);
+  return {
+    leadId,
+    idempotencyKey: [
+      'marketing-approval-evidence',
+      leadId,
+      summary.approvalId,
+      summary.campaignId,
+      summary.channel,
+      summary.approvedAt,
+    ].join(':'),
+    approvalId: summary.approvalId,
+    campaignId: summary.campaignId,
+    approvedAt: new Date(summary.approvedAt),
+    purposeCode: summary.purposeCode,
+    channel: summary.channel,
+    audienceCount: summary.audienceCount,
+    eligibleCount: summary.eligibleCount,
+    retentionExpectation: summary.retentionExpectation,
+    humanApprovalReferencePresent: summary.humanApprovalReferencePresent,
+    approvedByPresent: summary.approvedByPresent,
+    workspaceIdPresent: summary.workspaceIdPresent,
+    contentVersionPresent: summary.contentVersionPresent,
+    eligibilityEligible: eligibility.eligible,
+    eligibilityReasons: eligibility.reasons ?? [],
+    returnedContactMethodCount,
   };
 }

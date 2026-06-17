@@ -131,3 +131,58 @@ Result: pass-with-documented-risk because DocsRAG retrieval returned HTTP 500, w
 ## Rollback Plan
 
 Revert only the Goal 25 files and the structured approval-evidence DTO/service/test changes from this session; preserve appended status evidence and unrelated dirty-tree changes.
+
+## 2026-06-15 Follow-Up Execution Plan
+
+Selected follow-up: Leads-owned minimized approval evidence storage.
+
+Owner approval evidence:
+
+- Source delegation states owner approves remaining tasks, including deciding Goal 25 approval storage ownership.
+- Interpretation: Leads may add a dedicated minimized approval-evidence reference store, but Marketing retains campaign approval/content/execution ownership.
+
+Scope:
+
+- Prisma schema and migration for `LeadMarketingApprovalEvidence`.
+- Approval-evidence helper validation/storage builder.
+- Contact-resolution service persistence after approval validation and eligibility re-check.
+- Focused helper/service tests and migration/schema validation.
+- Goal 25 artifacts and shared status evidence.
+
+Invariant impact:
+
+- LEADS-INV-001: preserved; table is Lead-related audit evidence for guarded contact resolution only.
+- LEADS-INV-002: preserved; Marketing remains campaign approval record, campaign content, audience decision, execution, and delivery-outcome owner.
+- LEADS-INV-003: strengthened; storage happens only after existing campaign eligibility re-check.
+- LEADS-INV-004: strengthened; storage omits contact values, raw messages, tokens, private URLs, raw consent source values, metadata values, approver value, workspace value, and content-version value.
+- LEADS-INV-005: preserved; no sends, loops, campaign execution, or Notifications dispatch.
+- LEADS-INV-006: unaffected; no public intake/list bound change.
+- LEADS-INV-007: preserved; existing guarded contact-resolution route remains the entry point.
+- LEADS-INV-008: unaffected; no Notifications behavior.
+- LEADS-INV-009: unaffected; no AI/CRM export.
+- LEADS-INV-010: evidence recorded in validation report and `docs/orchestrator/STATUS.md`.
+
+Sensitive-data classification: synthetic tests only; no production lead rows, real contact values, raw messages, confirmation tokens, JWTs, private URLs, raw consent sources, metadata values, or secrets.
+
+Consent impact: preserves consent semantics by writing only after approval evidence validation and the existing campaign eligibility re-check.
+
+Contract/schema impact: adds one Prisma model/table and migration. Internal contact-resolution response contract remains unchanged.
+
+Replay/determinism impact: deterministic idempotency key prevents duplicate audit rows for retry of the same lead/approval/campaign/channel/approval timestamp.
+
+Parallel execution:
+
+- Workstream: Goal 25 migration-owner lane.
+- Status: ready in this worker; final integration gated by Goal 24 build health.
+- Shared files/contracts: Prisma schema/migration, `LeadsService`, approval-evidence helper.
+- Integration owner: source coordinator thread.
+- Validation owner: source coordinator thread for final full build/test/deploy readiness.
+- Merge order: resolve Goal 24 build blocker first if still present, then merge Goal 25 migration/storage, then final integration validation. Goal 24 must not add competing schema work.
+
+Validation plan:
+
+- `npm run prisma:generate`
+- `npm test -- --runTestsByPath src/leads/integrations/marketing-approval-evidence.spec.ts src/leads/leads.service.spec.ts src/leads/leads.controller.spec.ts`
+- `npx prisma validate`
+- `npm run build`
+- missing-marker and secret-pattern scans
