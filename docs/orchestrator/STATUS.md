@@ -2337,3 +2337,16 @@ Gate decision:
 Next recommended action:
 
 - Monitor post-deploy health and select the next owner-approved goal track.
+
+## 2026-06-21 - DocsRAG Agent Context HTTP 500 Blocker Fixed
+
+Current focus: remove the stale Goal 27 DocsRAG agent-context HTTP 500 blocker after fixing `docs-rag-microservice` fallback behavior.
+
+Evidence:
+- Deployed `docs-rag-microservice` image `localhost:5000/docs-rag-microservice:d50cc11`.
+- In-cluster query from `deployment/leads-microservice` to `POST http://docs-rag-microservice:3397/retrieval/agent-context` used the runtime token path without printing token values.
+- Result: HTTP 200 with an empty context and no sources while the external Ollama embedding endpoint remains unavailable. This removes the Leads HTTP 500 blocker without fabricating retrieved context.
+
+State update:
+- Removed `docsrag_agent_context_http_500_after_goal_27_ingestion` from `STATE.json` blockers.
+- Remaining action is normal post-deploy health monitoring and the next owner-approved goal track.
