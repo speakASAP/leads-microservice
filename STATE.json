@@ -9,10 +9,8 @@
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
   "last_milestone": "goal-24-25-26-integration-deployed",
-  "next_focus": "Monitor post-deploy health and select the next owner-approved goal track",
-  "blockers": [
-    "docsrag_agent_context_http_500_after_goal_27_ingestion"
-  ],
+  "next_focus": "DocsRAG agent-context HTTP 500 blocker fixed; monitor post-deploy health and wait for the next owner-approved goal track.",
+  "blockers": [],
   "budget_units_used": 0,
   "metrics": {
     "custom": {
@@ -123,7 +121,9 @@
       "goal_24_25_26_post_deploy_health": "passed",
       "goal_24_25_26_admin_401_smoke": "passed",
       "goal_24_25_26_admin_page_smoke": "passed",
-      "goal_25_migration": "applied-production"
+      "goal_25_migration": "applied-production",
+      "docsrag_agent_context_http_500_after_goal_27_ingestion": "fixed_2026-06-21_http_200_empty_context_when_embedding_provider_unavailable"
     }
-  }
+  },
+  "updated_at": "2026-06-21"
 }
