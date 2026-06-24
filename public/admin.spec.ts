@@ -9,7 +9,7 @@ type MockElement = {
   dataset: Record<string, string>;
   value: string;
   values: Record<string, string>;
-  token?: { value: string };
+  hidden: boolean;
   listeners: Record<string, (event: any) => Promise<void> | void>;
   addEventListener: (event: string, handler: (event: any) => Promise<void> | void) => void;
 };
@@ -22,6 +22,7 @@ function element(values: Record<string, string> = {}): MockElement {
     dataset: {},
     value: '',
     values,
+    hidden: false,
     listeners: {},
     addEventListener(event, handler) {
       this.listeners[event] = handler;
@@ -29,9 +30,10 @@ function element(values: Record<string, string> = {}): MockElement {
   };
 }
 
-function loadAdmin(fetchMock: jest.Mock, formToken = '') {
+function loadAdmin(fetchMock: jest.Mock, options: { sessionToken?: string; hash?: string; expectedState?: string } = {}) {
   const ids = [
-    'admin-auth-form',
+    'admin-login-button',
+    'admin-logout-button',
     'lead-filter-form',
     'admin-status',
     'lead-rows',
@@ -47,36 +49,61 @@ function loadAdmin(fetchMock: jest.Mock, formToken = '') {
     'table-count',
   ];
   const elements = Object.fromEntries(ids.map((id) => [id, element()])) as Record<string, MockElement>;
-  elements['admin-auth-form'].values = { token: formToken };
-  elements['admin-auth-form'].token = { value: '' };
   elements['lead-filter-form'].values = { sourceService: '', startDate: '', endDate: '', limit: '30' };
 
-  const session = { leadsAdminAuthToken: '' } as Record<string, string>;
+  const session = {
+    leadsAdminAuthToken: options.sessionToken || '',
+    leadsAdminAuthState: options.expectedState || '',
+  } as Record<string, string>;
+  const assignedUrls: string[] = [];
+  const replaceState = jest.fn();
   const context = {
     document: {
+      title: 'Leads admin',
       querySelector(selector: string) {
         return elements[selector.replace('#', '')] ?? null;
       },
     },
+    window: {
+      location: {
+        origin: 'https://leads.alfares.cz',
+        pathname: '/admin',
+        search: '',
+        hash: options.hash || '',
+        assign(url: string) { assignedUrls.push(url); },
+      },
+      history: { replaceState },
+    },
     sessionStorage: {
       getItem(key: string) { return session[key] ?? ''; },
       setItem(key: string, value: string) { session[key] = value; },
+      removeItem(key: string) { delete session[key]; },
     },
+    crypto: { getRandomValues(values: Uint8Array) { values.fill(7); return values; } },
     FormData: class MockFormData {
       private values: Record<string, string>;
       constructor(form: MockElement) { this.values = form.values; }
       get(key: string) { return this.values[key] ?? ''; }
     },
+    URL,
     URLSearchParams,
+    Uint8Array,
     Intl,
     Date,
     Error,
+    Math,
     fetch: fetchMock,
   };
   vm.createContext(context);
   const script = readFileSync(resolve(process.cwd(), 'public/admin.js'), 'utf8');
   vm.runInContext(script, context);
-  return { elements, session };
+  return { elements, session, assignedUrls, replaceState };
+}
+
+async function flushPromises() {
+  for (let index = 0; index < 6; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 function okJson(body: unknown) {
@@ -87,22 +114,67 @@ function errorResponse(status: number) {
   return { ok: false, status, json: jest.fn(), text: jest.fn() };
 }
 
-describe('admin static UI safe states', () => {
-  it('renders token-missing state before any admin fetch', () => {
+describe('admin static UI hosted Auth states', () => {
+  it('renders hosted-auth sign-in state before any admin fetch', () => {
     const fetchMock = jest.fn();
     const { elements } = loadAdmin(fetchMock);
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(elements['admin-status'].textContent).toContain('Enter access credentials');
-    expect(elements['lead-rows'].innerHTML).toContain('Access token required');
+    expect(elements['admin-status'].textContent).toContain('Sign in with hosted Auth');
+    expect(elements['lead-rows'].innerHTML).toContain('Hosted Auth sign-in required');
     expect(elements['lead-detail'].innerHTML).toContain('Access required');
+    expect(elements['admin-login-button'].hidden).toBe(false);
+    expect(elements['admin-logout-button'].hidden).toBe(true);
+  });
+
+  it('starts hosted Auth login with client, callback, and state', () => {
+    const fetchMock = jest.fn();
+    const { elements, assignedUrls, session } = loadAdmin(fetchMock);
+
+    elements['admin-login-button'].listeners.click({});
+
+    expect(assignedUrls).toHaveLength(1);
+    const url = new URL(assignedUrls[0]);
+    expect(url.origin + url.pathname).toBe('https://auth.alfares.cz/login');
+    expect(url.searchParams.get('client_id')).toBe('leads-microservice');
+    expect(url.searchParams.get('return_url')).toBe('https://leads.alfares.cz/auth/callback.html');
+    expect(url.searchParams.get('state')).toBe(session.leadsAdminAuthState);
+    expect(session.leadsAdminReturnPath).toBe('/admin');
+  });
+
+  it('accepts a hosted Auth fragment, strips it, and fetches with bearer session', async () => {
+    const fetchMock = jest.fn().mockResolvedValue(okJson({ items: [], total: 0, page: 1, limit: 30 }));
+    const { elements, session, replaceState } = loadAdmin(fetchMock, {
+      expectedState: 'state-1',
+      hash: '#access_token=fragment-token&state=state-1&expires_at=2026-06-24T10%3A00%3A00.000Z',
+    });
+
+    await flushPromises();
+
+    expect(session.leadsAdminAuthToken).toBe('fragment-token');
+    expect(session.leadsAdminAuthExpiresAt).toBe('2026-06-24T10:00:00.000Z');
+    expect(replaceState).toHaveBeenCalledWith(null, 'Leads admin', '/admin');
+    expect(fetchMock).toHaveBeenCalledWith('/api/admin/leads?limit=30&page=1', { headers: { Authorization: 'Bearer fragment-token' } });
+    expect(elements['admin-status'].textContent).toBe('No leads are visible for the current access and filters.');
+  });
+
+  it('rejects hosted Auth fragments with invalid state before any admin fetch', () => {
+    const fetchMock = jest.fn();
+    const { elements, session } = loadAdmin(fetchMock, {
+      expectedState: 'state-1',
+      hash: '#access_token=fragment-token&state=wrong-state',
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(session.leadsAdminAuthToken).toBeUndefined();
+    expect(elements['admin-status'].textContent).toBe('Auth session could not be verified. Sign in again.');
   });
 
   it('renders scoped-empty state without implying hidden external data', async () => {
     const fetchMock = jest.fn().mockResolvedValue(okJson({ items: [], total: 0, page: 1, limit: 30 }));
-    const { elements } = loadAdmin(fetchMock, 'credential-for-test');
+    const { elements } = loadAdmin(fetchMock, { sessionToken: 'session-token' });
 
-    await elements['admin-auth-form'].listeners.submit({ preventDefault() {} });
+    await flushPromises();
 
     expect(elements['admin-status'].textContent).toBe('No leads are visible for the current access and filters.');
     expect(elements['lead-rows'].innerHTML).toContain('No leads are visible for the current access and filters.');
@@ -113,9 +185,9 @@ describe('admin static UI safe states', () => {
   it('renders unauthorized state without reading response bodies', async () => {
     const response = errorResponse(403);
     const fetchMock = jest.fn().mockResolvedValue(response);
-    const { elements } = loadAdmin(fetchMock, 'credential-for-test');
+    const { elements } = loadAdmin(fetchMock, { sessionToken: 'session-token' });
 
-    await elements['admin-auth-form'].listeners.submit({ preventDefault() {} });
+    await flushPromises();
 
     expect(response.text).not.toHaveBeenCalled();
     expect(response.json).not.toHaveBeenCalled();
@@ -140,9 +212,9 @@ describe('admin static UI safe states', () => {
     const fetchMock = jest.fn()
       .mockResolvedValueOnce(okJson({ items: [listLead], total: 1, page: 1, limit: 30 }))
       .mockResolvedValueOnce(errorResponse(404));
-    const { elements } = loadAdmin(fetchMock, 'credential-for-test');
+    const { elements } = loadAdmin(fetchMock, { sessionToken: 'session-token' });
 
-    await elements['admin-auth-form'].listeners.submit({ preventDefault() {} });
+    await flushPromises();
     expect(elements['lead-rows'].innerHTML).toContain('shop-assistant');
     const adminScript = readFileSync(resolve(process.cwd(), 'public/admin.js'), 'utf8');
     expect(adminScript).not.toContain(['source', 'Label'].join(''));

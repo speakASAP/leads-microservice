@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leads Auth callback</title>
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <script>
+      (function () {
+        var fallbackPath = '/admin';
+        var storedPath = sessionStorage.getItem('leadsAdminReturnPath') || fallbackPath;
+        var returnPath = /^\/[A-Za-z0-9/_?=&.#%-]*$/.test(storedPath) && !storedPath.startsWith('//') ? storedPath : fallbackPath;
+        window.location.replace(returnPath + window.location.hash);
+      }());
+    </script>
+  </body>
+</html>
