@@ -1,5 +1,13 @@
-const state = { token: sessionStorage.getItem('leadsAdminAuthToken') || '', leads: [], total: 0 };
-const authForm = document.querySelector('#admin-auth-form');
+const AUTH_LOGIN_URL = 'https://auth.alfares.cz/login';
+const AUTH_CLIENT_ID = 'leads-microservice';
+const TOKEN_KEY = 'leadsAdminAuthToken';
+const STATE_KEY = 'leadsAdminAuthState';
+const RETURN_PATH_KEY = 'leadsAdminReturnPath';
+const EXPIRES_KEY = 'leadsAdminAuthExpiresAt';
+
+const state = { token: sessionStorage.getItem(TOKEN_KEY) || '', leads: [], total: 0 };
+const loginButton = document.querySelector('#admin-login-button');
+const logoutButton = document.querySelector('#admin-logout-button');
 const filterForm = document.querySelector('#lead-filter-form');
 const statusEl = document.querySelector('#admin-status');
 const rowsEl = document.querySelector('#lead-rows');
@@ -20,6 +28,83 @@ function emptyRow(title, message) { return '<tr class="empty-row"><td colspan="6
 function panelMessage(message) { return '<p class="empty-state">' + safe(message) + '</p>'; }
 function detailMessage(title, message) { return '<div class="empty-state"><strong>' + safe(title) + '</strong><span>' + safe(message) + '</span></div>'; }
 async function fetchJson(url) { const response = await fetch(url, { headers: headers() }); if (!response.ok) { const error = new Error('HTTP ' + response.status); error.status = response.status; throw error; } return response.json(); }
+
+function currentAdminPath() {
+  if (typeof window === 'undefined' || !window.location) return '/admin';
+  return (window.location.pathname || '/admin') + (window.location.search || '');
+}
+
+function callbackUrl() {
+  const origin = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://leads.alfares.cz';
+  return new URL('/auth/callback.html', origin).toString();
+}
+
+function randomState() {
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
+  }
+  return String(Date.now()) + String(Math.random()).slice(2);
+}
+
+function hostedLoginUrl() {
+  const csrfState = randomState();
+  sessionStorage.setItem(STATE_KEY, csrfState);
+  sessionStorage.setItem(RETURN_PATH_KEY, currentAdminPath());
+  const url = new URL(AUTH_LOGIN_URL);
+  url.searchParams.set('client_id', AUTH_CLIENT_ID);
+  url.searchParams.set('return_url', callbackUrl());
+  url.searchParams.set('state', csrfState);
+  return url.toString();
+}
+
+function updateAccessActions() {
+  if (loginButton) loginButton.hidden = Boolean(state.token);
+  if (logoutButton) logoutButton.hidden = !state.token;
+}
+
+function stripAuthFragment() {
+  if (typeof window !== 'undefined' && window.history?.replaceState && window.location?.hash) {
+    window.history.replaceState(null, document.title, currentAdminPath());
+  }
+}
+
+function consumeAuthFragment() {
+  if (typeof window === 'undefined' || !window.location?.hash) return 'none';
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const accessToken = String(params.get('access_token') || '').trim();
+  if (!accessToken) return 'none';
+
+  const returnedState = String(params.get('state') || '').trim();
+  const expectedState = String(sessionStorage.getItem(STATE_KEY) || '').trim();
+  stripAuthFragment();
+  if (!expectedState || returnedState !== expectedState) {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(EXPIRES_KEY);
+    sessionStorage.removeItem(STATE_KEY);
+    state.token = '';
+    return 'invalid';
+  }
+
+  state.token = accessToken;
+  sessionStorage.setItem(TOKEN_KEY, accessToken);
+  const expiresAt = String(params.get('expires_at') || '').trim();
+  if (expiresAt) sessionStorage.setItem(EXPIRES_KEY, expiresAt);
+  sessionStorage.removeItem(STATE_KEY);
+  return 'accepted';
+}
+
+function clearSession() {
+  state.token = '';
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(EXPIRES_KEY);
+  sessionStorage.removeItem(STATE_KEY);
+  sessionStorage.removeItem(RETURN_PATH_KEY);
+  updateAccessActions();
+  renderAccessRequired();
+  setStatus('Signed out of the Leads admin view.', 'neutral');
+}
 
 function updateMetrics() {
   const confirmed = state.leads.filter((lead) => lead.confirmedAt).length;
@@ -94,12 +179,13 @@ function renderAccessRequired() {
   state.total = 0;
   clearMetrics();
   setText('#source-count', 'Locked');
-  document.querySelector('#source-bars').innerHTML = panelMessage('Enter access credentials to load source activity.');
-  document.querySelector('#consent-health').innerHTML = panelMessage('Enter access credentials to evaluate consent state.');
-  document.querySelector('#confirmation-list').innerHTML = panelMessage('Enter access credentials to view confirmation state.');
+  document.querySelector('#source-bars').innerHTML = panelMessage('Sign in with hosted Auth to load source activity.');
+  document.querySelector('#consent-health').innerHTML = panelMessage('Sign in with hosted Auth to evaluate consent state.');
+  document.querySelector('#confirmation-list').innerHTML = panelMessage('Sign in with hosted Auth to view confirmation state.');
   setText('#table-count', 'Locked');
-  rowsEl.innerHTML = emptyRow('Access token required', 'Enter access credentials to load the Leads admin dashboard.');
-  detailEl.innerHTML = detailMessage('Access required', 'Lead details are hidden until the dashboard is loaded.');
+  rowsEl.innerHTML = emptyRow('Hosted Auth sign-in required', 'Use the Auth-hosted session flow to load the Leads admin dashboard.');
+  detailEl.innerHTML = detailMessage('Access required', 'Lead details are hidden until a hosted Auth session is available.');
+  updateAccessActions();
 }
 
 function renderUnauthorized() {
@@ -113,7 +199,8 @@ function renderUnauthorized() {
   setText('#table-count', 'Unavailable');
   rowsEl.innerHTML = emptyRow('Dashboard unavailable', 'This admin session cannot load Leads dashboard data.');
   detailEl.innerHTML = detailMessage('Details unavailable', 'Lead details are unavailable for this admin session.');
-  setStatus('Access denied for this Leads admin view. Check account access or credentials, then try again.', 'risk');
+  setStatus('Access denied for this Leads admin view. Check account access, then sign in again.', 'risk');
+  updateAccessActions();
 }
 
 function renderAll() {
@@ -123,6 +210,7 @@ function renderAll() {
   renderQueue();
   renderRows();
   renderDetail(state.leads[0]);
+  updateAccessActions();
 }
 
 function handleLoadError(error, fallback) {
@@ -137,7 +225,7 @@ function handleLoadError(error, fallback) {
 async function loadLeads() {
   if (!state.token) {
     renderAccessRequired();
-    setStatus('Enter access credentials to load lead data.', 'warn');
+    setStatus('Sign in with hosted Auth to load lead data.', 'warn');
     return;
   }
   const form = new FormData(filterForm);
@@ -156,12 +244,13 @@ async function loadLeads() {
   setStatus('Dashboard loaded with safe admin fields.', 'ok');
 }
 
-authForm?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const data = new FormData(authForm);
-  state.token = String(data.get('token') || '').trim();
-  sessionStorage.setItem('leadsAdminAuthToken', state.token);
-  try { await loadLeads(); } catch (error) { handleLoadError(error, 'Dashboard load failed.'); }
+loginButton?.addEventListener('click', () => {
+  const url = hostedLoginUrl();
+  if (typeof window !== 'undefined' && window.location?.assign) window.location.assign(url);
+});
+
+logoutButton?.addEventListener('click', () => {
+  clearSession();
 });
 
 filterForm?.addEventListener('submit', async (event) => {
@@ -194,4 +283,10 @@ rowsEl?.addEventListener('click', async (event) => {
   }
 });
 
-if (state.token) { authForm.token.value = state.token; loadLeads().catch((error) => handleLoadError(error, 'Stored credentials failed.')); } else { renderAccessRequired(); setStatus('Enter access credentials to load lead data.', 'warn'); }
+const authFragmentState = consumeAuthFragment();
+if (state.token) {
+  loadLeads().catch((error) => handleLoadError(error, authFragmentState === 'accepted' ? 'Hosted Auth session was accepted, but dashboard load failed.' : 'Stored hosted Auth session failed.'));
+} else {
+  renderAccessRequired();
+  setStatus(authFragmentState === 'invalid' ? 'Auth session could not be verified. Sign in again.' : 'Sign in with hosted Auth to load lead data.', authFragmentState === 'invalid' ? 'risk' : 'warn');
+}

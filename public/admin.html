@@ -36,12 +36,12 @@
         <section class="access-panel" aria-label="Secure access">
           <div>
             <h2>Secure access</h2>
-            <p>Lead data loads only after a valid Auth access token with a Leads admin role is supplied. Contact values remain masked in this browser view.</p>
+            <p>Lead data loads after hosted Auth returns a Leads admin session. Contact values remain masked in this browser view.</p>
           </div>
-          <form id="admin-auth-form" class="auth-form">
-            <label>Auth access token <input name="token" type="password" autocomplete="current-password" required /></label>
-            <button class="button primary" type="submit">Load dashboard</button>
-          </form>
+          <div class="auth-form" id="admin-auth-actions">
+            <button id="admin-login-button" class="button primary" type="button">Sign in with Auth</button>
+            <button id="admin-logout-button" class="button secondary" type="button" hidden>Sign out</button>
+          </div>
           <p id="admin-status" class="form-status" role="status"></p>
         </section>
 
@@ -83,7 +83,7 @@
             <div class="table-scroll">
               <table>
                 <thead><tr><th>Created</th><th>Source</th><th>Status</th><th>Contacts</th><th>Consent</th><th>Preference</th></tr></thead>
-                <tbody id="lead-rows"><tr><td colspan="6">Enter access credentials to load leads.</td></tr></tbody>
+                <tbody id="lead-rows"><tr><td colspan="6">Sign in with hosted Auth to load leads.</td></tr></tbody>
               </table>
             </div>
           </article>
