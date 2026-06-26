@@ -324,6 +324,65 @@ export class LeadsService {
     return lead;
   }
 
+  async listMarketingRecipients(query: Record<string, string | undefined>) {
+    const parsedLimit = Number(query.limit ?? 30);
+    const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(Math.floor(parsedLimit), 1), 100) : 30;
+    const sourceService = query.sourceService || query.signalSourceService || query.appId;
+    const where: Prisma.LeadWhereInput = {};
+    if (sourceService) {
+      where.sourceService = sourceService;
+    }
+
+    const leads = await this.prisma.lead.findMany({
+      where,
+      select: {
+        id: true,
+        sourceService: true,
+        preferredChannel: true,
+        fallbackChannels: true,
+        marketingConsent: true,
+        consentSource: true,
+        consentCapturedAt: true,
+        unsubscribedAt: true,
+        confirmedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        contactMethods: {
+          select: { type: true, value: true, isPrimary: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return {
+      recipients: leads.map((lead) => {
+        const email = lead.contactMethods.find((method) => method.type === 'email' && method.isPrimary)
+          ?? lead.contactMethods.find((method) => method.type === 'email');
+        const phone = lead.contactMethods.find((method) => method.type === 'whatsapp' && method.isPrimary)
+          ?? lead.contactMethods.find((method) => method.type === 'telegram' && method.isPrimary)
+          ?? lead.contactMethods.find((method) => ['whatsapp', 'telegram'].includes(method.type));
+        return {
+          id: lead.id,
+          leadId: lead.id,
+          sourceService: lead.sourceService,
+          email: email?.value ?? null,
+          phone: phone?.value ?? null,
+          contactMethods: lead.contactMethods,
+          preferredChannel: lead.preferredChannel,
+          fallbackChannels: Array.isArray(lead.fallbackChannels) ? lead.fallbackChannels : [],
+          marketingConsent: lead.marketingConsent,
+          consentSource: lead.consentSource,
+          consentCapturedAt: lead.consentCapturedAt?.toISOString() ?? null,
+          unsubscribedAt: lead.unsubscribedAt?.toISOString() ?? null,
+          confirmedAt: lead.confirmedAt?.toISOString() ?? null,
+          createdAt: lead.createdAt.toISOString(),
+          updatedAt: lead.updatedAt.toISOString(),
+        };
+      }),
+    };
+  }
+
   async listLeads(query: LeadQueryDto) {
     const limit = Math.min(query.limit || 30, 30);
     const page = query.page || 1;

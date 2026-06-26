@@ -113,6 +113,17 @@ export class LeadsController {
     return result;
   }
 
+  @Get('marketing/recipients')
+  @UseGuards(InternalServiceGuard)
+  async listMarketingRecipients(@Query() query: Record<string, string | undefined>) {
+    const result = await this.leadsService.listMarketingRecipients(query);
+    await this.loggingService.log('info', 'Marketing recipient list retrieved', {
+      sourceService: query.sourceService || query.signalSourceService || query.appId || null,
+      returned: result.recipients.length,
+    });
+    return result;
+  }
+
   @Get(':id')
   @UseGuards(InternalServiceGuard)
   async getLead(@Param('id') id: string) {
