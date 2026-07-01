@@ -81,7 +81,7 @@ Orders:
 
 ## Known Risks
 
-- `[MISSING: Leads RabbitMQ consumer runtime convention]`
+- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: runtime queue name, routing key binding, retry/backoff, and dead-letter policy]`
 - `[MISSING: replay/backfill source and validation smoke for missed Orders events]`
 

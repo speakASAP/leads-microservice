@@ -8,10 +8,10 @@
   "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
-  "last_milestone": "goal-29b-orders-created-event-runtime-handler-complete-live-broker-blocked",
-  "next_focus": "Resolve Goal 29 live broker blockers before live Orders event consumption: Leads RabbitMQ runtime convention and replay/backfill validation source.",
+  "last_milestone": "goal-29c-orders-created-live-broker-adapter-disabled-complete",
+  "next_focus": "Wire production Leads Orders-events RabbitMQ secret/config values, broker smoke approval, and replay/backfill validation before enabling the adapter.",
   "blockers": [
-    "[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]",
+    "[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]",
     "[MISSING: replay/backfill validation source for missed Orders events]"
   ],
   "budget_units_used": 0,
@@ -134,9 +134,11 @@
       "goal_29_build": "passed",
       "goal_29_diff_check": "passed",
       "goal_29_broker_dependency_names": "none",
-      "goal_29_runtime_env_names": "missing",
+      "goal_29_runtime_env_names": "defined_disabled_by_default",
       "goal_29b": "transport_independent_handler_complete",
-      "goal_29b_tests": "focused_passed"
+      "goal_29b_tests": "focused_passed",
+      "goal_29c": "disabled_live_broker_adapter_complete",
+      "goal_29c_tests": "focused_and_full_passed"
     }
   },
   "updated_at": "2026-07-01"

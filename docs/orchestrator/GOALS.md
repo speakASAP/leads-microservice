@@ -672,9 +672,9 @@ Acceptance criteria:
 
 ## Goal 29 - Orders Event Consumer Contract For Leads
 
-Status: blocked
+Status: production-enablement-blocked
 
-Parallel status: Goal 7.4 Leads lane contract guard complete; transport-independent handler complete; live broker adapter dependency-gated.
+Parallel status: Goal 7.4 Leads lane contract guard complete; transport-independent handler and disabled-by-default live broker adapter complete; production enablement dependency-gated.
 
 Intent: Leads may consume canonical Orders lifecycle events as read-only minimized signals for attribution and follow-up, but Leads must not duplicate Orders state, infer lead attribution from unsafe fields, or become order source of truth.
 
@@ -698,7 +698,7 @@ Forbidden file scope:
 
 Blockers:
 
-- `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 Chunks:
@@ -708,7 +708,8 @@ Chunks:
 - [x] 29.3 Add focused contract guard and tests for `orders.order.created.v1`.
 - [x] 29.4 Record runtime blockers and validation evidence.
 - [x] 29.5 Implement transport-independent runtime handler for created events.
-- [ ] 29.6 Implement live RabbitMQ adapter after runtime config and replay contracts are resolved.
+- [x] 29.6 Define Leads-owned RabbitMQ env names and add disabled-by-default live broker adapter.
+- [ ] 29.7 Wire production RabbitMQ secret/config values and replay/backfill validation before deployment enablement.
 
 Acceptance criteria:
 
@@ -716,5 +717,5 @@ Acceptance criteria:
 - Explicit `payload.leadAttribution.leadId` synthetic fixture builds a minimized `LeadOrderAttributed` lifecycle event candidate.
 - Duplicate event ID and duplicate order idempotency key deliveries are ignored.
 - No public API, internal API, schema, migration, deployment config, runtime queue consumer, raw lead export, campaign execution, notification dispatch, AI/CRM export, production data read, or production mutation is added.
-- Live broker adapter remains blocked until Leads queue/retry/DLQ env names and replay/backfill validation are explicit.
+- Live broker adapter remains disabled until production RabbitMQ secret/config wiring, broker smoke approval, and replay/backfill validation are explicit.
 

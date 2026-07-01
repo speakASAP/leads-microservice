@@ -69,7 +69,7 @@ No runtime goal is active. Goal 24/25/26 integration was validated and deployed 
 - Goal 26 - Product-App Intake Compatibility Matrix: complete for Leads-side synthetic matrix on 2026-06-13.
 - Goal 27 - Documentation Ingestion And Orchestrator Freshness: complete on 2026-06-13.
 - Goal 28 - Parallel Integration Validation And Deployment Readiness: complete and deployed on 2026-06-13.
-- Goal 29 - Orders Event Consumer Contract For Leads: contract guard/tests complete on 2026-07-01; live broker adapter blocked by missing Leads broker runtime contracts.
+- Goal 29 - Orders Event Consumer Contract For Leads: contract guard/tests complete on 2026-07-01; opt-in live broker adapter implemented; deployment disabled pending production wiring and replay validation.
 
 ## Next Recommended Goal
 
@@ -78,7 +78,7 @@ Next recommended action: resolve Goal 29 blockers before runtime Orders event co
 ## Known Blockers
 
 - Campaign execution, mass outreach, raw lead export, AI enrichment, notification dispatch, and production lead mutation remain forbidden unless a future owner-approved task defines exact scope and validation evidence.
-- `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 ## Continuation Instructions

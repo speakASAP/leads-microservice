@@ -42,9 +42,9 @@ No consent, confirmation, preference, or unsubscribe behavior changes. Order att
 
 ## Contract Evidence
 
-Local TypeScript contract guard and transport-independent handler only. Live broker adapter remains blocked by:
+Local TypeScript contract guard, transport-independent handler, and disabled-by-default live broker adapter are present. Production enablement remains blocked by:
 
-- `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 ## Replay/Determinism Evidence
@@ -69,16 +69,56 @@ Idempotency key is stable as `orders-order-created:<orderId>`. Focused tests pro
 - Duplicate event ID and duplicate order idempotency key deliveries are ignored.
 - Invalid event type, version, and source are rejected.
 - Sensitive-looking synthetic fields are omitted from output.
-- No live broker adapter, schema, migration, deployment, raw export, or production mutation was added.
+- No enabled broker consumer, schema, migration, deployment config, raw export, or production mutation was added.
 
 ## Failed Or Skipped Criteria
 
-Live RabbitMQ adapter implementation skipped because broker runtime contracts are missing.
+Production RabbitMQ enablement skipped because secret/config wiring, broker smoke approval, and replay/backfill validation are missing.
 
 ## Decision
 
-Pass for contract guard, transport-independent handler, and tests; blocked for live broker adapter.
+Pass for contract guard, transport-independent handler, disabled-by-default broker adapter, and tests; blocked for production enablement.
 
 ## Next Action
 
-Resolve the Leads RabbitMQ runtime and replay/backfill blockers before implementing a live broker adapter.
+Resolve production RabbitMQ secret/config wiring and replay/backfill validation before enabling the live broker adapter.
+
+
+## Goal 29C Live Broker Adapter Evidence
+
+Implemented disabled-by-default RabbitMQ adapter for `orders.events` / `orders.order.created.v1`.
+
+Code evidence:
+
+- `src/leads/integrations/orders-order-created-broker-adapter.service.ts`
+- `src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`
+- `src/leads/leads.module.ts`
+- `.env.example`
+- `package.json`
+- `package-lock.json`
+
+Runtime env names verified by name only:
+
+- `LEADS_ORDERS_EVENTS_CONSUMER_ENABLED=false`
+- `LEADS_ORDERS_EVENTS_RABBITMQ_URL`
+- `LEADS_ORDERS_EVENTS_EXCHANGE=orders.events`
+- `LEADS_ORDERS_EVENTS_ROUTING_KEY=orders.order.created.v1`
+- `LEADS_ORDERS_EVENTS_QUEUE=leads.orders.order-created.v1`
+- `LEADS_ORDERS_EVENTS_PREFETCH=5`
+- `LEADS_ORDERS_EVENTS_DLX=leads.orders.events.dlx`
+- `LEADS_ORDERS_EVENTS_DLQ=leads.orders.order-created.v1.dlq`
+- `LEADS_ORDERS_EVENTS_REQUEUE_ON_ERROR=false`
+
+Validation commands:
+
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`: passed, 2 suites, 11 tests.
+- `npm run build`: passed.
+- `npm test`: passed, 18 suites, 111 tests.
+- `npm run lint`: passed.
+- `git diff --check`: passed after removing a trailing blank line in `.env.example`.
+- Env-name scan over `.env.example`, K8s manifests, `package.json`, and adapter source: found only declared names/defaults; no secret values printed.
+
+Production enablement remains blocked by:
+
+- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
+- `[MISSING: replay/backfill validation source for missed Orders events]`

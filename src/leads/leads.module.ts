@@ -9,6 +9,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
 import { InternalServiceGuard } from './guards/internal-service.guard';
 import { LeadLifecycleEventRouterService } from './integrations/lifecycle-event-router.service';
+import { OrdersOrderCreatedBrokerAdapterService } from './integrations/orders-order-created-broker-adapter.service';
 
 @Module({
   imports: [HttpModule],
@@ -18,6 +19,7 @@ import { LeadLifecycleEventRouterService } from './integrations/lifecycle-event-
     PrismaService,
     LoggingService,
     LeadLifecycleEventRouterService,
+    OrdersOrderCreatedBrokerAdapterService,
     NotificationsService,
     InternalServiceGuard,
     AdminAuthGuard,

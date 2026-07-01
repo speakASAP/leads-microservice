@@ -2379,7 +2379,7 @@ Gate decision:
 
 - Pre-coding gate: pass-with-blocked-runtime.
 - Live RabbitMQ adapter implementation is blocked by:
-    - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+    - `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
   - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 Contract impact:
@@ -2410,7 +2410,7 @@ Validation evidence:
 
 Next recommended action:
 
-- Resolve the Leads RabbitMQ runtime and replay/backfill blockers before implementing a live broker adapter.
+- Resolve production RabbitMQ secret/config wiring and replay/backfill validation before enabling the live broker adapter.
 
 
 ## 2026-07-01 - Goal 29B Orders Created Event Runtime Handler Continuation
@@ -2441,7 +2441,7 @@ Gate decision:
 
 - Pre-coding gate: pass-with-live-broker-blocked.
 - Live RabbitMQ adapter implementation is blocked by:
-  - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+  - `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
   - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 Validation evidence:
@@ -2456,4 +2456,65 @@ Validation evidence:
 
 Next recommended action:
 
-- Define Leads RabbitMQ queue/retry/DLQ env names and replay/backfill validation, then add the live broker adapter without broadening into Orders, Marketing, Notifications, Warehouse, Catalog, or channel repos.
+- Wire production Leads RabbitMQ secret/config values and replay/backfill validation, then enable the live broker adapter without broadening into Orders, Marketing, Notifications, Warehouse, Catalog, or channel repos.
+
+
+## 2026-07-01 - Goal 29C Orders Created Live Broker Adapter
+
+Current focus:
+
+- Owner approved defining runtime conventions and continuing forward.
+- Runtime code changes: added disabled-by-default RabbitMQ adapter for `orders.events` / `orders.order.created.v1`.
+- Deployment: not run; adapter remains disabled unless `LEADS_ORDERS_EVENTS_CONSUMER_ENABLED=true`.
+
+Source context:
+
+- `git status --short --branch` before edits: `## main...origin/main`.
+- DocsRAG query from the remote shell was skipped because `JWT_TOKEN` was unavailable.
+- Leads had no prior RabbitMQ dependency, consumer module, queue env names, retry/DLQ env names, or adapter startup code.
+
+Implementation evidence:
+
+- Added dependency `amqplib` and dev types `@types/amqplib`.
+- Added `src/leads/integrations/orders-order-created-broker-adapter.service.ts`.
+- Registered `OrdersOrderCreatedBrokerAdapterService` in `src/leads/leads.module.ts`.
+- Added focused tests in `src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`.
+- Added `.env.example` runtime key names:
+  - `LEADS_ORDERS_EVENTS_CONSUMER_ENABLED=false`
+  - `LEADS_ORDERS_EVENTS_RABBITMQ_URL`
+  - `LEADS_ORDERS_EVENTS_EXCHANGE=orders.events`
+  - `LEADS_ORDERS_EVENTS_ROUTING_KEY=orders.order.created.v1`
+  - `LEADS_ORDERS_EVENTS_QUEUE=leads.orders.order-created.v1`
+  - `LEADS_ORDERS_EVENTS_PREFETCH=5`
+  - `LEADS_ORDERS_EVENTS_DLX=leads.orders.events.dlx`
+  - `LEADS_ORDERS_EVENTS_DLQ=leads.orders.order-created.v1.dlq`
+  - `LEADS_ORDERS_EVENTS_REQUEUE_ON_ERROR=false`
+
+Safety evidence:
+
+- Adapter does not connect when disabled.
+- Adapter logs only bounded status/config booleans, queue/exchange/routing-key names, result status, and aggregate metrics.
+- Invalid JSON is acked/rejected without logging raw message content.
+- Missing explicit `payload.leadAttribution.leadId` is acked/skipped through the existing handler.
+- Handler failures are nacked with `requeue=false` by default so configured DLQ handles failure without retry loops.
+- No Orders, Marketing, Notifications, Warehouse, Catalog, channel repo, Prisma schema, migration, production data, or deployment config changes were made.
+
+Remaining blockers:
+
+- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
+- `[MISSING: replay/backfill validation source for missed Orders events]`
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`: passed, 1 suite, 6 tests.
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`: passed, 2 suites, 11 tests.
+- `npm run build`: passed.
+- `npm test`: passed, 18 suites, 111 tests.
+- `npm run lint`: passed.
+- `git diff --check`: passed after removing a trailing blank line in `.env.example`.
+- Env-name scan over `.env.example`, K8s manifests, `package.json`, and adapter source: found declared names/defaults only; no secret values printed.
+- Final pre-commit `git status --short --branch`: pending commit.
+
+Next recommended action:
+
+- Validate and commit Goal 29C. Do not deploy until production RabbitMQ secret/config wiring, broker smoke approval, and replay/backfill validation source are explicit.
