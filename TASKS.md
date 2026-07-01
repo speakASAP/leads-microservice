@@ -4,7 +4,7 @@
 
 ## Backlog
 <!-- Human-managed -->
-- Resolve Goal 29 runtime blockers before live Orders event consumption: `[MISSING: Orders order-created event lead attribution field]`, `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`, and `[MISSING: replay/backfill validation source for missed Orders events]`.
+- Resolve Goal 29 runtime blockers before live Orders event consumption: `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`, and `[MISSING: replay/backfill validation source for missed Orders events]`.
 
 ## Active
 <!-- Coordinator-maintained -->
@@ -12,7 +12,8 @@
 
 ## Completed
 <!-- Coordinator-append-only -->
-- 2026-07-01 goal-29-orders-event-consumer-contract-guard-tests-complete-runtime-blocked
+- 2026-07-01 goal-29b-orders-created-event-runtime-handler-complete-live-broker-blocked
+- 2026-07-01 goal-29-orders-event-consumer-contract-guard-tests-complete-handler-ready-live-broker-blocked
 - 2026-06-15 goal-22-production-auth-workspace-token-matrix-validation-complete
 - 2026-06-15 goal-24-25-integrated-validation-passed
 - 2026-06-15 goal-26-coordinator-review-complete

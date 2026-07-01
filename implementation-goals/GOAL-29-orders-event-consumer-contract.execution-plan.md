@@ -6,7 +6,7 @@ status: active
 owner: orders-rollout-goal-7-4-leads-agent
 created: 2026-07-01
 last_updated: 2026-07-01
-completeness_level: contract-ready-runtime-blocked
+completeness_level: handler-ready-live-broker-blocked
 upstream:
   - GOAL-29-orders-event-consumer-contract.md
   - ../docs/orchestrator/INTENT.md
@@ -65,7 +65,7 @@ Adds a local TypeScript contract guard and tests only. No public API, internal A
 
 ## Replay/Determinism Impact
 
-Runtime queue redelivery is not implemented in this chunk. The planned attribution event uses `orders-order-created:<orderId>` as the Leads idempotency key so repeated delivery of the same canonical order-created signal does not create duplicate attribution records.
+Live broker redelivery is not implemented in this chunk. The planned attribution event uses `orders-order-created:<orderId>` as the Leads idempotency key so repeated delivery of the same canonical order-created signal does not create duplicate attribution records.
 
 ## Scope
 

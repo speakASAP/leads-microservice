@@ -2,7 +2,7 @@
 
 ## Status
 
-contract guard implemented; runtime consumer blocked
+contract guard and transport-independent runtime handler implemented; live broker adapter blocked
 
 ## Vision
 
@@ -17,16 +17,16 @@ This goal anchors the Orders production rollout Goal 7.4 Leads lane in the Leads
 - Orders source of truth: `orders-microservice` publishes `orders.order.created.v1` on RabbitMQ exchange `orders.events`.
 - Current Orders payload: `payload.orderId` and `payload.channel`.
 - Leads source of truth: existing minimized lifecycle event storage can record local evidence by `leadId`, `eventId`, and `idempotencyKey`.
-- Missing runtime surface: Leads has no RabbitMQ consumer module, dependency, queue config, retry/DLQ policy, or approved order-to-lead attribution field.
+- Missing live broker surface: Leads has no RabbitMQ consumer module, dependency, queue config, retry/DLQ policy, or approved live adapter env-name convention.
 
 ## Feature
 
 Leads-side order-created attribution contract:
 
 - accepts only the canonical `orders.order.created.v1` envelope;
-- blocks the current Orders fixture because no approved lead attribution key exists;
-- defines the future minimal accepted key as `payload.leadAttribution.leadId`;
-- builds a minimized `LeadOrderAttributed` lifecycle event candidate only when attribution is explicit;
+- idempotently skips Orders events when `payload.leadAttribution.leadId` is absent;
+- accepts only the explicit minimal key `payload.leadAttribution.leadId`;
+- builds and routes a minimized `LeadOrderAttributed` lifecycle event only when attribution is explicit;
 - uses `orders-order-created:<orderId>` as the idempotency key;
 - omits all customer, address, payment, tracking, token, raw contact, raw message, metadata, and secret values.
 
@@ -36,7 +36,8 @@ Leads-side order-created attribution contract:
 - [x] 29.2 Create execution plan, context package, coding prompt, and validation report.
 - [x] 29.3 Add focused contract guard and tests for `orders.order.created.v1`.
 - [x] 29.4 Record runtime blockers and validation evidence.
-- [ ] 29.5 Implement runtime RabbitMQ consumer after missing contracts are resolved.
+- [x] 29.5 Implement transport-independent runtime handler for created events.
+- [ ] 29.6 Implement live RabbitMQ adapter after runtime config and replay contracts are resolved.
 
 ## Execution Plan
 
@@ -53,7 +54,6 @@ See `GOAL-29-orders-event-consumer-contract.coding-prompt.md`.
 
 ## Runtime Blockers
 
-- `[MISSING: Orders order-created event lead attribution field]`
 - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
@@ -63,7 +63,7 @@ See `GOAL-29-orders-event-consumer-contract.coding-prompt.md`.
    - add `payload.leadAttribution.leadId` to `orders.order.created.v1`; or
    - emit a separate minimized order-to-lead attribution event; or
    - expose a guarded Orders/Leads lookup API that returns only the approved `leadId` for an order.
-2. Leads runtime owner adds an optional RabbitMQ consumer module with:
+2. Leads runtime owner adds an optional RabbitMQ adapter with:
    - exchange: `orders.events`;
    - routing key: `orders.order.created.v1`;
    - queue: `[MISSING: approved queue name]`;

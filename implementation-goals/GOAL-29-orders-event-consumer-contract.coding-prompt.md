@@ -6,7 +6,7 @@ status: active
 owner: orders-rollout-goal-7-4-leads-agent
 created: 2026-07-01
 last_updated: 2026-07-01
-completeness_level: contract-ready-runtime-blocked
+completeness_level: handler-ready-live-broker-blocked
 upstream:
   - GOAL-29-orders-event-consumer-contract.context-package.md
   - GOAL-29-orders-event-consumer-contract.execution-plan.md
@@ -67,8 +67,8 @@ Read:
 
 ## Acceptance Criteria
 
-- Current canonical `orders.order.created.v1` fixture is recognized but blocked for missing lead attribution.
-- Future explicitly attributed synthetic event creates a minimized `LeadOrderAttributed` lifecycle event candidate.
+- Current canonical `orders.order.created.v1` fixture is recognized and idempotently skipped when `payload.leadAttribution.leadId` is absent.
+- Explicitly attributed synthetic event creates a minimized `LeadOrderAttributed` lifecycle event candidate.
 - Duplicate deliveries for the same `orderId` produce the same idempotency key.
 - Invalid event type/version/source is rejected.
 - No runtime broker consumer, schema, migration, deployment, raw export, or production mutation is added.

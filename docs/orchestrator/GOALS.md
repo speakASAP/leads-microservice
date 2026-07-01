@@ -32,9 +32,9 @@ Intent: Public lead submission must remain bounded, validated, consent-aware, an
 
 Chunks:
 
-- [x] 2.1 Review `POST /api/leads/submit` request validation and contact method constraints.
+- [x] 2.1 Review `POST /api/leads/submit` request validation and contact campaignId constraints.
 - [x] 2.2 Define exact consent evidence requirements for marketing consent, consent source, and captured timestamp.
-- [x] 2.3 Add or tighten tests for invalid contact methods, oversized arrays, invalid timestamps, and missing consent context where required.
+- [x] 2.3 Add or tighten tests for invalid contact campaignIds, oversized arrays, invalid timestamps, and missing consent context where required.
 - [x] 2.4 Record consumer compatibility risks for sgiprealestate, statex, and marketing-microservice.
 
 Acceptance criteria:
@@ -137,7 +137,7 @@ Chunks:
 Acceptance criteria:
 
 - Direct forms submit to `POST /api/leads/submit` through the existing Leads public URL env contract.
-- Supported contact method types are preserved.
+- Supported contact campaignId types are preserved.
 - No raw contact values or raw messages are added to frontend logs.
 - No production lead creation is used as validation.
 
@@ -309,7 +309,7 @@ Chunks:
 Acceptance criteria:
 
 - Request is limited to at most 30 candidate lead IDs.
-- Response includes lead IDs, eligibility booleans, deterministic reason codes, contact method types, preferred channel, fallback count, consent evidence summary, confirmation state, unsubscribe state, and aggregate summary only.
+- Response includes lead IDs, eligibility booleans, deterministic reason codes, contact campaignId types, preferred channel, fallback count, consent evidence summary, confirmation state, unsubscribe state, and aggregate summary only.
 - Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, and session tokens.
 - Endpoint is guarded by `InternalServiceGuard`.
 - No campaign execution, contact resolution, schema change, production mutation, AI export, CRM export, or deployment is added.
@@ -590,13 +590,13 @@ Blockers:
 Chunks:
 
 - [x] 26.1 Create execution artifacts and pass the pre-coding gate.
-- [x] 26.2 Build synthetic payload fixtures for approved source services and contact method types.
+- [x] 26.2 Build synthetic payload fixtures for approved source services and contact campaignId types.
 - [x] 26.3 Validate fixtures against `CreateLeadDto` without sending production submissions.
 - [x] 26.4 Record compatibility risks and cross-repo follow-ups.
 
 Acceptance criteria:
 
-- Synthetic matrix covers approved product-app source services and supported contact methods.
+- Synthetic matrix covers approved product-app source services and supported contact campaignIds.
 - Tests use synthetic values only and do not submit to production.
 - No product-app code, raw contact export, campaign execution, AI/CRM export, schema change, or deployment is included.
 
@@ -674,7 +674,7 @@ Acceptance criteria:
 
 Status: blocked
 
-Parallel status: Goal 7.4 Leads lane contract guard complete; runtime consumer dependency-gated.
+Parallel status: Goal 7.4 Leads lane contract guard complete; transport-independent handler complete; live broker adapter dependency-gated.
 
 Intent: Leads may consume canonical Orders lifecycle events as read-only minimized signals for attribution and follow-up, but Leads must not duplicate Orders state, infer lead attribution from unsafe fields, or become order source of truth.
 
@@ -698,7 +698,6 @@ Forbidden file scope:
 
 Blockers:
 
-- `[MISSING: Orders order-created event lead attribution field]`
 - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
@@ -708,13 +707,14 @@ Chunks:
 - [x] 29.2 Create execution plan, context package, coding prompt, and validation report.
 - [x] 29.3 Add focused contract guard and tests for `orders.order.created.v1`.
 - [x] 29.4 Record runtime blockers and validation evidence.
-- [ ] 29.5 Implement runtime RabbitMQ consumer after missing contracts are resolved.
+- [x] 29.5 Implement transport-independent runtime handler for created events.
+- [ ] 29.6 Implement live RabbitMQ adapter after runtime config and replay contracts are resolved.
 
 Acceptance criteria:
 
-- Current canonical `orders.order.created.v1` fixture is recognized but blocked for missing lead attribution.
-- Future explicit `payload.leadAttribution.leadId` synthetic fixture builds a minimized `LeadOrderAttributed` lifecycle event candidate.
-- Duplicate delivery idempotency key is stable as `orders-order-created:<orderId>`.
+- Current canonical `orders.order.created.v1` fixture is recognized and idempotently skipped when `payload.leadAttribution.leadId` is absent.
+- Explicit `payload.leadAttribution.leadId` synthetic fixture builds a minimized `LeadOrderAttributed` lifecycle event candidate.
+- Duplicate event ID and duplicate order idempotency key deliveries are ignored.
 - No public API, internal API, schema, migration, deployment config, runtime queue consumer, raw lead export, campaign execution, notification dispatch, AI/CRM export, production data read, or production mutation is added.
-- Runtime consumer remains blocked until Orders/broker/replay contracts are explicit.
+- Live broker adapter remains blocked until Leads queue/retry/DLQ env names and replay/backfill validation are explicit.
 

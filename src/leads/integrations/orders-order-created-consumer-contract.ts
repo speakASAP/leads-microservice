@@ -5,15 +5,14 @@ export const ORDERS_ORDER_CREATED_EVENT_TYPE = 'orders.order.created.v1';
 export const ORDERS_ORDER_CREATED_EVENT_VERSION = 1;
 export const ORDERS_EVENT_SOURCE = 'orders-microservice';
 
-export const MISSING_ORDER_CREATED_LEAD_ATTRIBUTION =
-  '[MISSING: Orders order-created event lead attribution field]';
+export const MISSING_EXPLICIT_ORDER_CREATED_LEAD_ATTRIBUTION =
+  '[MISSING: explicit Orders payload.leadAttribution.leadId]';
 export const MISSING_LEADS_RABBITMQ_RUNTIME_CONVENTION =
   '[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]';
 export const MISSING_ORDERS_REPLAY_BACKFILL_SOURCE =
   '[MISSING: replay/backfill validation source for missed Orders events]';
 
 export const ORDERS_ORDER_CREATED_CONSUMER_BLOCKERS = [
-  MISSING_ORDER_CREATED_LEAD_ATTRIBUTION,
   MISSING_LEADS_RABBITMQ_RUNTIME_CONVENTION,
   MISSING_ORDERS_REPLAY_BACKFILL_SOURCE,
 ] as const;
@@ -24,7 +23,7 @@ export type OrdersOrderCreatedPayload = {
   leadAttribution?: {
     leadId?: string;
     source?: string;
-    method?: string;
+    campaignId?: string;
   };
 };
 
@@ -45,7 +44,7 @@ export type LeadOrderAttributedPayload = {
   orderEventOccurredAt: string;
   orderSourceOfTruth: typeof ORDERS_EVENT_SOURCE;
   attributionSource: string;
-  attributionMethod: string;
+  attributionCampaignId: string | null;
 };
 
 export type OrderCreatedReference = {
@@ -147,7 +146,7 @@ function envelopeBlockers(event: unknown): string[] {
   return unique(blockers);
 }
 
-function readLeadAttribution(payload: UnknownRecord): { leadId: string; source: string; method: string } | null {
+function readLeadAttribution(payload: UnknownRecord): { leadId: string; source: string; campaignId: string | null } | null {
   const attribution = isRecord(payload.leadAttribution) ? payload.leadAttribution : null;
   const leadId = attribution ? nonEmptyString(attribution.leadId) : null;
   if (!leadId) {
@@ -157,7 +156,7 @@ function readLeadAttribution(payload: UnknownRecord): { leadId: string; source: 
   return {
     leadId,
     source: nonEmptyString(attribution?.source) ?? ORDERS_ORDER_CREATED_EVENT_TYPE,
-    method: nonEmptyString(attribution?.method) ?? 'orders-event-lead-attribution',
+    campaignId: nonEmptyString(attribution?.campaignId),
   };
 }
 
@@ -175,7 +174,7 @@ export function buildLeadOrderAttributedEventFromOrderCreated(
   if (!attribution) {
     return {
       status: 'blocked',
-      blockers: [MISSING_ORDER_CREATED_LEAD_ATTRIBUTION],
+      blockers: [MISSING_EXPLICIT_ORDER_CREATED_LEAD_ATTRIBUTION],
       orderReference,
     };
   }
@@ -188,7 +187,7 @@ export function buildLeadOrderAttributedEventFromOrderCreated(
     orderEventOccurredAt: canonicalEvent.occurredAt,
     orderSourceOfTruth: ORDERS_EVENT_SOURCE,
     attributionSource: attribution.source,
-    attributionMethod: attribution.method,
+    attributionCampaignId: attribution.campaignId,
   };
 
   return {
@@ -207,4 +206,101 @@ export function buildLeadOrderAttributedEventFromOrderCreated(
       payload,
     },
   };
+}
+
+export type OrdersOrderCreatedRuntimeHandlerStatus =
+  | 'accepted'
+  | 'skipped_missing_attribution'
+  | 'duplicate_ignored'
+  | 'rejected_malformed';
+
+export type OrdersOrderCreatedRuntimeHandlerResult = {
+  status: OrdersOrderCreatedRuntimeHandlerStatus;
+  orderReference?: OrderCreatedReference;
+  lifecycleEvent?: LifecycleEventEnvelope<'LeadOrderAttributed', LeadOrderAttributedPayload>;
+  blockers?: string[];
+  duplicateKey?: string;
+};
+
+export type LeadOrderAttributedRouter = {
+  route<TEventType extends string, TPayload>(
+    lifecycleEvent: LifecycleEventEnvelope<TEventType, TPayload>,
+  ): Promise<unknown>;
+};
+
+export type OrdersOrderCreatedRuntimeHandlerMetrics = {
+  accepted: number;
+  skippedMissingAttribution: number;
+  duplicateIgnored: number;
+  rejectedMalformed: number;
+};
+
+export class OrdersOrderCreatedRuntimeHandler {
+  private readonly processedEventIds = new Set<string>();
+  private readonly processedOrderIdempotencyKeys = new Set<string>();
+  private readonly counters: OrdersOrderCreatedRuntimeHandlerMetrics = {
+    accepted: 0,
+    skippedMissingAttribution: 0,
+    duplicateIgnored: 0,
+    rejectedMalformed: 0,
+  };
+
+  constructor(private readonly lifecycleEventRouter: LeadOrderAttributedRouter) {}
+
+  get metrics(): OrdersOrderCreatedRuntimeHandlerMetrics {
+    return { ...this.counters };
+  }
+
+  async handle(event: unknown): Promise<OrdersOrderCreatedRuntimeHandlerResult> {
+    const attributionResult = buildLeadOrderAttributedEventFromOrderCreated(event);
+
+    if (attributionResult.status === 'blocked') {
+      const missingAttributionOnly =
+        attributionResult.blockers.length === 1 &&
+        attributionResult.blockers[0] === MISSING_EXPLICIT_ORDER_CREATED_LEAD_ATTRIBUTION;
+
+      if (missingAttributionOnly) {
+        this.counters.skippedMissingAttribution += 1;
+        return {
+          status: 'skipped_missing_attribution',
+          orderReference: attributionResult.orderReference,
+          blockers: attributionResult.blockers,
+        };
+      }
+
+      this.counters.rejectedMalformed += 1;
+      return {
+        status: 'rejected_malformed',
+        orderReference: attributionResult.orderReference,
+        blockers: attributionResult.blockers,
+      };
+    }
+
+    const eventId = attributionResult.orderReference.orderEventId;
+    const idempotencyKey = attributionResult.lifecycleEvent.idempotencyKey;
+    if (
+      this.processedEventIds.has(eventId) ||
+      (idempotencyKey && this.processedOrderIdempotencyKeys.has(idempotencyKey))
+    ) {
+      this.counters.duplicateIgnored += 1;
+      return {
+        status: 'duplicate_ignored',
+        orderReference: attributionResult.orderReference,
+        duplicateKey: idempotencyKey ?? eventId,
+      };
+    }
+
+    await this.lifecycleEventRouter.route(attributionResult.lifecycleEvent);
+    this.processedEventIds.add(eventId);
+    if (idempotencyKey) {
+      this.processedOrderIdempotencyKeys.add(idempotencyKey);
+    }
+    this.counters.accepted += 1;
+
+    return {
+      status: 'accepted',
+      orderReference: attributionResult.orderReference,
+      lifecycleEvent: attributionResult.lifecycleEvent,
+    };
+  }
 }

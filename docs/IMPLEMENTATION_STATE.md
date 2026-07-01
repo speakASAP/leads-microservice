@@ -21,9 +21,9 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 28 deployment of accumulated Goal 23-26 changes.
-- Current owner-selected task: Orders production rollout Goal 7.4 Leads lane has contract guard/tests complete; runtime consumer is blocked.
+- Current owner-selected task: Orders production rollout Goal 7.4 Leads lane has contract guard/tests complete; live broker adapter is blocked.
 - Runtime source changes in the latest completed deployed runtime task: Goal 24 FlipFlop lifecycle replay route, Goal 25 minimized marketing approval evidence storage, and Goal 26 Leads-side product-app intake matrix evidence.
-- Latest implementation change: Goal 29 Orders event consumer contract guard and tests added; no deployment.
+- Latest implementation change: Goal 29 Orders created-event transport-independent handler added; no deployment.
 - Deployment: completed after owner approval. Image tag `goal24-26-integration-20260615` was built and pushed with digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`; forced rollout restart pulled the new digest, Goal 25 migration applied successfully, health passed, unauthenticated admin returned 401, and admin page returned 200.
 
 ## Preserved Intent Summary
@@ -69,16 +69,15 @@ No runtime goal is active. Goal 24/25/26 integration was validated and deployed 
 - Goal 26 - Product-App Intake Compatibility Matrix: complete for Leads-side synthetic matrix on 2026-06-13.
 - Goal 27 - Documentation Ingestion And Orchestrator Freshness: complete on 2026-06-13.
 - Goal 28 - Parallel Integration Validation And Deployment Readiness: complete and deployed on 2026-06-13.
-- Goal 29 - Orders Event Consumer Contract For Leads: contract guard/tests complete on 2026-07-01; runtime consumer blocked by missing Orders attribution and Leads broker runtime contracts.
+- Goal 29 - Orders Event Consumer Contract For Leads: contract guard/tests complete on 2026-07-01; live broker adapter blocked by missing Leads broker runtime contracts.
 
 ## Next Recommended Goal
 
-Next recommended action: resolve Goal 29 blockers before runtime Orders event consumption: Orders must provide an approved lead attribution key or companion attribution contract, and Leads must define broker queue/retry/DLQ/runtime env conventions.
+Next recommended action: resolve Goal 29 blockers before runtime Orders event consumption: Leads must define broker queue/retry/DLQ/runtime env conventions and replay/backfill validation before live consumption.
 
 ## Known Blockers
 
 - Campaign execution, mass outreach, raw lead export, AI enrichment, notification dispatch, and production lead mutation remain forbidden unless a future owner-approved task defines exact scope and validation evidence.
-- `[MISSING: Orders order-created event lead attribution field]`
 - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 

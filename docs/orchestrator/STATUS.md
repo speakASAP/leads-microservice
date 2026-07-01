@@ -56,7 +56,7 @@ Next unfinished chunks:
 Current focus:
 
 - Selected default next goal: Goal 2 - Lead Intake Contract And Consent Hardening.
-- Completed chunk: 2.1 Review `POST /api/leads/submit` request validation and contact method constraints.
+- Completed chunk: 2.1 Review `POST /api/leads/submit` request validation and contact campaignId constraints.
 - Runtime code changes: DTO validation and focused DTO tests only.
 - Deployment: not requested and not performed.
 
@@ -71,14 +71,14 @@ Implementation evidence:
 - Added Goal 2 execution, context, coding prompt, and validation report artifacts under `implementation-goals/`.
 - Updated `LeadContactMethodDto.type` to accept only `email`, `telegram`, or `whatsapp`.
 - Added `@ArrayMinSize(1)` to `CreateLeadDto.contactMethods` while preserving the existing max size of 30.
-- Expanded `src/leads/dto/create-lead.dto.spec.ts` to cover valid consent timestamp, invalid consent timestamp, empty contact methods, more than 30 contact methods, unsupported method type, and empty method value.
+- Expanded `src/leads/dto/create-lead.dto.spec.ts` to cover valid consent timestamp, invalid consent timestamp, empty contact campaignIds, more than 30 contact campaignIds, unsupported campaignId type, and empty campaignId value.
 
 Validation evidence:
 
 - `npm test -- --runTestsByPath src/leads/dto/create-lead.dto.spec.ts`: passed, 6 tests.
 - `npm run build`: passed.
 - Sensitive-data handling: synthetic test values only; no secrets, real contact details, production lead rows, confirmation tokens, private URLs, or production payloads captured.
-- Contract impact: public intake validation is stricter for contact methods. Consumers must send at least one non-empty `email`, `telegram`, or `whatsapp` contact method. Custom method types such as `sms` are now rejected.
+- Contract impact: public intake validation is stricter for contact campaignIds. Consumers must send at least one non-empty `email`, `telegram`, or `whatsapp` contact campaignId. Custom campaignId types such as `sms` are now rejected.
 - Consent impact: existing consent timestamp validation remains covered. Exact consent evidence requirements remain for chunk 2.2.
 
 Gate decision:
@@ -128,7 +128,7 @@ Gate decision:
 
 Next unfinished chunks:
 
-- Goal 2 chunk 2.3 - Add or tighten tests for invalid contact methods, oversized arrays, invalid timestamps, and missing consent context where required.
+- Goal 2 chunk 2.3 - Add or tighten tests for invalid contact campaignIds, oversized arrays, invalid timestamps, and missing consent context where required.
 
 ## 2026-06-12 - DocsRAG JWT Runtime Wiring Fixed
 
@@ -159,14 +159,14 @@ Gate decision:
 
 Next unfinished chunks:
 
-- Goal 2 chunk 2.3 - Add or tighten tests for invalid contact methods, oversized arrays, invalid timestamps, and missing consent context where required.
+- Goal 2 chunk 2.3 - Add or tighten tests for invalid contact campaignIds, oversized arrays, invalid timestamps, and missing consent context where required.
 
 ## 2026-06-12 - Goal 2 Chunk 2.3 Focused Validation Coverage
 
 Current focus:
 
 - Selected default next chunk: Goal 2 chunk 2.3.
-- Completed chunk: add or tighten tests for invalid contact methods, oversized arrays, invalid timestamps, and missing consent context where required.
+- Completed chunk: add or tighten tests for invalid contact campaignIds, oversized arrays, invalid timestamps, and missing consent context where required.
 - Runtime code changes: none for this chunk; existing focused DTO tests already cover the required cases.
 - Deployment: not requested and not performed.
 
@@ -180,7 +180,7 @@ Implementation evidence:
 
 - Updated Goal 2 execution, context, coding prompt, and validation report artifacts for chunk 2.3 before source edits.
 - Ran the pre-coding gate with `pass`.
-- Confirmed no source edit was needed because the focused DTO suite already covers invalid contact method type/value, oversized contact method arrays, invalid consent timestamps, and missing affirmative-consent source/timestamp.
+- Confirmed no source edit was needed because the focused DTO suite already covers invalid contact campaignId type/value, oversized contact campaignId arrays, invalid consent timestamps, and missing affirmative-consent source/timestamp.
 
 Validation evidence:
 
@@ -231,8 +231,8 @@ Validation evidence:
 - Missing-marker scan passed with no matches: `rg "\[(MISSING|UNKNOWN):" docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`.
 - Secret-pattern scan passed with no matches across `docs`, `AGENTS.md`, `TASKS.md`, `implementation-goals`, and `src/leads/dto/create-lead.dto.spec.ts`.
 - Sensitive-data handling: no data-bearing examples; no secrets, real contact details, production lead rows, confirmation tokens, private URLs, or production payloads captured.
-- Contract impact: no new public contract or schema change. Existing risk notes document that consumers must send 1 to 30 `email`, `telegram`, or `whatsapp` contact methods and must include `consentSource` plus ISO8601 `consentCapturedAt` when `marketingConsent` is `true`.
-- Consent impact: no semantics change. Missing or `false` marketing consent remains no affirmative opt-in; marketing-microservice must not infer campaign eligibility from contact-method presence or source service alone.
+- Contract impact: no new public contract or schema change. Existing risk notes document that consumers must send 1 to 30 `email`, `telegram`, or `whatsapp` contact campaignIds and must include `consentSource` plus ISO8601 `consentCapturedAt` when `marketingConsent` is `true`.
+- Consent impact: no semantics change. Missing or `false` marketing consent remains no affirmative opt-in; marketing-microservice must not infer campaign eligibility from contact-campaignId presence or source service alone.
 
 Gate decision:
 
@@ -303,8 +303,8 @@ Implementation evidence:
 
 - Added Goal 4 execution, context, coding prompt, and validation report artifacts under `implementation-goals/`.
 - Ran the pre-coding gate with `pass`.
-- Redacted `NotificationsService` logs so they no longer include raw recipients, raw contact method values, raw source URL paths/query strings, raw messages, confirmation tokens, or notification response bodies.
-- Redacted `LeadsController.submitLead` start log to report contact method count/types, message length, and metadata keys rather than raw contact methods or metadata values.
+- Redacted `NotificationsService` logs so they no longer include raw recipients, raw contact campaignId values, raw source URL paths/query strings, raw messages, confirmation tokens, or notification response bodies.
+- Redacted `LeadsController.submitLead` start log to report contact campaignId count/types, message length, and metadata keys rather than raw contact campaignIds or metadata values.
 - Preserved notifications-microservice payloads and endpoint contract.
 - Preserved admin notification failure as non-fatal and submitter notification failure as `false`.
 - Added `src/notifications/notifications.service.spec.ts` for missing URL, admin failure, submitter failure, and log redaction behavior.
@@ -481,7 +481,7 @@ Source context:
 - Queried DocsRAG from inside the Leads runtime pod without printing token values. Retrieval returned HTTP 200 and reinforced Goal 5 minimization rules.
 - Confirmed StateX live env includes `NEXT_PUBLIC_LEADS_SERVICE_URL=https://leads.alfares.cz`.
 - Confirmed `FormSection` already submits dynamic StateX forms to Leads, while `DirectForm` still used platform notification calls before this change.
-- Confirmed Leads `CreateLeadDto` accepts contact method types `email`, `telegram`, and `whatsapp` and requires 1-30 contact methods.
+- Confirmed Leads `CreateLeadDto` accepts contact campaignId types `email`, `telegram`, and `whatsapp` and requires 1-30 contact campaignIds.
 
 Implementation evidence:
 
@@ -713,7 +713,7 @@ Implementation evidence:
 
 Contract decisions:
 
-- Default lifecycle contracts expose lead IDs, source summaries, contact method types/counts, message length, metadata keys, consent evidence presence, preference counts, and lifecycle booleans/timestamps only.
+- Default lifecycle contracts expose lead IDs, source summaries, contact campaignId types/counts, message length, metadata keys, consent evidence presence, preference counts, and lifecycle booleans/timestamps only.
 - Raw contact values, raw messages, confirmation tokens, full source URL path/query/fragment, metadata values, and raw submission payloads are forbidden by default.
 - Marketing campaign eligibility preview returns lead IDs and deterministic consent/preference reasons only; contact resolution remains separate, purpose-bound, and approval-gated.
 - Auth conversion linkage requires Auth-verified contact ownership or an explicit conversion token and does not allow raw lead bulk export for identity inference.
@@ -801,7 +801,7 @@ Implementation evidence:
 Contract decisions:
 
 - Campaign eligibility requires affirmative marketing consent, consent source, consent captured timestamp, no unsubscribe state, channel allowance, confirmation where policy requires it, and future tenant/workspace scope checks.
-- Marketing must not treat contact-method presence as campaign permission.
+- Marketing must not treat contact-campaignId presence as campaign permission.
 - Marketing owns human approval records, campaign orchestration, recipient decisions, execution jobs, and delivery outcomes.
 - Leads provides eligibility evidence and post-approval contact resolution only; contact resolution is bounded, audited, and not a general export.
 - Notifications remains final provider dispatch owner; Leads does not send campaign messages.
@@ -1089,7 +1089,7 @@ Sensitive-data handling:
 
 - Synthetic test values only.
 - Router and controller tests prove routed lifecycle metadata omits raw contact values, confirmation token values, private URL path/query values, raw messages, JWT/session wording in payloads, and consent source values.
-- Conversion link event payload includes only lead ID, Auth user ID, source service, link method, and linked timestamp.
+- Conversion link event payload includes only lead ID, Auth user ID, source service, link campaignId, and linked timestamp.
 
 Contract impact:
 
@@ -1139,7 +1139,7 @@ Validation evidence:
 Sensitive-data handling:
 
 - Synthetic test values only.
-- Eligibility preview response returns lead IDs, eligibility booleans, deterministic reason codes, contact method types, preferred channel, fallback count, consent evidence presence, unsubscribe state, confirmation state, and aggregate counts.
+- Eligibility preview response returns lead IDs, eligibility booleans, deterministic reason codes, contact campaignId types, preferred channel, fallback count, consent evidence presence, unsubscribe state, confirmation state, and aggregate counts.
 - Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, session tokens, and raw consent source values.
 
 Contract impact:
@@ -1186,7 +1186,7 @@ Validation evidence:
 Sensitive-data handling:
 
 - Contact values are returned only by the guarded contact-resolution endpoint for requested channels.
-- Logs include lead ID, purpose, requested channel count, returned contact method count, approval evidence presence, and duration only.
+- Logs include lead ID, purpose, requested channel count, returned contact campaignId count, approval evidence presence, and duration only.
 - Logs omit returned contact values, raw messages, confirmation tokens, private source URLs, metadata values, campaign content, JWTs, and session tokens.
 
 Contract impact:
@@ -1365,7 +1365,7 @@ Source context:
 Implementation evidence:
 
 - AdminAuthGuard now extracts optional activeWorkspaceId/workspaceId/activeTenantId/tenantId and workspaceIds/tenantIds when Auth returns them.
-- AdminLeadsController passes request.adminUser into summary, list, and detail service methods.
+- AdminLeadsController passes request.adminUser into summary, list, and detail service campaignIds.
 - LeadsService applies LEADS_ADMIN_WORKSPACE_SOURCE_MAP to non-global admin summary, list, and detail reads.
 - global:superadmin remains platform-wide.
 - Non-global admin reads fail closed when workspace claim or mapping is missing.
@@ -1688,7 +1688,7 @@ Next required handoff:
 Current focus:
 
 - Assigned parallel worker track: Agent E, Goal 26 - Product-App Intake Compatibility Matrix.
-- Completed Leads-side synthetic compatibility matrix for approved product-app source services and supported contact method types.
+- Completed Leads-side synthetic compatibility matrix for approved product-app source services and supported contact campaignId types.
 - Deployment: not requested and not performed.
 - Production mutation: not performed.
 
@@ -1705,7 +1705,7 @@ Implementation evidence:
 - Added Goal 26 execution plan, context package, coding prompt, and validation report artifacts.
 - Added src/leads/integrations/product-app-intake-matrix.fixtures.ts.
 - Added src/leads/integrations/product-app-intake-matrix.spec.ts.
-- Fixture matrix covers 9 approved source services times 3 supported contact method types, for 27 synthetic payloads.
+- Fixture matrix covers 9 approved source services times 3 supported contact campaignId types, for 27 synthetic payloads.
 
 Validation evidence:
 
@@ -1961,7 +1961,7 @@ Implementation evidence:
 - Added Goal 23 execution artifacts under `implementation-goals/GOAL-23-*`.
 - Updated `public/admin.js` with token-missing, unauthorized/forbidden, scoped-empty, and hidden-detail UI states.
 - Updated `public/admin.js` so selected rows fetch the existing admin detail endpoint and handle 404 as unavailable/hidden without exposing cross-workspace existence.
-- Updated `public/admin.js` to avoid rendering lead IDs and source metadata fields in browser list/detail views while keeping minimized source service, status, contact method type/count, consent label/evidence presence, preference, and timestamps.
+- Updated `public/admin.js` to avoid rendering lead IDs and source metadata fields in browser list/detail views while keeping minimized source service, status, contact campaignId type/count, consent label/evidence presence, preference, and timestamps.
 - Added `public/admin.spec.ts` focused UI tests for token-missing, scoped-empty, unauthorized, and hidden-detail states using synthetic/unauthenticated data only.
 - Added minimal empty-state styling in `public/styles.css`.
 
@@ -2127,7 +2127,7 @@ Current focus:
 Implementation evidence:
 
 - Added Prisma schema model and migration: `prisma/migrations/20260615_add_marketing_approval_evidence/migration.sql`.
-- Stored fields are limited to Lead relation, idempotency key, Marketing approval/campaign references, approval timestamp, bounded purpose/channel/counts/retention expectation, presence booleans, eligibility result/reasons, returned contact-method count, and recorded timestamp.
+- Stored fields are limited to Lead relation, idempotency key, Marketing approval/campaign references, approval timestamp, bounded purpose/channel/counts/retention expectation, presence booleans, eligibility result/reasons, returned contact-campaignId count, and recorded timestamp.
 - Stored fields exclude contact values, campaign content, raw lead messages, confirmation tokens, raw consent source values, private URLs, metadata values, approver value, workspace value, and content-version value.
 - Approved campaign contact resolution now persists minimized evidence only after approval validation and eligibility re-check.
 - Missing, mismatched, or malformed approval evidence is rejected before storage.
@@ -2166,7 +2166,7 @@ Next recommended action:
 Current focus:
 
 - Owner-selected follow-up: FlipFlop service is the first trusted internal consumer for Leads lifecycle replay.
-- Runtime code changes: guarded Leads replay route, replay query DTO, replay service method, replay contract consumer mapping, focused tests, and minimal FlipFlop consumer client/config/verifier.
+- Runtime code changes: guarded Leads replay route, replay query DTO, replay service campaignId, replay contract consumer mapping, focused tests, and minimal FlipFlop consumer client/config/verifier.
 - Deployment: not requested and not performed.
 
 Source context:
@@ -2297,7 +2297,7 @@ Current focus:
 
 Pre-deploy validation evidence:
 
-- Goal 26 evidence review confirmed Leads-side synthetic matrix coverage for approved source services and supported contact method types; no production intake mutation was used.
+- Goal 26 evidence review confirmed Leads-side synthetic matrix coverage for approved source services and supported contact campaignId types; no production intake mutation was used.
 - `npm test -- --runTestsByPath src/leads/integrations/product-app-intake-matrix.spec.ts src/leads/integrations/product-app-intake.spec.ts`: passed, 2 suites and 8 tests.
 - `npm run build`: passed.
 - `npm run lint`: passed.
@@ -2378,32 +2378,31 @@ Implementation evidence:
 Gate decision:
 
 - Pre-coding gate: pass-with-blocked-runtime.
-- Runtime consumer implementation is blocked by:
-  - `[MISSING: Orders order-created event lead attribution field]`
-  - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+- Live RabbitMQ adapter implementation is blocked by:
+    - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
   - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 Contract impact:
 
 - New local TypeScript contract guard only.
-- Current canonical `orders.order.created.v1` fixture is recognized and blocked for missing lead attribution.
-- Future explicit `payload.leadAttribution.leadId` synthetic fixture can build a minimized `LeadOrderAttributed` lifecycle event candidate.
+- Current canonical `orders.order.created.v1` fixture is recognized and idempotently skipped when `payload.leadAttribution.leadId` is absent.
+- Explicit `payload.leadAttribution.leadId` synthetic fixture can build a minimized `LeadOrderAttributed` lifecycle event candidate.
 - No public API, internal API, Prisma schema, migration, Orders source, broker runtime, deployment config, notification, marketing, AI, CRM, or production data behavior changed.
 
 Sensitive-data handling:
 
 - Synthetic test values only.
-- The contract output is minimized to lead ID, order ID, channel, Orders event ID, Orders event timestamp, source-of-truth marker, and attribution metadata.
+- The contract output is minimized to lead ID, order ID, channel, Orders event ID, Orders event timestamp, source-of-truth marker, and attribution source/campaign metadata.
 - Tests assert customer, address, payment, token, raw message, and confirmation-token-like synthetic values are not copied to output.
 
 Replay/determinism:
 
-- Runtime queue redelivery is not implemented.
+- Live broker redelivery is not implemented.
 - Planned attribution idempotency key is stable as `orders-order-created:<orderId>`.
 
 Validation evidence:
 
-- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts`: passed, 1 suite, 4 tests.
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts`: passed, 1 suite, 5 tests.
 - `npm run build`: passed.
 - `git diff --check`: passed.
 - Broker dependency-name check in `package.json`: `NO_BROKER_DEPENDENCY_NAMES`.
@@ -2411,4 +2410,50 @@ Validation evidence:
 
 Next recommended action:
 
-- Resolve the Orders attribution and Leads RabbitMQ runtime blockers before implementing a live consumer.
+- Resolve the Leads RabbitMQ runtime and replay/backfill blockers before implementing a live broker adapter.
+
+
+## 2026-07-01 - Goal 29B Orders Created Event Runtime Handler Continuation
+
+Current focus:
+
+- Owner-selected Orders production rollout Goal 7.4B Leads lane continuation.
+- Runtime code changes: transport-independent Orders created-event handler added; no RabbitMQ adapter, deployment config, schema, migration, production data read, or production mutation.
+- Deployment: not run.
+
+Source context:
+
+- `git status --short --branch` before edits: `## main...origin/main` with no changes.
+- DocsRAG query from the remote shell was skipped because `JWT_TOKEN` was unavailable; repo-local source-of-truth docs and fresh coordinator Orders evidence were used.
+- Fresh Orders coordinator evidence says `orders.order.created.v1` now has optional `payload.leadAttribution.leadId`, `source`, and `campaignId`.
+- Verified Leads source/runtime config still has no RabbitMQ/amqplib dependency, queue consumer module, broker env names, queue name, retry/backoff, or DLQ convention.
+
+Implementation evidence:
+
+- Updated `src/leads/integrations/orders-order-created-consumer-contract.ts` with `OrdersOrderCreatedRuntimeHandler`.
+- Handler routes a minimized `LeadOrderAttributed` event only when `payload.leadAttribution.leadId` is explicit.
+- Events missing explicit `leadAttribution.leadId` are idempotently skipped with bounded in-memory metrics.
+- Malformed or non-canonical envelopes are rejected without routing.
+- Duplicate deliveries are ignored by Orders event ID and `orders-order-created:<orderId>` idempotency key before routing; durable routing also preserves idempotency by existing lifecycle storage key.
+- No Orders source-of-truth state, order status, totals, line items, customer data, address data, payment data, raw messages, tokens, or provider payloads are copied.
+
+Gate decision:
+
+- Pre-coding gate: pass-with-live-broker-blocked.
+- Live RabbitMQ adapter implementation is blocked by:
+  - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+  - `[MISSING: replay/backfill validation source for missed Orders events]`
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts`: passed, 1 suite, 5 tests.
+- `npm run build`: passed.
+- `npm test`: passed, 17 suites, 105 tests.
+- `git diff --check`: passed.
+- Runtime dependency-name scan over package dependencies/devDependencies: `NO_RUNTIME_BROKER_DEPENDENCY_NAMES`.
+- Broker/order-event env-name scan over `.env.example`, `k8s/configmap.yaml`, `k8s/external-secret.yaml`, and `package.json`: no RabbitMQ/AMQP/Orders event key names.
+- Final pre-commit `git status --short --branch`: `## main...origin/main` with the Goal 29B modified files only.
+
+Next recommended action:
+
+- Define Leads RabbitMQ queue/retry/DLQ env names and replay/backfill validation, then add the live broker adapter without broadening into Orders, Marketing, Notifications, Warehouse, Catalog, or channel repos.

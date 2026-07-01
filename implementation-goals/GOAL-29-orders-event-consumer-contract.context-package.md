@@ -6,7 +6,7 @@ status: active
 owner: orders-rollout-goal-7-4-leads-agent
 created: 2026-07-01
 last_updated: 2026-07-01
-completeness_level: contract-ready-runtime-blocked
+completeness_level: handler-ready-live-broker-blocked
 upstream:
   - GOAL-29-orders-event-consumer-contract.execution-plan.md
 downstream:
@@ -15,7 +15,7 @@ downstream:
 
 ## Task Summary
 
-Orders production rollout Goal 7.4 asks Leads to consume canonical Orders lifecycle events as read-only signals. The first milestone is `orders.order.created.v1`. The current safe Leads-side scope is a contract guard and tests because Leads has no RabbitMQ consumer infrastructure and the current Orders event payload does not include a lead attribution key.
+Orders production rollout Goal 7.4 asks Leads to consume canonical Orders lifecycle events as read-only signals. The first milestone is `orders.order.created.v1`. The current safe Leads-side scope is a contract guard plus transport-independent handler because Leads has no RabbitMQ consumer infrastructure; processing remains gated on explicit `payload.leadAttribution.leadId`.
 
 ## Source Documents
 
@@ -69,7 +69,7 @@ Orders:
 - Leads must not treat Orders events as order source-of-truth storage.
 - Leads may only record a minimized order-attribution lifecycle event when a trusted event explicitly identifies the lead.
 - The current Orders event must be blocked for attribution because it lacks `leadId`, `sourceLeadId`, a contact hash, or another approved linking key.
-- Future runtime consumer work must define queue binding, retry/DLQ, idempotent ack behavior, and runtime env names before deployment.
+- Live broker adapter work must define queue binding, retry/DLQ, idempotent ack behavior, and runtime env names before deployment.
 
 ## Constraints
 
@@ -81,7 +81,6 @@ Orders:
 
 ## Known Risks
 
-- `[MISSING: Orders order-created lead attribution field]`
 - `[MISSING: Leads RabbitMQ consumer runtime convention]`
 - `[MISSING: runtime queue name, routing key binding, retry/backoff, and dead-letter policy]`
 - `[MISSING: replay/backfill source and validation smoke for missed Orders events]`
