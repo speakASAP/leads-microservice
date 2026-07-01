@@ -8,9 +8,13 @@
   "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
-  "last_milestone": "goal-24-25-26-integration-deployed",
-  "next_focus": "DocsRAG agent-context HTTP 500 blocker fixed; monitor post-deploy health and wait for the next owner-approved goal track.",
-  "blockers": [],
+  "last_milestone": "goal-29-orders-event-consumer-contract-guard-tests-complete-runtime-blocked",
+  "next_focus": "Resolve Goal 29 blockers before live Orders event consumption: Orders lead attribution field, Leads RabbitMQ runtime convention, and replay/backfill validation source.",
+  "blockers": [
+    "[MISSING: Orders order-created event lead attribution field]",
+    "[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]",
+    "[MISSING: replay/backfill validation source for missed Orders events]"
+  ],
   "budget_units_used": 0,
   "metrics": {
     "custom": {
@@ -122,8 +126,17 @@
       "goal_24_25_26_admin_401_smoke": "passed",
       "goal_24_25_26_admin_page_smoke": "passed",
       "goal_25_migration": "applied-production",
-      "docsrag_agent_context_http_500_after_goal_27_ingestion": "fixed_2026-06-21_http_200_empty_context_when_embedding_provider_unavailable"
+      "docsrag_agent_context_http_500_after_goal_27_ingestion": "fixed_2026-06-21_http_200_empty_context_when_embedding_provider_unavailable",
+      "goal_29": "contract-guard-tests-complete-runtime-blocked",
+      "goal_29_orders_event": "orders.order.created.v1",
+      "goal_29_exchange": "orders.events",
+      "goal_29_runtime_consumer": "blocked-missing-attribution-and-broker-contracts",
+      "goal_29_tests": "passed-1-suite-4-tests",
+      "goal_29_build": "passed",
+      "goal_29_diff_check": "passed",
+      "goal_29_broker_dependency_names": "none",
+      "goal_29_runtime_env_names": "missing"
     }
   },
-  "updated_at": "2026-06-21"
+  "updated_at": "2026-07-01"
 }

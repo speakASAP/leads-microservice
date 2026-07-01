@@ -54,7 +54,7 @@ For each `parallel-ready` goal, record:
 
 ## Parallel Execution Board
 
-Current baseline: Goals 1-28 are complete for their current approved scopes and deployed where deployment was approved. Goal 24/25/26 integration deployed on 2026-06-15 with image digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`.
+Current baseline: Goals 1-28 are complete for their current approved scopes and deployed where deployment was approved. Goal 29 contract guard/tests are complete for the Orders Goal 7.4 Leads lane, but runtime consumption is blocked by missing Orders attribution and Leads broker contracts. Goal 24/25/26 integration deployed on 2026-06-15 with image digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`.
 
 ### Active Assigned Tracks
 
@@ -71,6 +71,7 @@ Current baseline: Goals 1-28 are complete for their current approved scopes and 
 | Goal 23 | Admin UI Scope Messaging And Empty-State Hardening | Agent B | Complete and deployed through Goal 28. |
 | Goal 27 | Documentation Ingestion And Orchestrator Freshness | Agent F | Documentation-only validation passed; DocsRAG ingestion returned HTTP 202; retrieval returned HTTP 500 after ingestion and is recorded as a DocsRAG runtime limitation. |
 | Goal 28 | Parallel Integration Validation And Deployment Readiness | Coordinator | Integration validation passed; accumulated Goal 23-26 changes deployed as goal23-26-integration-20260613. |
+| Goal 29 | Orders Event Consumer Contract For Leads | Goal 7.4 Leads integration owner | Contract guard/tests complete; runtime consumer blocked by missing attribution and broker runtime contracts. |
 
 ### Serialized Or Blocked Tracks
 
@@ -80,6 +81,7 @@ Current baseline: Goals 1-28 are complete for their current approved scopes and 
 | Deployment config changes | Vault/env/deployment changes affect the single production service | Runtime goals needing env flags, Auth URLs, or source maps |
 | Production lead mutation validation | Requires explicit owner approval and synthetic payload plan | Public intake, confirmation, unsubscribe, and admin smoke tests that would mutate production |
 | Raw contact reveal expansion | Requires owner approval, exact purpose, retention, and audit evidence | Any CRM, AI, or Marketing handoff needing raw contact values |
+| Goal 29 runtime Orders consumer | `[MISSING: Orders order-created event lead attribution field]`; `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`; `[MISSING: replay/backfill validation source for missed Orders events]` | Runtime `orders.order.created.v1` consumer and broker smoke |
 
 ### Assignment Rules
 

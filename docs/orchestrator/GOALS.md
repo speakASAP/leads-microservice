@@ -670,3 +670,51 @@ Acceptance criteria:
 - Goal 22 token validation is complete with masked evidence.
 - Deployment evidence is recorded after owner approval; no raw lead export, outreach, AI/CRM export, or notification behavior was performed.
 
+## Goal 29 - Orders Event Consumer Contract For Leads
+
+Status: blocked
+
+Parallel status: Goal 7.4 Leads lane contract guard complete; runtime consumer dependency-gated.
+
+Intent: Leads may consume canonical Orders lifecycle events as read-only minimized signals for attribution and follow-up, but Leads must not duplicate Orders state, infer lead attribution from unsafe fields, or become order source of truth.
+
+Owner: Orders production rollout Goal 7.4 Leads integration owner.
+
+Allowed file scope:
+
+- `src/leads/integrations/orders-order-created-consumer-contract.ts`
+- `src/leads/integrations/orders-order-created-consumer-contract.spec.ts`
+- `implementation-goals/GOAL-29-orders-event-consumer-contract*`
+- `docs/orchestrator/GOALS.md`
+- `docs/orchestrator/PLAN.md`
+- `docs/orchestrator/STATUS.md`
+- `docs/IMPLEMENTATION_STATE.md`
+- `TASKS.md`
+- `STATE.json`
+
+Forbidden file scope:
+
+- Orders, Marketing, Notifications, Warehouse, Catalog, marketplace, deployment, Vault, Prisma schema, and migration files until missing contracts are resolved.
+
+Blockers:
+
+- `[MISSING: Orders order-created event lead attribution field]`
+- `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+- `[MISSING: replay/backfill validation source for missed Orders events]`
+
+Chunks:
+
+- [x] 29.1 Verify Orders event source and Leads broker/runtime support.
+- [x] 29.2 Create execution plan, context package, coding prompt, and validation report.
+- [x] 29.3 Add focused contract guard and tests for `orders.order.created.v1`.
+- [x] 29.4 Record runtime blockers and validation evidence.
+- [ ] 29.5 Implement runtime RabbitMQ consumer after missing contracts are resolved.
+
+Acceptance criteria:
+
+- Current canonical `orders.order.created.v1` fixture is recognized but blocked for missing lead attribution.
+- Future explicit `payload.leadAttribution.leadId` synthetic fixture builds a minimized `LeadOrderAttributed` lifecycle event candidate.
+- Duplicate delivery idempotency key is stable as `orders-order-created:<orderId>`.
+- No public API, internal API, schema, migration, deployment config, runtime queue consumer, raw lead export, campaign execution, notification dispatch, AI/CRM export, production data read, or production mutation is added.
+- Runtime consumer remains blocked until Orders/broker/replay contracts are explicit.
+

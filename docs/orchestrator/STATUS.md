@@ -2350,3 +2350,65 @@ Evidence:
 State update:
 - Removed `docsrag_agent_context_http_500_after_goal_27_ingestion` from `STATE.json` blockers.
 - Remaining action is normal post-deploy health monitoring and the next owner-approved goal track.
+
+## 2026-07-01 - Goal 29 Orders Event Consumer Contract For Leads
+
+Current focus:
+
+- Owner-selected Orders production rollout Goal 7.4 Leads lane.
+- Runtime code changes: contract guard/test only; no RabbitMQ consumer wiring.
+- Deployment: not run.
+
+Source context:
+
+- `git status --short --branch` before edits: `## main...origin/main` with no changes.
+- Queried DocsRAG from the in-cluster Leads runtime pod without printing token values. HTTP 200 returned empty context and no sources for the Orders consumer query.
+- Verified Orders source: `orders.order.created.v1` is published on RabbitMQ exchange `orders.events`.
+- Verified Orders current created-event payload from docs/source/fixture: `payload.orderId` and `payload.channel` only.
+- Verified Leads source/runtime config: no RabbitMQ/amqplib dependency, queue consumer module, broker env names, queue name, retry/backoff, or DLQ convention exists in Leads.
+
+Implementation evidence:
+
+- Added `implementation-goals/GOAL-29-orders-event-consumer-contract.md`.
+- Added Goal 29 execution plan, context package, coding prompt, and validation report.
+- Added `src/leads/integrations/orders-order-created-consumer-contract.ts`.
+- Added `src/leads/integrations/orders-order-created-consumer-contract.spec.ts`.
+- Updated `docs/orchestrator/GOALS.md`, `PLAN.md`, `STATUS.md`, `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, and `STATE.json`.
+
+Gate decision:
+
+- Pre-coding gate: pass-with-blocked-runtime.
+- Runtime consumer implementation is blocked by:
+  - `[MISSING: Orders order-created event lead attribution field]`
+  - `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+  - `[MISSING: replay/backfill validation source for missed Orders events]`
+
+Contract impact:
+
+- New local TypeScript contract guard only.
+- Current canonical `orders.order.created.v1` fixture is recognized and blocked for missing lead attribution.
+- Future explicit `payload.leadAttribution.leadId` synthetic fixture can build a minimized `LeadOrderAttributed` lifecycle event candidate.
+- No public API, internal API, Prisma schema, migration, Orders source, broker runtime, deployment config, notification, marketing, AI, CRM, or production data behavior changed.
+
+Sensitive-data handling:
+
+- Synthetic test values only.
+- The contract output is minimized to lead ID, order ID, channel, Orders event ID, Orders event timestamp, source-of-truth marker, and attribution metadata.
+- Tests assert customer, address, payment, token, raw message, and confirmation-token-like synthetic values are not copied to output.
+
+Replay/determinism:
+
+- Runtime queue redelivery is not implemented.
+- Planned attribution idempotency key is stable as `orders-order-created:<orderId>`.
+
+Validation evidence:
+
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts`: passed, 1 suite, 4 tests.
+- `npm run build`: passed.
+- `git diff --check`: passed.
+- Broker dependency-name check in `package.json`: `NO_BROKER_DEPENDENCY_NAMES`.
+- Broker/order-event env-name scan over `.env.example`, `k8s/configmap.yaml`, `k8s/external-secret.yaml`, and `package.json`: no matches.
+
+Next recommended action:
+
+- Resolve the Orders attribution and Leads RabbitMQ runtime blockers before implementing a live consumer.

@@ -5,7 +5,7 @@ id: LEADS-IMPLEMENTATION-STATE
 status: active
 owner: leads-owner
 created: 2026-06-12
-last_updated: 2026-06-15
+last_updated: 2026-07-01
 completeness_level: complete
 upstream:
   - ../BUSINESS.md
@@ -21,9 +21,9 @@ downstream:
 
 - Stage: production.
 - Health: `ok` after Goal 28 deployment of accumulated Goal 23-26 changes.
-- Current owner-selected task: none active after owner-approved Goal 24/25/26 integration deployment.
-- Runtime source changes in the latest completed runtime task: Goal 24 FlipFlop lifecycle replay route, Goal 25 minimized marketing approval evidence storage, and Goal 26 Leads-side product-app intake matrix evidence.
-- Latest implementation change: owner-approved deployment completed for Goal 24/25/26 integration.
+- Current owner-selected task: Orders production rollout Goal 7.4 Leads lane has contract guard/tests complete; runtime consumer is blocked.
+- Runtime source changes in the latest completed deployed runtime task: Goal 24 FlipFlop lifecycle replay route, Goal 25 minimized marketing approval evidence storage, and Goal 26 Leads-side product-app intake matrix evidence.
+- Latest implementation change: Goal 29 Orders event consumer contract guard and tests added; no deployment.
 - Deployment: completed after owner approval. Image tag `goal24-26-integration-20260615` was built and pushed with digest `sha256:0134667f366f105cd7ec4651bf8f5823ab047508758678b3f29cc0f8b37bd204`; forced rollout restart pulled the new digest, Goal 25 migration applied successfully, health passed, unauthenticated admin returned 401, and admin page returned 200.
 
 ## Preserved Intent Summary
@@ -69,20 +69,23 @@ No runtime goal is active. Goal 24/25/26 integration was validated and deployed 
 - Goal 26 - Product-App Intake Compatibility Matrix: complete for Leads-side synthetic matrix on 2026-06-13.
 - Goal 27 - Documentation Ingestion And Orchestrator Freshness: complete on 2026-06-13.
 - Goal 28 - Parallel Integration Validation And Deployment Readiness: complete and deployed on 2026-06-13.
+- Goal 29 - Orders Event Consumer Contract For Leads: contract guard/tests complete on 2026-07-01; runtime consumer blocked by missing Orders attribution and Leads broker runtime contracts.
 
 ## Next Recommended Goal
 
-Next recommended action: monitor post-deploy health and select the next owner-approved goal track.
+Next recommended action: resolve Goal 29 blockers before runtime Orders event consumption: Orders must provide an approved lead attribution key or companion attribution contract, and Leads must define broker queue/retry/DLQ/runtime env conventions.
 
 ## Known Blockers
 
 - Campaign execution, mass outreach, raw lead export, AI enrichment, notification dispatch, and production lead mutation remain forbidden unless a future owner-approved task defines exact scope and validation evidence.
-- Goal 27 DocsRAG ingestion trigger succeeded from the in-cluster runtime path, but agent-context retrieval returned HTTP 500 after ingestion; the plain SSH shell still lacks `JWT_TOKEN`.
+- `[MISSING: Orders order-created event lead attribution field]`
+- `[MISSING: Leads RabbitMQ consumer runtime convention for orders.events queue name, env vars, retry/backoff, and DLQ handling]`
+- `[MISSING: replay/backfill validation source for missed Orders events]`
 
 ## Continuation Instructions
 
 1. Re-read `docs/orchestrator/STATUS.md`.
-2. Use the parallel execution board in `docs/orchestrator/PLAN.md`; Goal 24/25/26 integration is deployed as of 2026-06-15 and no runtime goal is active.
+2. Use the parallel execution board in `docs/orchestrator/PLAN.md`; Goal 29 runtime Orders consumption is blocked until attribution and broker contracts are resolved.
 3. Preserve service boundaries: Leads owns non-registered intake/consent/preferences/unsubscribe; Auth owns identity/RBAC/tenancy; Marketing owns campaigns; Notifications owns delivery; CRM owns funnel workflow once implemented.
 4. Do not implement raw lead export, mass outreach, campaign execution, AI enrichment, or production lead mutation without explicit owner approval and validation evidence.
 5. Record validation and continuation evidence before ending.
