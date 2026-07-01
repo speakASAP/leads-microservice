@@ -83,13 +83,13 @@ export function ordersOrderCreatedBrokerAdapterConfigFromEnv(): OrdersOrderCreat
 @Injectable()
 export class OrdersOrderCreatedBrokerAdapterService implements OnModuleInit, OnModuleDestroy {
   private readonly runtimeHandler: OrdersOrderCreatedRuntimeHandler;
+  private readonly connectToBroker: OrdersOrderCreatedBrokerConnect = connect;
   private connection?: OrdersOrderCreatedBrokerConnection;
   private channel?: OrdersOrderCreatedBrokerChannel;
 
   constructor(
     private readonly lifecycleEventRouter: LeadLifecycleEventRouterService,
     private readonly loggingService: LoggingService,
-    private readonly connectToBroker: OrdersOrderCreatedBrokerConnect = connect,
   ) {
     this.runtimeHandler = new OrdersOrderCreatedRuntimeHandler(this.lifecycleEventRouter);
   }

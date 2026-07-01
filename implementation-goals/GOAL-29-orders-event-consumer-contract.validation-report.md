@@ -145,3 +145,6 @@ Production enablement remains blocked by:
 - `git diff --check`: passed.
 - Runtime key-name scan found only declared Leads Orders-events names/defaults; no secret values printed.
 - Vault property presence check for `LEADS_ORDERS_EVENTS_RABBITMQ_URL`: present, value redacted.
+
+
+Runtime DI hotfix: rollout restart surfaced that the AMQP connector test seam was modeled as a constructor parameter, so Nest tried to inject `Function`. The adapter now takes only `LeadLifecycleEventRouterService` and `LoggingService` in its constructor; tests override the internal connector property. Focused test, build, lint, diff check, and full tests passed after the fix.

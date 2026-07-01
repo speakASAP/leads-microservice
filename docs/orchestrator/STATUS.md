@@ -2572,3 +2572,8 @@ Validation evidence:
 - Runtime key-name scan found only declared Leads Orders-events names/defaults; no secret values printed.
 - Vault property presence check for `LEADS_ORDERS_EVENTS_RABBITMQ_URL`: present, value redacted.
 - Pending after commit: deploy, rollout, health, env-name presence, queue/binding smoke.
+
+
+### Goal 29D Runtime DI Hotfix
+
+During rollout restart, the new pod failed before health because Nest tried to resolve the adapter test connector function as a provider. The old pod stayed available. Fixed `OrdersOrderCreatedBrokerAdapterService` so the constructor only accepts real Nest providers and the AMQP connector remains an internal property used by tests. Validation after fix: focused broker adapter test passed, `npm run build` passed, `npm run lint` passed, `git diff --check` passed, and full `npm test` passed.

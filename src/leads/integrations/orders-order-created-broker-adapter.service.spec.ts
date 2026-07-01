@@ -35,7 +35,8 @@ function buildAdapter(route = jest.fn().mockResolvedValue({ recorded: true })) {
   };
   const connect = jest.fn().mockResolvedValue(connection);
   const loggingService = { log: jest.fn().mockResolvedValue(undefined) };
-  const adapter = new OrdersOrderCreatedBrokerAdapterService({ route } as never, loggingService as never, connect);
+  const adapter = new OrdersOrderCreatedBrokerAdapterService({ route } as never, loggingService as never);
+  (adapter as unknown as { connectToBroker: typeof connect }).connectToBroker = connect;
 
   return { adapter, channel, connection, connect, loggingService, route };
 }
