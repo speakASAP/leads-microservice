@@ -8,8 +8,8 @@
   "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
-  "last_milestone": "goal-29d-orders-events-rabbitmq-vault-config-wired",
-  "next_focus": "Deploy and smoke-test Leads Orders created-event consumer with RabbitMQ Vault-backed URL and replay/backfill evidence still bounded.",
+  "last_milestone": "goal-29d-orders-events-rabbitmq-runtime-deployed",
+  "next_focus": "Define and validate replay/backfill source for missed Orders created events; live consumer is enabled for new explicit lead-attribution events.",
   "blockers": [
     "[MISSING: replay/backfill validation source for missed Orders events]"
   ],
@@ -140,7 +140,13 @@
       "goal_29c_tests": "focused_and_full_passed",
       "goal_29d_vault_rabbitmq_url": "patched_metadata_only",
       "goal_29d_broker_connect_smoke": "passed_redacted",
-      "goal_29d_config_wiring": "source_wired"
+      "goal_29d_config_wiring": "source_wired_and_deployed",
+      "goal_29d_deployment": "deployed-9e5ac76",
+      "goal_29d_image_digest": "sha256:204d8a36e6b3c94097cfdde1b4ef06271ad64f807e3f14faaacf79b79831e7ca",
+      "goal_29d_runtime_health": "passed-internal-and-public",
+      "goal_29d_queue_consumer": "ready-1-consumer-0-messages",
+      "goal_29d_logs": "started-no-access-refused-after-permission-update",
+      "goal_29d_remaining_blocker": "replay-backfill-source-missing"
     }
   },
   "updated_at": "2026-07-01"

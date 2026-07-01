@@ -2577,3 +2577,52 @@ Validation evidence:
 ### Goal 29D Runtime DI Hotfix
 
 During rollout restart, the new pod failed before health because Nest tried to resolve the adapter test connector function as a provider. The old pod stayed available. Fixed `OrdersOrderCreatedBrokerAdapterService` so the constructor only accepts real Nest providers and the AMQP connector remains an internal property used by tests. Validation after fix: focused broker adapter test passed, `npm run build` passed, `npm run lint` passed, `git diff --check` passed, and full `npm test` passed.
+
+## 2026-07-01 - Goal 29D Orders Events RabbitMQ Runtime Deployed
+
+Current focus:
+
+- Owner-selected continuation: wire the Leads Orders created-event RabbitMQ URL from Vault/Kubernetes and safely enable the Leads-owned consumer.
+- Runtime code changes: config wiring plus a broker adapter DI hotfix; no Orders, Marketing, Notifications, Warehouse, Catalog, or channel repo changes.
+- Deployment: completed for Leads image `localhost:5000/leads-microservice:9e5ac76`.
+
+Source context:
+
+- Re-checked remote Leads status before edits: `## main...origin/main`.
+- Verified RabbitMQ service, `orders.events` exchange, and existing Orders/Marketing queue context from Kubernetes/RabbitMQ without printing secret values.
+- Used a dedicated RabbitMQ user `leads_orders_events_consumer`; password and URL were never printed.
+
+Implementation evidence:
+
+- Patched Vault property `secret/prod/leads-microservice#LEADS_ORDERS_EVENTS_RABBITMQ_URL` with metadata-only output.
+- Mapped `LEADS_ORDERS_EVENTS_RABBITMQ_URL` through `k8s/external-secret.yaml`.
+- Enabled the adapter in `k8s/configmap.yaml` with exchange `orders.events`, routing key `orders.order.created.v1`, queue `leads.orders.order-created.v1`, DLX `leads.orders.events.dlx`, DLQ `leads.orders.order-created.v1.dlq`, prefetch `5`, and requeue-on-error `false`.
+- Fixed runtime DI after deployment surfaced Nest attempting to inject the adapter connector test hook as `Function`; the adapter now owns the connector internally and tests override that property directly.
+- Updated RabbitMQ permissions after a first immutable rollout hit `ACCESS_REFUSED` reading `orders.events`; final permissions allow the dedicated user to configure/write/read only `orders.events` and `leads.orders.*` surfaces.
+
+Validation evidence:
+
+- Kubernetes dry-run passed for `k8s/configmap.yaml` and `k8s/external-secret.yaml`.
+- Focused Orders event consumer and broker adapter tests passed: 2 suites, 11 tests.
+- Full repo validation passed: `npm run build`, `npm test` (18 suites, 111 tests), `npm run lint`, and `git diff --check`.
+- Runtime key-name scan found only declared Leads Orders-events names/defaults; no secret values printed.
+- Vault property presence check returned present with value redacted.
+- Deployment image: `localhost:5000/leads-microservice:9e5ac76`.
+- Deployment digest: `localhost:5000/leads-microservice@sha256:204d8a36e6b3c94097cfdde1b4ef06271ad64f807e3f14faaacf79b79831e7ca`.
+- Rollout status passed for `deployment/leads-microservice`.
+- Running pod: `leads-microservice-84cb7c6fcf-7fgr5`, `1/1 Running`, zero restarts at final check.
+- In-pod health passed: `{"status":"ok"}`.
+- Public health passed: `https://leads.alfares.cz/health` returned `{"status":"ok"}`.
+- Runtime env-name presence check showed consumer enabled, URL present redacted, queue/exchange/routing-key names set.
+- RabbitMQ queue smoke showed `leads.orders.order-created.v1` with 0 messages and 1 consumer, and `leads.orders.order-created.v1.dlq` with 0 messages and 0 consumers.
+- RabbitMQ binding smoke showed `orders.events -> leads.orders.order-created.v1` for routing key `orders.order.created.v1`, plus DLX binding to the DLQ.
+- Final log tail showed `Nest application successfully started` and no `ACCESS_REFUSED` or `ERROR` matches.
+
+Gate decision:
+
+- Runtime enablement accepted for new Orders created events carrying explicit `payload.leadAttribution.leadId`.
+- Historical replay/backfill remains blocked by `[MISSING: replay/backfill validation source for missed Orders events]`.
+
+Next unfinished chunks:
+
+- Define and validate a replay/backfill source for missed `orders.order.created.v1` events before claiming historical coverage.

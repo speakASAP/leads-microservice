@@ -148,3 +148,14 @@ Production enablement remains blocked by:
 
 
 Runtime DI hotfix: rollout restart surfaced that the AMQP connector test seam was modeled as a constructor parameter, so Nest tried to inject `Function`. The adapter now takes only `LeadLifecycleEventRouterService` and `LoggingService` in its constructor; tests override the internal connector property. Focused test, build, lint, diff check, and full tests passed after the fix.
+
+## Goal 29D Runtime Deployment Evidence
+
+- Deployed Leads image `localhost:5000/leads-microservice:9e5ac76` with digest `localhost:5000/leads-microservice@sha256:204d8a36e6b3c94097cfdde1b4ef06271ad64f807e3f14faaacf79b79831e7ca`.
+- `deployment/leads-microservice` rolled out successfully; final running pod was `leads-microservice-84cb7c6fcf-7fgr5` with `1/1 Running` and zero restarts at final check.
+- In-pod and public `/health` checks returned `{"status":"ok"}`.
+- Runtime env-name presence check confirmed the consumer was enabled, the RabbitMQ URL was present redacted, and queue/exchange/routing-key names were set.
+- RabbitMQ queue smoke confirmed `leads.orders.order-created.v1` had 0 messages and 1 consumer; `leads.orders.order-created.v1.dlq` had 0 messages and 0 consumers.
+- RabbitMQ binding smoke confirmed `orders.events -> leads.orders.order-created.v1` with routing key `orders.order.created.v1`, plus DLX binding to the DLQ.
+- Runtime log tail showed `Nest application successfully started` and no `ACCESS_REFUSED` or `ERROR` matches after the final permission update.
+- Remaining blocker: `[MISSING: replay/backfill validation source for missed Orders events]`.
