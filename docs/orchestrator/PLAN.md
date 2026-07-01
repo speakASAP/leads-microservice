@@ -81,7 +81,7 @@ Current baseline: Goals 1-28 are complete for their current approved scopes and 
 | Deployment config changes | Vault/env/deployment changes affect the single production service | Runtime goals needing env flags, Auth URLs, or source maps |
 | Production lead mutation validation | Requires explicit owner approval and synthetic payload plan | Public intake, confirmation, unsubscribe, and admin smoke tests that would mutate production |
 | Raw contact reveal expansion | Requires owner approval, exact purpose, retention, and audit evidence | Any CRM, AI, or Marketing handoff needing raw contact values |
-| Goal 29 live Orders broker enablement | `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`; `[MISSING: replay/backfill validation source for missed Orders events]` | Enable opt-in RabbitMQ `orders.order.created.v1` adapter and broker smoke |
+| Goal 29 live Orders broker enablement | `[MISSING: replay/backfill validation source for missed Orders events]` | Enable opt-in RabbitMQ `orders.order.created.v1` adapter and broker smoke |
 
 ### Assignment Rules
 

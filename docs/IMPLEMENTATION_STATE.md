@@ -73,12 +73,11 @@ No runtime goal is active. Goal 24/25/26 integration was validated and deployed 
 
 ## Next Recommended Goal
 
-Next recommended action: resolve Goal 29 blockers before runtime Orders event consumption: Leads must define broker queue/retry/DLQ/runtime env conventions and replay/backfill validation before live consumption.
+Next recommended action: deploy and smoke-test Goal 29 RabbitMQ wiring, then resolve replay/backfill validation before claiming historical completeness.
 
 ## Known Blockers
 
 - Campaign execution, mass outreach, raw lead export, AI enrichment, notification dispatch, and production lead mutation remain forbidden unless a future owner-approved task defines exact scope and validation evidence.
-- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 ## Continuation Instructions

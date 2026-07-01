@@ -2518,3 +2518,57 @@ Validation evidence:
 Next recommended action:
 
 - Validate and commit Goal 29C. Do not deploy until production RabbitMQ secret/config wiring, broker smoke approval, and replay/backfill validation source are explicit.
+
+
+## 2026-07-01 - Goal 29D Orders Events RabbitMQ Vault Config Wiring
+
+Current focus:
+
+- Owner approved wiring RabbitMQ secret/config values from Kubernetes/Vault and continuing toward enablement.
+- Deployment: pending validation and commit.
+
+Source/runtime evidence:
+
+- Remote Leads repo before edits: `## main...origin/main` at `e1607ef feat: add orders created broker adapter`.
+- RabbitMQ service exists in namespace `statex-apps` as service `rabbitmq` with AMQP port 5672; pod `rabbitmq-0` is running.
+- RabbitMQ exchange `orders.events` exists and is durable/topic.
+- Dedicated RabbitMQ user `leads_orders_events_consumer` was created/rotated without printing password values.
+- User permissions are limited to configure/write `orders.events` and `leads.orders.*`, and read `leads.orders.*`.
+- AMQP connection smoke from the Orders pod using the generated Leads URL succeeded with redacted output.
+- Vault property `secret/prod/leads-microservice#LEADS_ORDERS_EVENTS_RABBITMQ_URL` was patched; Vault output showed metadata only, no secret value.
+
+Implementation evidence:
+
+- `k8s/external-secret.yaml` maps `LEADS_ORDERS_EVENTS_RABBITMQ_URL` from `secret/prod/leads-microservice`.
+- `k8s/configmap.yaml` sets:
+  - `LEADS_ORDERS_EVENTS_CONSUMER_ENABLED=true`
+  - `LEADS_ORDERS_EVENTS_EXCHANGE=orders.events`
+  - `LEADS_ORDERS_EVENTS_ROUTING_KEY=orders.order.created.v1`
+  - `LEADS_ORDERS_EVENTS_QUEUE=leads.orders.order-created.v1`
+  - `LEADS_ORDERS_EVENTS_PREFETCH=5`
+  - `LEADS_ORDERS_EVENTS_DLX=leads.orders.events.dlx`
+  - `LEADS_ORDERS_EVENTS_DLQ=leads.orders.order-created.v1.dlq`
+  - `LEADS_ORDERS_EVENTS_REQUEUE_ON_ERROR=false`
+
+Safety evidence:
+
+- No secret values, decoded tokens, raw provider payloads, customer data, or production lead/order rows were printed.
+- Orders, Marketing, Notifications, Warehouse, Catalog, and channel repos were not edited.
+- Replay/backfill remains bounded: future live queue receives new matching events after binding; missed historical Orders events still require separate replay/backfill source evidence.
+
+Remaining blocker:
+
+- `[MISSING: replay/backfill validation source for missed Orders events]`
+
+Validation evidence:
+
+- `kubectl apply --dry-run=server -f k8s/configmap.yaml -n statex-apps`: passed.
+- `kubectl apply --dry-run=server -f k8s/external-secret.yaml -n statex-apps`: passed.
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`: passed, 2 suites, 11 tests.
+- `npm run build`: passed.
+- `npm test`: passed, 18 suites, 111 tests.
+- `npm run lint`: passed.
+- `git diff --check`: passed.
+- Runtime key-name scan found only declared Leads Orders-events names/defaults; no secret values printed.
+- Vault property presence check for `LEADS_ORDERS_EVENTS_RABBITMQ_URL`: present, value redacted.
+- Pending after commit: deploy, rollout, health, env-name presence, queue/binding smoke.

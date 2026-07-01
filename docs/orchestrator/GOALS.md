@@ -698,7 +698,6 @@ Forbidden file scope:
 
 Blockers:
 
-- `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
 
 Chunks:
@@ -709,7 +708,8 @@ Chunks:
 - [x] 29.4 Record runtime blockers and validation evidence.
 - [x] 29.5 Implement transport-independent runtime handler for created events.
 - [x] 29.6 Define Leads-owned RabbitMQ env names and add disabled-by-default live broker adapter.
-- [ ] 29.7 Wire production RabbitMQ secret/config values and replay/backfill validation before deployment enablement.
+- [x] 29.7 Wire production RabbitMQ secret/config values and broker connect smoke.
+- [ ] 29.8 Deploy, verify queue binding/runtime health, and define replay/backfill validation source.
 
 Acceptance criteria:
 

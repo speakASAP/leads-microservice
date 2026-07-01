@@ -122,3 +122,26 @@ Production enablement remains blocked by:
 
 - `[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]`
 - `[MISSING: replay/backfill validation source for missed Orders events]`
+
+
+## Goal 29D RabbitMQ Secret Config Evidence
+
+- Dedicated RabbitMQ user `leads_orders_events_consumer` was created/rotated without printing password values.
+- AMQP connect smoke from an in-cluster Orders pod succeeded with redacted output.
+- Vault property `secret/prod/leads-microservice#LEADS_ORDERS_EVENTS_RABBITMQ_URL` was patched with metadata-only output.
+- `k8s/external-secret.yaml` maps `LEADS_ORDERS_EVENTS_RABBITMQ_URL` from the Leads Vault path.
+- `k8s/configmap.yaml` enables the adapter and declares exchange/routing key/queue/DLX/DLQ/requeue names.
+- Historical replay/backfill remains `[MISSING: replay/backfill validation source for missed Orders events]`.
+
+
+## Goal 29D Validation Commands
+
+- `kubectl apply --dry-run=server -f k8s/configmap.yaml -n statex-apps`: passed.
+- `kubectl apply --dry-run=server -f k8s/external-secret.yaml -n statex-apps`: passed.
+- `npm test -- --runTestsByPath src/leads/integrations/orders-order-created-consumer-contract.spec.ts src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts`: passed, 2 suites, 11 tests.
+- `npm run build`: passed.
+- `npm test`: passed, 18 suites, 111 tests.
+- `npm run lint`: passed.
+- `git diff --check`: passed.
+- Runtime key-name scan found only declared Leads Orders-events names/defaults; no secret values printed.
+- Vault property presence check for `LEADS_ORDERS_EVENTS_RABBITMQ_URL`: present, value redacted.

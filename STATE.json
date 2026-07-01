@@ -8,10 +8,9 @@
   "tasks_active": 0,
   "tasks_failed_last_cycle": 0,
   "open_task_ids": [],
-  "last_milestone": "goal-29c-orders-created-live-broker-adapter-disabled-complete",
-  "next_focus": "Wire production Leads Orders-events RabbitMQ secret/config values, broker smoke approval, and replay/backfill validation before enabling the adapter.",
+  "last_milestone": "goal-29d-orders-events-rabbitmq-vault-config-wired",
+  "next_focus": "Deploy and smoke-test Leads Orders created-event consumer with RabbitMQ Vault-backed URL and replay/backfill evidence still bounded.",
   "blockers": [
-    "[MISSING: production LEADS_ORDERS_EVENTS_RABBITMQ_URL/Vault/K8s wiring and broker smoke approval]",
     "[MISSING: replay/backfill validation source for missed Orders events]"
   ],
   "budget_units_used": 0,
@@ -138,7 +137,10 @@
       "goal_29b": "transport_independent_handler_complete",
       "goal_29b_tests": "focused_passed",
       "goal_29c": "disabled_live_broker_adapter_complete",
-      "goal_29c_tests": "focused_and_full_passed"
+      "goal_29c_tests": "focused_and_full_passed",
+      "goal_29d_vault_rabbitmq_url": "patched_metadata_only",
+      "goal_29d_broker_connect_smoke": "passed_redacted",
+      "goal_29d_config_wiring": "source_wired"
     }
   },
   "updated_at": "2026-07-01"
