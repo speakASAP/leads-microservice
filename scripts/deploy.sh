@@ -108,7 +108,7 @@ deploy_timing_phase_end "Apply Service and Ingress"
 deploy_timing_phase_start "Apply Deployment and update image"
 phase "[5/7] Apply Deployment and update image"
 kubectl apply -f "$K8S_DIR/deployment.yaml" -n "$NAMESPACE"
-kubectl set image deployment/"$SERVICE_NAME" app="$IMAGE_LATEST" -n "$NAMESPACE"
+kubectl set image deployment/"$SERVICE_NAME" app="$IMAGE" -n "$NAMESPACE"
 log INFO "Deployment applied and image set to ${IMAGE}"
 deploy_timing_phase_end "Apply Deployment and update image"
 
