@@ -35,3 +35,13 @@ data:
   LEADS_ORDERS_EVENTS_DLX: "leads.orders.events.dlx"
   LEADS_ORDERS_EVENTS_DLQ: "leads.orders.order-created.v1.dlq"
   LEADS_ORDERS_EVENTS_REQUEUE_ON_ERROR: "false"
+  # EP-005 W5 — registrations become leads.
+  #
+  # Its OWN queue, not growth-core's `growth.auth-registrations`: `auth.events` is a topic
+  # exchange, and two consumers bound to one queue split the messages between them. Each service
+  # would then see roughly half the registrations, and both sets of numbers would look plausible.
+  RABBITMQ_URL: "amqp://guest:guest@rabbitmq.statex-apps.svc.cluster.local:5672"
+  LEADS_AUTH_EVENTS_CONSUMER_ENABLED: "true"
+  LEADS_AUTH_EVENTS_EXCHANGE: "auth.events"
+  LEADS_AUTH_EVENTS_QUEUE: "leads.auth.user-registered.v1"
+  LEADS_GROWTH_WORKSPACE_ID: "bazos"

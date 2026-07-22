@@ -10,6 +10,9 @@ import { AdminAuthGuard } from '../auth/admin-auth.guard';
 import { InternalServiceGuard } from './guards/internal-service.guard';
 import { LeadLifecycleEventRouterService } from './integrations/lifecycle-event-router.service';
 import { OrdersOrderCreatedBrokerAdapterService } from './integrations/orders-order-created-broker-adapter.service';
+import { AuthRegisteredBrokerAdapterService } from './integrations/auth-registered-broker-adapter.service';
+import { RegistrationLeadService } from './integrations/registration-lead.service';
+import { GrowthEventPublisherService } from './integrations/growth-event-publisher.service';
 
 @Module({
   imports: [HttpModule],
@@ -20,6 +23,22 @@ import { OrdersOrderCreatedBrokerAdapterService } from './integrations/orders-or
     LoggingService,
     LeadLifecycleEventRouterService,
     OrdersOrderCreatedBrokerAdapterService,
+    GrowthEventPublisherService,
+    // EP-005 W5. The publisher is handed in as the `publish` seam so RegistrationLeadService
+    // stays testable without a broker, and so it keeps working when there is no publisher at all.
+    {
+      provide: RegistrationLeadService,
+      inject: [PrismaService, LoggingService, GrowthEventPublisherService],
+      useFactory: (
+        prisma: PrismaService,
+        logging: LoggingService,
+        publisher: GrowthEventPublisherService,
+      ) =>
+        new RegistrationLeadService(prisma, logging, (exchange, routingKey, envelope) =>
+          publisher.publish(exchange, routingKey, envelope),
+        ),
+    },
+    AuthRegisteredBrokerAdapterService,
     NotificationsService,
     InternalServiceGuard,
     AdminAuthGuard,

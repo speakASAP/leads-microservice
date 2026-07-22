@@ -8,25 +8,29 @@ generator client {
 }
 
 model Lead {
-  id            String               @id @default(uuid())
-  status        String               @default("new")
-  sourceService String
-  sourceUrl     String?
-  sourceLabel   String?
-  message       String               @db.Text
-  preferredChannel String?
-  fallbackChannels Json?
-  marketingConsent Boolean?
-  consentSource String?
-  consentCapturedAt DateTime?
-  unsubscribedAt DateTime?
-  confirmationToken String?          @unique
-  confirmedAt   DateTime?
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  contactMethods  LeadContactMethod[]
-  submissions     LeadSubmission[]
-  lifecycleEvents LeadLifecycleEvent[]
+  id                        String                          @id @default(uuid())
+  status                    String                          @default("new")
+  // The auth-microservice user this lead was created from (EP-005 W5). Unique, because a person
+  // registers once: brokers deliver at least once, and without this a redelivery would create a
+  // second lead for the same human being.
+  authUserId                String?                         @unique
+  sourceService             String
+  sourceUrl                 String?
+  sourceLabel               String?
+  message                   String                          @db.Text
+  preferredChannel          String?
+  fallbackChannels          Json?
+  marketingConsent          Boolean?
+  consentSource             String?
+  consentCapturedAt         DateTime?
+  unsubscribedAt            DateTime?
+  confirmationToken         String?                         @unique
+  confirmedAt               DateTime?
+  createdAt                 DateTime                        @default(now())
+  updatedAt                 DateTime                        @updatedAt
+  contactMethods            LeadContactMethod[]
+  submissions               LeadSubmission[]
+  lifecycleEvents           LeadLifecycleEvent[]
   marketingApprovalEvidence LeadMarketingApprovalEvidence[]
 
   @@index([createdAt])
@@ -46,44 +50,43 @@ model LeadContactMethod {
 }
 
 model LeadSubmission {
-  id         String   @id @default(uuid())
-  leadId     String
+  id          String   @id @default(uuid())
+  leadId      String
   payloadJson Json
-  createdAt  DateTime @default(now())
-  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@index([leadId])
   @@index([createdAt])
 }
 
 model LeadMarketingApprovalEvidence {
-  id                             String   @id @default(uuid())
-  leadId                         String
-  idempotencyKey                 String   @unique
-  approvalId                     String
-  campaignId                     String
-  approvedAt                     DateTime
-  purposeCode                    String
-  channel                        String
-  audienceCount                  Int
-  eligibleCount                  Int
-  retentionExpectation           String
-  humanApprovalReferencePresent  Boolean  @default(false)
-  approvedByPresent              Boolean  @default(false)
-  workspaceIdPresent             Boolean  @default(false)
-  contentVersionPresent          Boolean  @default(false)
-  eligibilityEligible            Boolean
-  eligibilityReasons             Json?
-  returnedContactMethodCount     Int      @default(0)
-  recordedAt                     DateTime @default(now())
-  lead                           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  id                            String   @id @default(uuid())
+  leadId                        String
+  idempotencyKey                String   @unique
+  approvalId                    String
+  campaignId                    String
+  approvedAt                    DateTime
+  purposeCode                   String
+  channel                       String
+  audienceCount                 Int
+  eligibleCount                 Int
+  retentionExpectation          String
+  humanApprovalReferencePresent Boolean  @default(false)
+  approvedByPresent             Boolean  @default(false)
+  workspaceIdPresent            Boolean  @default(false)
+  contentVersionPresent         Boolean  @default(false)
+  eligibilityEligible           Boolean
+  eligibilityReasons            Json?
+  returnedContactMethodCount    Int      @default(0)
+  recordedAt                    DateTime @default(now())
+  lead                          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@index([leadId, recordedAt])
   @@index([approvalId])
   @@index([campaignId])
   @@index([recordedAt])
 }
-
 
 model LeadLifecycleEvent {
   id             String   @id @default(uuid())
