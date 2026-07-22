@@ -13,6 +13,7 @@ import { OrdersOrderCreatedBrokerAdapterService } from './integrations/orders-or
 import { AuthRegisteredBrokerAdapterService } from './integrations/auth-registered-broker-adapter.service';
 import { RegistrationLeadService } from './integrations/registration-lead.service';
 import { GrowthEventPublisherService } from './integrations/growth-event-publisher.service';
+import { QualificationService } from './integrations/qualification.service';
 
 @Module({
   imports: [HttpModule],
@@ -35,6 +36,21 @@ import { GrowthEventPublisherService } from './integrations/growth-event-publish
         publisher: GrowthEventPublisherService,
       ) =>
         new RegistrationLeadService(prisma, logging, (exchange, routingKey, envelope) =>
+          publisher.publish(exchange, routingKey, envelope),
+        ),
+    },
+    // S6. Same `publish` seam as RegistrationLeadService above, for the same two reasons: the
+    // service stays testable without a broker, and a broker outage costs the announcement rather
+    // than the owner's judgement.
+    {
+      provide: QualificationService,
+      inject: [PrismaService, LoggingService, GrowthEventPublisherService],
+      useFactory: (
+        prisma: PrismaService,
+        logging: LoggingService,
+        publisher: GrowthEventPublisherService,
+      ) =>
+        new QualificationService(prisma, logging, (exchange, routingKey, envelope) =>
           publisher.publish(exchange, routingKey, envelope),
         ),
     },

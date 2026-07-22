@@ -93,7 +93,12 @@ function allowedSourceServicesForAdmin(scope: AdminLeadScope): string[] | undefi
   return Array.from(sourceServices);
 }
 
-function scopedAdminLeadWhere(query: LeadQueryDto, scope: AdminLeadScope): Prisma.LeadWhereInput {
+/**
+ * Exported for `QualificationService` (S6): a judgement must be writable only for a lead the
+ * operator can already see. Re-deriving the scope there would give the write path its own idea of
+ * visibility, and the two would drift — the read side tightening while the write side stayed open.
+ */
+export function scopedAdminLeadWhere(query: LeadQueryDto, scope: AdminLeadScope): Prisma.LeadWhereInput {
   const allowedSourceServices = allowedSourceServicesForAdmin(scope);
   const where: Prisma.LeadWhereInput = {};
 

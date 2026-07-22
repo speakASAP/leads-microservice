@@ -5,7 +5,7 @@ const STATE_KEY = 'leadsAdminAuthState';
 const RETURN_PATH_KEY = 'leadsAdminReturnPath';
 const EXPIRES_KEY = 'leadsAdminAuthExpiresAt';
 
-const state = { token: sessionStorage.getItem(TOKEN_KEY) || '', leads: [], total: 0 };
+const state = { token: sessionStorage.getItem(TOKEN_KEY) || '', leads: [], total: 0, selectedLeadId: '', qualifications: [] };
 const loginButton = document.querySelector('#admin-login-button');
 const logoutButton = document.querySelector('#admin-logout-button');
 const filterForm = document.querySelector('#lead-filter-form');
@@ -28,6 +28,7 @@ function emptyRow(title, message) { return '<tr class="empty-row"><td colspan="6
 function panelMessage(message) { return '<p class="empty-state">' + safe(message) + '</p>'; }
 function detailMessage(title, message) { return '<div class="empty-state"><strong>' + safe(title) + '</strong><span>' + safe(message) + '</span></div>'; }
 async function fetchJson(url) { const response = await fetch(url, { headers: headers() }); if (!response.ok) { const error = new Error('HTTP ' + response.status); error.status = response.status; throw error; } return response.json(); }
+async function postJson(url, body) { const response = await fetch(url, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, headers()), body: JSON.stringify(body) }); if (!response.ok) { const error = new Error('HTTP ' + response.status); error.status = response.status; throw error; } return response.json(); }
 
 function currentAdminPath() {
   if (typeof window === 'undefined' || !window.location) return '/admin';
@@ -167,7 +168,37 @@ function renderDetail(lead) {
     return;
   }
   const contacts = (lead.contactMethods || []).map((item) => '<div class="detail-item"><strong>' + safe(item.type) + '</strong><span>' + (item.isPrimary ? 'Primary contact method' : 'Additional contact method') + '</span></div>').join('');
-  detailEl.innerHTML = '<div class="detail-item"><strong>Lead record</strong><span>Identifier hidden in browser view</span></div><div class="detail-item"><strong>' + safe(lead.status) + '</strong><span>Status - ' + safe(formatDate(lead.createdAt)) + '</span></div><div class="detail-item"><strong>' + safe(lead.sourceService) + '</strong><span>Source service</span></div><div class="detail-item"><strong>' + safe(consentLabel(lead)) + '</strong><span>' + (lead.consentEvidencePresent ? 'Consent evidence present' : 'Consent evidence missing') + '</span></div><div class="detail-item"><strong>' + (lead.confirmedAt ? 'Confirmed' : 'Pending confirmation') + '</strong><span>' + safe(formatDate(lead.confirmedAt)) + '</span></div><div class="detail-item"><strong>' + (lead.unsubscribedAt ? 'Unsubscribed' : 'Subscribed state active') + '</strong><span>' + safe(formatDate(lead.unsubscribedAt)) + '</span></div>' + contacts;
+  detailEl.innerHTML = '<div class="detail-item"><strong>Lead record</strong><span>Identifier hidden in browser view</span></div><div class="detail-item"><strong>' + safe(lead.status) + '</strong><span>Status - ' + safe(formatDate(lead.createdAt)) + '</span></div><div class="detail-item"><strong>' + safe(lead.sourceService) + '</strong><span>Source service</span></div><div class="detail-item"><strong>' + safe(consentLabel(lead)) + '</strong><span>' + (lead.consentEvidencePresent ? 'Consent evidence present' : 'Consent evidence missing') + '</span></div><div class="detail-item"><strong>' + (lead.confirmedAt ? 'Confirmed' : 'Pending confirmation') + '</strong><span>' + safe(formatDate(lead.confirmedAt)) + '</span></div><div class="detail-item"><strong>' + (lead.unsubscribedAt ? 'Unsubscribed' : 'Subscribed state active') + '</strong><span>' + safe(formatDate(lead.unsubscribedAt)) + '</span></div>' + contacts + qualificationBlock();
+}
+
+/**
+ * S6 — the manual marking surface (C-006 §1).
+ *
+ * Two buttons and a reason box, rendered inside the lead detail that already exists. This is the
+ * whole of "how the owner qualifies a lead": he works it on WhatsApp or e-mail, comes back, and
+ * says what he concluded. Nothing here computes a verdict — `v1-owner-manual` means a human
+ * decides and the system records.
+ *
+ * The history is rendered underneath, superseded judgements included. A panel that showed only
+ * the current verdict would answer "is this qualified" and silently lose "we changed our mind".
+ */
+function qualificationBlock() {
+  const history = (state.qualifications || []).map((row) => {
+    const superseded = row.supersedesQualificationId ? ' - corrects an earlier judgement' : '';
+    const unannounced = row.announcedAt ? '' : ' - not yet announced to growth';
+    return '<div class="detail-item"><strong>' + safe(row.qualificationStatus) + '</strong><span>' + safe(formatDate(row.decidedAt)) + ' - ' + safe(row.reason) + safe(superseded, '') + safe(unannounced, '') + '</span></div>';
+  }).join('');
+
+  const current = state.qualifications?.[0];
+  // "pending" is not a stored value anywhere — it is the absence of any judgement, and this is the
+  // only place the word should appear (C-006 section 1.1).
+  const heading = current ? safe(current.qualificationStatus) : 'pending';
+
+  return '<div class="detail-item"><strong>Qualification: ' + heading + '</strong><span>v1-owner-manual - complete contact, detailed request, and the person replied on some channel</span></div>'
+    + '<div class="detail-item"><input id="qualification-reason" type="text" placeholder="Why? (required)" maxlength="500">'
+    + '<button type="button" data-qualify="qualified">Qualified</button>'
+    + '<button type="button" data-qualify="disqualified">Disqualified</button></div>'
+    + history;
 }
 
 function renderHiddenDetail() {
@@ -263,9 +294,14 @@ rowsEl?.addEventListener('click', async (event) => {
   if (!row) return;
   const lead = state.leads[Number(row.dataset.index)];
   if (!lead?.id) return;
+  state.selectedLeadId = lead.id;
+  // Cleared before the fetch, not after: leaving the previous lead's judgements on screen while
+  // the new one loads would show one lead's verdict against another lead's details.
+  state.qualifications = [];
   renderDetail(lead);
   try {
     const detail = await fetchJson('/api/admin/leads/' + encodeURIComponent(lead.id));
+    await loadQualifications(lead.id);
     renderDetail(detail);
     setStatus('Selected lead details loaded with safe admin fields.', 'ok');
   } catch (error) {
@@ -280,6 +316,58 @@ rowsEl?.addEventListener('click', async (event) => {
       return;
     }
     setStatus('Selected lead details could not be loaded.', 'risk');
+  }
+});
+
+async function loadQualifications(leadId) {
+  try {
+    const payload = await fetchJson('/api/admin/leads/' + encodeURIComponent(leadId) + '/qualification');
+    state.qualifications = payload.items || [];
+  } catch (error) {
+    // A missing history must not blank the lead detail behind it. Empty here reads as "pending",
+    // which is exactly what an unqualified lead is, so the wrong answer is a benign one.
+    state.qualifications = [];
+  }
+}
+
+detailEl?.addEventListener('click', async (event) => {
+  const button = event.target.closest?.('[data-qualify]');
+  if (!button) return;
+
+  const leadId = state.selectedLeadId;
+  if (!leadId) return;
+
+  const input = detailEl.querySelector?.('#qualification-reason');
+  const reason = String(input?.value || '').trim();
+  // Refused in the browser as well as on the server. A defaulted reason looks complete and
+  // carries nothing, and the owner is the person who will later ask why a lead was written off.
+  if (!reason) {
+    setStatus('A reason is required before qualifying a lead.', 'warn');
+    return;
+  }
+
+  try {
+    // A correction is a new judgement naming the one it replaces — never an edit. Sending
+    // supersedes only when a previous judgement exists keeps the first one clean.
+    const previous = state.qualifications?.[0];
+    const body = { qualificationStatus: button.dataset.qualify, reason };
+    if (previous?.id) body.supersedesQualificationId = previous.id;
+
+    const result = await postJson('/api/admin/leads/' + encodeURIComponent(leadId) + '/qualification', body);
+    await loadQualifications(leadId);
+    renderDetail(state.leads.find((lead) => lead.id === leadId));
+
+    setStatus(
+      result.announced
+        ? 'Judgement recorded and announced.'
+        : 'Judgement recorded. It has NOT reached growth yet - the broker did not confirm.',
+      result.announced ? 'ok' : 'warn',
+    );
+  } catch (error) {
+    const status = errorStatus(error);
+    if (status === 401 || status === 403) { renderUnauthorized(); return; }
+    if (status === 400) { setStatus('The judgement was rejected: a status and a non-empty reason are required.', 'risk'); return; }
+    setStatus('The judgement could not be recorded.', 'risk');
   }
 });
 

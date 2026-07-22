@@ -32,9 +32,44 @@ model Lead {
   submissions               LeadSubmission[]
   lifecycleEvents           LeadLifecycleEvent[]
   marketingApprovalEvidence LeadMarketingApprovalEvidence[]
+  qualifications            LeadQualification[]
 
   @@index([createdAt])
   @@index([sourceService])
+}
+
+/// S6 — the owner's manual judgement about a lead (C-006 §1, D19).
+///
+/// Append-only. A correction is a NEW row naming the one it supersedes; nothing here is ever
+/// updated or deleted, so "what did we think of this lead, and when" stays answerable.
+///
+/// There is no `pending` row. Pending is a lead with no rows here at all — recording it would turn
+/// "not worked yet" into a decision, and the cost metric counts pending leads against spend
+/// precisely because nobody decided anything about them.
+model LeadQualification {
+  id                          String   @id @default(uuid())
+  leadId                      String
+  /// `qualified` | `disqualified`. Not an enum: adding a value to a Prisma enum is a migration on
+  /// a table that must never be rewritten, and the contract schema is what actually pins the set.
+  qualificationStatus         String
+  /// Pinned to `v1-owner-manual`. A later criteria revision is a new event version, so old
+  /// judgements are never silently re-read under new rules.
+  criteriaVersion             String
+  /// Always `human` at v1. No rule-based or AI qualification exists.
+  decidedByType               String
+  /// The authenticated admin user id — never the literal string "owner".
+  decidedById                 String
+  decidedAt                   DateTime
+  reason                      String   @db.Text
+  supersedesQualificationId   String?
+  /// Set once the event reached the broker. Null means the judgement is stored but growth-core
+  /// has not heard about it — recoverable, and visible instead of silently lost.
+  announcedAt                 DateTime?
+  createdAt                   DateTime @default(now())
+  lead                        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, decidedAt])
+  @@index([decidedAt])
 }
 
 model LeadContactMethod {

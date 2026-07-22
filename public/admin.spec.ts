@@ -114,6 +114,29 @@ function errorResponse(status: number) {
   return { ok: false, status, json: jest.fn(), text: jest.fn() };
 }
 
+/**
+ * S6 — driving the manual marking surface.
+ *
+ * The controls live inside the lead-detail element rather than as new top-level ids, so the only
+ * harness capability they need is `closest` on the clicked button and `querySelector` for the
+ * reason box.
+ */
+function qualifyButton(status: 'qualified' | 'disqualified', reason: string, detail: MockElement) {
+  (detail as any).querySelector = (selector: string) =>
+    selector === '#qualification-reason' ? { value: reason } : null;
+  const button = { dataset: { qualify: status } };
+  return { target: { closest: (selector: string) => (selector === '[data-qualify]' ? button : null) } };
+}
+
+const leadRow = { target: { closest: () => ({ dataset: { index: '0' } }) } };
+
+const oneLead = {
+  items: [{ id: 'lead-1', status: 'new', sourceService: 'auth-microservice', contactMethods: [] }],
+  page: 1,
+  limit: 30,
+  total: 1,
+};
+
 describe('admin static UI hosted Auth states', () => {
   it('renders hosted-auth sign-in state before any admin fetch', () => {
     const fetchMock = jest.fn();
@@ -228,5 +251,116 @@ describe('admin static UI hosted Auth states', () => {
     expect(elements['admin-status'].textContent).toBe('Selected lead details are unavailable for this admin session.');
     expect(elements['lead-detail'].innerHTML).toContain('Details unavailable');
     expect(elements['lead-detail'].innerHTML).not.toContain('workspace');
+  });
+});
+
+describe('S6 manual qualification surface', () => {
+  async function selectLead(fetchMock: jest.Mock, elements: Record<string, MockElement>, history: unknown[] = []) {
+    await flushPromises();
+    fetchMock.mockResolvedValueOnce(okJson(oneLead.items[0]));
+    fetchMock.mockResolvedValueOnce(okJson({ items: history }));
+    await elements['lead-rows'].listeners.click(leadRow);
+    await flushPromises();
+  }
+
+  function loadWithLead(fetchMock: jest.Mock) {
+    fetchMock.mockResolvedValueOnce(okJson(oneLead));
+    return loadAdmin(fetchMock, { sessionToken: 'token-1' });
+  }
+
+  it('shows a lead with no judgements as pending', async () => {
+    const fetchMock = jest.fn();
+    const { elements } = loadWithLead(fetchMock);
+    await selectLead(fetchMock, elements);
+
+    expect(elements['lead-detail'].innerHTML).toContain('Qualification: pending');
+    expect(elements['lead-detail'].innerHTML).toContain('v1-owner-manual');
+  });
+
+  it('posts a judgement with the reason the owner typed', async () => {
+    const fetchMock = jest.fn();
+    const { elements } = loadWithLead(fetchMock);
+    await selectLead(fetchMock, elements);
+
+    fetchMock.mockResolvedValueOnce(okJson({ qualificationId: 'q-1', announced: true }));
+    fetchMock.mockResolvedValueOnce(okJson({ items: [{ id: 'q-1', qualificationStatus: 'qualified', reason: 'Odpověděl.', decidedAt: '2026-07-22T10:00:00.000Z', announcedAt: '2026-07-22T10:00:01.000Z' }] }));
+
+    await elements['lead-detail'].listeners.click(
+      qualifyButton('qualified', 'Odpověděl na WhatsApp.', elements['lead-detail']),
+    );
+    await flushPromises();
+
+    const post = fetchMock.mock.calls.find(([, init]: any) => init?.method === 'POST');
+    expect(post[0]).toBe('/api/admin/leads/lead-1/qualification');
+    expect(JSON.parse(post[1].body)).toEqual({
+      qualificationStatus: 'qualified',
+      reason: 'Odpověděl na WhatsApp.',
+    });
+    expect(elements['admin-status'].textContent).toContain('recorded and announced');
+  });
+
+  // A defaulted reason looks complete and carries nothing.
+  it('refuses to post a judgement with a blank reason', async () => {
+    const fetchMock = jest.fn();
+    const { elements } = loadWithLead(fetchMock);
+    await selectLead(fetchMock, elements);
+
+    const before = fetchMock.mock.calls.length;
+    await elements['lead-detail'].listeners.click(qualifyButton('qualified', '   ', elements['lead-detail']));
+    await flushPromises();
+
+    expect(fetchMock.mock.calls).toHaveLength(before);
+    expect(elements['admin-status'].textContent).toContain('reason is required');
+  });
+
+  it('sends a correction as a new judgement naming the one it supersedes', async () => {
+    const fetchMock = jest.fn();
+    const { elements } = loadWithLead(fetchMock);
+    await selectLead(fetchMock, elements, [
+      { id: 'q-1', qualificationStatus: 'qualified', reason: 'Odpověděl.', decidedAt: '2026-07-22T10:00:00.000Z', announcedAt: '2026-07-22T10:00:01.000Z' },
+    ]);
+
+    fetchMock.mockResolvedValueOnce(okJson({ qualificationId: 'q-2', announced: true }));
+    fetchMock.mockResolvedValueOnce(okJson({ items: [] }));
+
+    await elements['lead-detail'].listeners.click(
+      qualifyButton('disqualified', 'Ukázalo se, že to byl spam.', elements['lead-detail']),
+    );
+    await flushPromises();
+
+    const post = fetchMock.mock.calls.find(([, init]: any) => init?.method === 'POST');
+    expect(JSON.parse(post[1].body).supersedesQualificationId).toBe('q-1');
+  });
+
+  // A stored-but-unannounced judgement is the one state that looks fine and is not: growth-core
+  // never hears about it, so the qualified count silently stays wrong.
+  it('says so plainly when the judgement did not reach growth', async () => {
+    const fetchMock = jest.fn();
+    const { elements } = loadWithLead(fetchMock);
+    await selectLead(fetchMock, elements);
+
+    fetchMock.mockResolvedValueOnce(okJson({ qualificationId: 'q-1', announced: false }));
+    fetchMock.mockResolvedValueOnce(okJson({ items: [] }));
+
+    await elements['lead-detail'].listeners.click(qualifyButton('qualified', 'Odpověděl.', elements['lead-detail']));
+    await flushPromises();
+
+    expect(elements['admin-status'].textContent).toContain('NOT reached growth');
+    expect(elements['admin-status'].className).toContain('warn');
+  });
+
+  it('shows superseded judgements in the history rather than only the current verdict', async () => {
+    const fetchMock = jest.fn();
+    const { elements } = loadWithLead(fetchMock);
+    await selectLead(fetchMock, elements, [
+      { id: 'q-2', qualificationStatus: 'disqualified', reason: 'Spam.', decidedAt: '2026-07-22T11:00:00.000Z', supersedesQualificationId: 'q-1', announcedAt: '2026-07-22T11:00:01.000Z' },
+      { id: 'q-1', qualificationStatus: 'qualified', reason: 'Odpověděl.', decidedAt: '2026-07-22T10:00:00.000Z', announcedAt: '2026-07-22T10:00:01.000Z' },
+    ]);
+
+    const html = elements['lead-detail'].innerHTML;
+    expect(html).toContain('Qualification: disqualified');
+    expect(html).toContain('Spam.');
+    expect(html).toContain('Odpověděl.');
+    expect(html).toContain('corrects an earlier judgement');
   });
 });
