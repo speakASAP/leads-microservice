@@ -17,7 +17,7 @@ data:
   # LOG_LEVEL: "info"
   DB_HOST: "db-server-postgres.statex-apps.svc.cluster.local"
   DB_PORT: "5432"
-  DB_USER: "dbadmin"
+  DB_USER: "leads"
   DB_NAME: "leads"
   DB_SYNC: "false"
   DB_AUTO_CREATE: "true"
