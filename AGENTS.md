@@ -21,25 +21,19 @@ All implementation and orchestration work for this project must happen on the re
 /home/ssf/Documents/Github/leads-microservice
 ```
 
-Use local files only as a temporary staging mirror when needed, then copy changes to the remote repo and validate on `alfares`.
+Work directly in the authoritative repository on `alfares`; do not copy staged source into production.
 
-## Knowledge Retrieval (query before reading files)
+## Knowledge Retrieval
 
-Query the RAG service first to reuse indexed ecosystem context before broad architecture or cross-service file review:
+Use `docs-rag-microservice` for bounded discovery when it is healthy, then
+verify deployment, security, database, integration and public-contract facts
+against the cited Git source. Git remains authoritative.
 
-```bash
-curl -s -X POST http://docs-rag-microservice.statex-apps.svc.cluster.local:3397/retrieval/agent-context \
-  -H "Authorization: Bearer $JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "YOUR QUESTION HERE", "maxTokens": 3000}'
-```
+Authority and fallback rules:
+`/home/ssf/Documents/Github/shared/docs/DOCUMENTATION_AUTHORITY.md`.
 
-- Internal URL: `http://docs-rag-microservice.statex-apps.svc.cluster.local:3397`
-- Public URL: `https://docs-rag.alfares.cz`
-- Full guide: `docs-rag-microservice/docs/RAG_USAGE.md`
-- If a token is unavailable, record that limitation in `docs/orchestrator/STATUS.md` and use repo-local source-of-truth docs only.
-
-No autonomous AI agents. Business logic is rule-based.
+Do not generate tokens in documentation or assume an unconfident/failed RAG
+response means that source documentation does not exist.
 
 ## Intent Preservation
 
