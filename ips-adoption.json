@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "profile": "runtime-service",
+  "project": {
+    "name": "leads-microservice",
+    "repository": "https://github.com/speakASAP/leads-microservice.git"
+  },
+  "standard": {
+    "repository": "https://github.com/speakASAP/intent-preservation-system",
+    "revision": "3e36f64c11e31b878fd2fe09267426738b25ae7f"
+  },
+  "artifacts": {
+    "readme": "README.md",
+    "business": "BUSINESS.md",
+    "system": "SYSTEM.md",
+    "agents": "AGENTS.md",
+    "operations": "AGENT_OPERATIONS.md",
+    "claude": "CLAUDE.md",
+    "tasks": "TASKS.md",
+    "state": "STATE.json",
+    "constitution": "docs/00_constitution/CONSTITUTION.md",
+    "vision": "docs/01_vision/VISION.md",
+    "integrationContract": "docs/06_architecture/INTEGRATION_CONTRACT.md",
+    "projectInvariants": "docs/17_governance/PROJECT_INVARIANTS.md",
+    "validationDebt": "docs/orchestrator/VALIDATION_DEBT.md",
+    "bootstrapTask": "docs/11_tasks/TASK-001-bootstrap-service.md",
+    "bootstrapGoalImpact": "docs/22_goal_impact/GOAL-IMPACT-TASK-001.md",
+    "bootstrapExecutionPlan": "docs/21_execution_plans/EP-TASK-001-bootstrap-service.md",
+    "bootstrapValidation": "docs/12_validation/VAL-TASK-001-bootstrap-service.md"
+  },
+  "integrationReview": [
+    {
+      "capability": "auth",
+      "component": "auth-microservice",
+      "decision": "required",
+      "reason": "SYSTEM.md documents AUTH_SERVICE_URL as an integration used by this service, and TASKS.md records a completed 'production auth workspace token matrix validation' goal.",
+      "contract": "Auth-backed admin/API authentication per goal-19 (auth-backed-admin-api-authentication-complete)",
+      "configuration": "AUTH_SERVICE_URL configured in .env",
+      "failureMode": "Authentication outage blocks admin/API actions requiring identity validation.",
+      "validation": "Auth-backed admin API route smoke checks."
+    },
+    {
+      "capability": "postgres",
+      "component": "database-server (db-server-postgres)",
+      "decision": "required",
+      "reason": "SYSTEM.md documents the `leads` PostgreSQL database via DB_HOST/DB_* and Prisma, with first-deploy database creation and `prisma migrate deploy` on container start.",
+      "contract": "Prisma-managed relational storage for lead, consent, and attribution data",
+      "configuration": "DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME via database-server:5432",
+      "failureMode": "A database outage blocks all lead reads/writes.",
+      "validation": "Prisma migration status and connectivity checks."
+    },
+    {
+      "capability": "redis",
+      "component": "database-server (db-server-redis)",
+      "decision": "not-applicable",
+      "reason": ".env.example declares optional REDIS_HOST/REDIS_PORT/REDIS_PASSWORD/REDIS_DB variables, but no code reference to Redis was found anywhere in src/; the service does not currently use Redis."
+    },
+    {
+      "capability": "logging",
+      "component": "logging-microservice",
+      "decision": "required",
+      "reason": "SYSTEM.md documents LOGGING_SERVICE_URL for centralized logging.",
+      "contract": "Structured log delivery per the platform logging contract",
+      "configuration": "LOGGING_SERVICE_URL",
+      "failureMode": "Logging outage degrades observability without blocking lead intake.",
+      "validation": "Structured log delivery checks."
+    },
+    {
+      "capability": "notifications",
+      "component": "notifications-microservice",
+      "decision": "required",
+      "reason": "SYSTEM.md documents NOTIFICATION_SERVICE_URL as an integration for this service.",
+      "contract": "Notification dispatch for lead-related operator/consumer alerts",
+      "configuration": "NOTIFICATION_SERVICE_URL",
+      "failureMode": "Notification failures degrade operator awareness without blocking lead capture.",
+      "validation": "Notification dispatch smoke checks when configured."
+    },
+    {
+      "capability": "ai",
+      "component": "ai-microservice",
+      "decision": "required",
+      "reason": "SYSTEM.md documents AI_SERVICE_URL for AI-based lead analysis integration, and BUSINESS.md's core constraint governs how AI may use lead data.",
+      "contract": "AI-analysis calls for submitted leads with human-approval gates for raw-data export",
+      "configuration": "AI_SERVICE_URL",
+      "failureMode": "AI outage degrades lead-analysis enrichment without blocking basic lead capture and storage.",
+      "validation": "AI-analysis endpoint smoke tests, respecting the no-raw-export-without-approval constraint."
+    },
+    {
+      "capability": "payments",
+      "component": "payments-microservice",
+      "decision": "not-applicable",
+      "reason": "leads-microservice does not process payments; it only attributes leads to Orders-domain events."
+    },
+    {
+      "capability": "catalog",
+      "component": "catalog-microservice",
+      "decision": "not-applicable",
+      "reason": "No catalog/product-domain integration exists in this repository."
+    },
+    {
+      "capability": "orders",
+      "component": "orders-microservice",
+      "decision": "required",
+      "reason": "TASKS.md documents a completed Orders order-created event consumer (goal-29 series) with a live RabbitMQ broker adapter, attributing leads to Orders events.",
+      "contract": "Consume Orders `order.created` events for lead attribution",
+      "configuration": "LEADS_ORDERS_EVENTS_RABBITMQ_URL and the orders-order-created-broker-adapter service",
+      "failureMode": "When the consumer is disabled or the broker is unreachable, new lead-attribution events are missed; STATE.json records an open blocker for defining a replay/backfill validation source.",
+      "validation": "Contract guard tests for the order-created consumer (src/leads/integrations/orders-order-created-broker-adapter.service.spec.ts)."
+    },
+    {
+      "capability": "warehouse",
+      "component": "warehouse-microservice",
+      "decision": "not-applicable",
+      "reason": "No physical inventory or warehouse concern exists in this lead-intake service."
+    },
+    {
+      "capability": "invoices",
+      "component": "invoices-microservice",
+      "decision": "not-applicable",
+      "reason": "No invoicing integration exists in this repository."
+    },
+    {
+      "capability": "object-storage",
+      "component": "minio-microservice",
+      "decision": "not-applicable",
+      "reason": "No object-storage usage was found in this repository's code or configuration."
+    },
+    {
+      "capability": "event-bus",
+      "component": "RabbitMQ",
+      "decision": "required",
+      "reason": "src/leads/integrations/orders-order-created-broker-adapter.service.ts implements a live RabbitMQ consumer for Orders order-created events, configured via LEADS_ORDERS_EVENTS_RABBITMQ_URL.",
+      "contract": "Consume Orders `order.created` events over RabbitMQ for lead attribution",
+      "configuration": "LEADS_ORDERS_EVENTS_RABBITMQ_URL, Vault-managed per goal-29d",
+      "failureMode": "When RabbitMQ is unavailable, the broker adapter is disabled and new lead-attribution events are missed until connectivity and the still-open replay/backfill validation are resolved.",
+      "validation": "orders-order-created-broker-adapter.service.spec.ts contract guard tests."
+    },
+    {
+      "capability": "docs-rag",
+      "component": "docs-rag-microservice",
+      "decision": "required",
+      "reason": "AGENTS.md already directs agents to use docs-rag-microservice for bounded discovery on this repository, with Git as the authoritative fallback.",
+      "contract": "Direct Git repository ingestion and repository-scoped retrieval",
+      "configuration": "Tracked in the canonical repository registry and docs-RAG index",
+      "failureMode": "When docs-RAG is unavailable, Git remains authoritative per AGENTS.md.",
+      "validation": "Repository documents resolve to the owning repository path and remain discoverable."
+    },
+    {
+      "capability": "monitoring",
+      "component": "monitoring-microservice",
+      "decision": "required",
+      "reason": "Runtime health and rollout readiness must be observable through the shared monitoring model, consistent with the documented GET /health endpoint.",
+      "contract": "GET /health and Kubernetes readiness checks for rollout control",
+      "configuration": "Deployment probes and health endpoint in k8s manifests",
+      "failureMode": "An unhealthy service is prevented from passing rollout readiness and is reported to the owner.",
+      "validation": "The monitoring stack confirms health, readiness, and service availability."
+    },
+    {
+      "capability": "backups",
+      "component": "backups-microservice",
+      "decision": "required",
+      "reason": "The `leads` PostgreSQL database holds production lead and consent data and requires backup coverage consistent with other ecosystem databases.",
+      "contract": "Scheduled/manual PostgreSQL backups for the leads database",
+      "configuration": "backup-db.sh or equivalent invoked against the leads database",
+      "failureMode": "Missed backups increase data-loss risk on failure; this must be flagged as an operational blocker if backup automation lapses.",
+      "validation": "Backup script execution and restore-drill evidence."
+    }
+  ]
+}
