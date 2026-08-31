@@ -2,16 +2,13 @@
 
 This file is the concise human-readable work queue. Detailed task contracts live under `docs/11_tasks/` and execution records remain linked there.
 
-## active
-
+## Active
 - None currently active per STATE.json (tasks_active: 0).
 
-## ready next
-
+## Ready Next
 - Resolve Goal 29 replay/backfill validation before broad live Orders event consumption (TASKS.md Backlog).
 
-## blocked
-
+## Blocked
 - Replay/backfill validation source for missed Orders order-created events is not yet defined; this blocks broad live Orders event consumption beyond new explicit lead-attribution events.
 
 ## completed
