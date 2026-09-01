@@ -7,6 +7,8 @@ This file is the concise human-readable work queue. Detailed task contracts live
 
 ## Ready Next
 - Resolve Goal 29 replay/backfill validation before broad live Orders event consumption (TASKS.md Backlog).
+- Define and validate replay/backfill source for missed Orders events; live consumer is enabled only for new explicit lead-attribution events
+- IPS adoption profile completed 2026-08-30; run the planning validator before further scope changes
 
 ## Blocked
 - Replay/backfill validation source for missed Orders order-created events is not yet defined; this blocks broad live Orders event consumption beyond new explicit lead-attribution events.
