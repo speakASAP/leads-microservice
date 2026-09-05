@@ -1,8 +1,38 @@
 {
   "schema_version": "1.0",
   "repository": "leads-microservice",
-  "generated_at": "2026-08-31T18:25:00Z",
-  "artifacts": [],
+  "generated_at": "2026-09-05T18:09:33Z",
+  "artifacts": [
+    {
+      "id": "GOAL-LEADS-029",
+      "type": "goal",
+      "status": "blocked",
+      "title": "Goal 29: Orders event consumer contract and replay/backfill validation",
+      "path": "TASKS.md",
+      "parent_ids": [],
+      "updated_at": "2026-09-05T18:09:33Z"
+    },
+    {
+      "id": "TASK-LEADS-001",
+      "type": "task",
+      "status": "done",
+      "title": "TASK-001-bootstrap-service \u2014 IPS adoption bootstrap",
+      "path": "TASKS.md",
+      "parent_ids": [],
+      "updated_at": "2026-08-30T00:00:00Z"
+    },
+    {
+      "id": "TASK-LEADS-029-REPLAY",
+      "type": "task",
+      "status": "ready",
+      "title": "Define and validate replay/backfill source for missed Orders events",
+      "path": "TASKS.md",
+      "parent_ids": [
+        "GOAL-LEADS-029"
+      ],
+      "updated_at": "2026-09-05T18:09:33Z"
+    }
+  ],
   "warnings": [
     "MISSING_RUNLAYER_PROJECT_MAPPING: RunLayer mapping is not yet verified for leads-microservice."
   ]
