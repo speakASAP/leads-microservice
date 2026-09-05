@@ -255,7 +255,6 @@ Source context:
 
 - Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, required orchestrator docs, `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `src/leads/leads.controller.ts`, `src/leads/leads.service.ts`, `src/leads/dto/lead-query.dto.ts`, `src/leads/guards/internal-service.guard.ts`, `src/leads/guards/internal-service.guard.spec.ts`, and `package.json`.
 - Queried DocsRAG from inside the Leads runtime pod because the plain SSH shell does not expose runtime secrets. Retrieval returned HTTP 200 for the Goal 3 privacy-safe retrieval query. The token value was not printed or persisted.
-- DocsRAG context reinforced the trusted internal-service header contract: `x-internal-service-token` and `x-service-name`, with optional `TRUSTED_INTERNAL_SERVICES` caller-name restrictions.
 
 Implementation evidence:
 
@@ -757,7 +756,6 @@ Implementation evidence:
 
 Contract decisions:
 
-- Human admin access must use Auth-backed sessions or JWTs; browser users must not type or store `INTERNAL_SERVICE_TOKEN`.
 - Service-to-service internal-token routes remain backend-only and separate from human admin APIs.
 - Leads must not implement login, registration, password handling, user identity storage, or RBAC source of truth.
 - Future admin APIs require Auth claims for user identity, roles, active workspace, and membership proof.
@@ -1013,7 +1011,6 @@ Next recommended goal:
 
 - Select the next lifecycle runtime slice, likely `LeadConfirmed` or `LeadPreferenceUpdated` lifecycle adoption with focused tests.
 
-
 ## 2026-06-13 - Goal 14 LeadConfirmed And LeadPreferenceUpdated Lifecycle Adoption Complete
 
 Current focus:
@@ -1055,7 +1052,6 @@ Gate decision:
 Next recommended goal:
 
 - Select the next integration slice, likely consumer-side lifecycle event routing or Auth conversion linkage planning with focused contracts.
-
 
 ## 2026-06-13 - Goal 15 Lifecycle Routing And Auth Conversion Linkage Complete
 
@@ -1104,7 +1100,6 @@ Gate decision:
 Next recommended goal:
 
 - Select the next owner-approved runtime slice, likely durable lifecycle event storage, Marketing eligibility preview, or Auth-backed admin authentication.
-
 
 ## 2026-06-13 - Goal 16 Marketing Campaign Eligibility Preview Complete
 
@@ -1155,7 +1150,6 @@ Gate decision:
 Next recommended goal:
 
 - Select the next owner-approved runtime slice, likely controlled contact resolution after approval, durable lifecycle event storage, or Auth-backed admin authentication.
-
 
 ## 2026-06-13 - Goal 17 Controlled Contact Resolution Complete
 
@@ -1315,7 +1309,6 @@ Implementation evidence:
 
 - Added Auth-backed AdminAuthGuard using Auth POST /auth/validate.
 - Added masked browser/admin APIs under /api/admin/leads.
-- Updated admin browser shell to use Authorization bearer tokens instead of internal service token headers.
 - Kept service-to-service routes on InternalServiceGuard.
 - Recorded tenant/workspace mapping as follow-up because Auth contract does not define Leads tenant mapping yet.
 
@@ -1407,7 +1400,6 @@ Next recommended action:
 
 - Configure real LEADS_ADMIN_WORKSPACE_SOURCE_MAP entries once concrete Auth workspace IDs are available, or select the next owner-approved Leads runtime slice.
 
-
 ## 2026-06-13 - Goal 20 Workspace Source Map Configuration Blocked
 
 Current focus:
@@ -1435,7 +1427,6 @@ Gate decision:
 Next recommended action:
 
 - Add or confirm Auth workspace/tenant claims in auth-microservice, then configure LEADS_ADMIN_WORKSPACE_SOURCE_MAP with those exact claim values and approved sourceService lists.
-
 
 ## 2026-06-13 - Goal 20 Vault-Backed Auth Role Source Map
 
@@ -1475,7 +1466,6 @@ Gate decision:
 
 - Source, manifest, and Vault configuration are ready for commit and deployment.
 
-
 ## 2026-06-13 - Goal 20 Vault Role Map Deployment Complete
 
 Deployment evidence:
@@ -1494,7 +1484,6 @@ Deployment evidence:
 Gate decision:
 
 - Deployment accepted. Goal 20 admin source mapping is now Auth-role scoped and Vault-backed in production.
-
 
 ## 2026-06-13 - Real Auth Admin Token Validation
 
@@ -1739,7 +1728,6 @@ Next unfinished action:
 
 - Owner/integration lane should choose target product app repositories for cross-repo adoption or keep Goal 26 as Leads-side complete with blocked cross-repo follow-ups.
 
-
 ## 2026-06-13 - Goal 27 Documentation Ingestion And Orchestrator Freshness
 
 Current focus:
@@ -1841,7 +1829,6 @@ Next handoff:
 
 - Coordinator/owner can select the first replay consumer and route shape for a future serialized runtime goal, or leave the builder dormant until needed.
 
-
 ## 2026-06-13 - Goal 25 Marketing Approval Evidence Handoff Contract Complete
 
 Current focus:
@@ -1891,7 +1878,6 @@ Next unfinished handoff:
 - Marketing integration can adapt to the structured `approvalEvidence` object for approved contact-resolution calls.
 - Final integration owner should reconcile shared `docs/IMPLEMENTATION_STATE.md`, `TASKS.md`, `STATE.json`, and the parallel execution board after all parallel agents finish.
 
-
 ## 2026-06-13 - Goal 24 Agent C Validation Confirmation
 
 Current focus:
@@ -1940,7 +1926,6 @@ Coordination updates:
 Next recommended action:
 
 - Wait for Goal 23 to finish, then run integration validation across accumulated Goal 23-26 runtime/test changes before any deployment.
-
 
 ## 2026-06-13 - Goal 23 Admin UI Scope Messaging And Empty-State Hardening Complete
 
@@ -2056,8 +2041,6 @@ Next recommended action:
 
 - Provide valid approved admin tokens to unblock Goal 22, or select one blocked follow-up: Goal 24 runtime replay consumer, Goal 25 approval storage ownership, or Goal 26 target product-app repositories.
 
-
-
 ## 2026-06-14 - Next Goal Readiness Review
 
 Current focus:
@@ -2089,7 +2072,6 @@ Next recommended action:
 
 - Owner should pick one gated path: unblock Goal 22 with approved tokens, select Goal 24 first replay consumer, choose Goal 25 approval-storage ownership, or name Goal 26 target product repositories.
 
-
 ## 2026-06-15 - Owner Approval And Parallel Goal Reactivation
 
 Current focus:
@@ -2114,7 +2096,6 @@ Coordination rules:
 Next recommended action:
 
 - Monitor active worker threads, then merge and validate in conflict-safe order: Goal 22 evidence, Goal 26 FlipFlop app changes, Goal 24 replay route, Goal 25 migration/storage, final integration validation, then deployment readiness.
-
 
 ## 2026-06-15 - Goal 25 Leads-Owned Approval Evidence Storage Follow-Up
 
@@ -2183,7 +2164,6 @@ Implementation evidence:
 - Added `GET /api/leads/internal/:id/lifecycle-replay`, guarded by `InternalServiceGuard`.
 - Added `LeadsService.getLeadLifecycleReplay`, one-lead scoped, consumer-scoped, time-bound capable, storage-read bounded to `limit + 1`, and output-clamped to max 30.
 - Added focused Leads tests proving guard coverage, FlipFlop route filtering, bounded replay, and sensitive-field omission.
-- Added FlipFlop `shared/clients/leads-client.service.ts`, exported it from shared clients, added `LEADS_SERVICE_URL`, mapped `LEADS_INTERNAL_SERVICE_TOKEN` by secret name only, and added `npm run verify:leads-lifecycle-replay`.
 
 Validation evidence:
 
@@ -2206,7 +2186,6 @@ Gate decision:
 Next unfinished chunks:
 
 - Deploy only after the source thread/integration owner approves final integration and confirms runtime trust/token provisioning for `flipflop-service` against Leads `TRUSTED_INTERNAL_SERVICES` policy.
-
 
 ## 2026-06-15 - Goal 22 Production Auth Workspace Token Matrix Validation Complete
 
@@ -2412,7 +2391,6 @@ Next recommended action:
 
 - Resolve production RabbitMQ secret/config wiring and replay/backfill validation before enabling the live broker adapter.
 
-
 ## 2026-07-01 - Goal 29B Orders Created Event Runtime Handler Continuation
 
 Current focus:
@@ -2457,7 +2435,6 @@ Validation evidence:
 Next recommended action:
 
 - Wire production Leads RabbitMQ secret/config values and replay/backfill validation, then enable the live broker adapter without broadening into Orders, Marketing, Notifications, Warehouse, Catalog, or channel repos.
-
 
 ## 2026-07-01 - Goal 29C Orders Created Live Broker Adapter
 
@@ -2519,7 +2496,6 @@ Next recommended action:
 
 - Validate and commit Goal 29C. Do not deploy until production RabbitMQ secret/config wiring, broker smoke approval, and replay/backfill validation source are explicit.
 
-
 ## 2026-07-01 - Goal 29D Orders Events RabbitMQ Vault Config Wiring
 
 Current focus:
@@ -2572,7 +2548,6 @@ Validation evidence:
 - Runtime key-name scan found only declared Leads Orders-events names/defaults; no secret values printed.
 - Vault property presence check for `LEADS_ORDERS_EVENTS_RABBITMQ_URL`: present, value redacted.
 - Pending after commit: deploy, rollout, health, env-name presence, queue/binding smoke.
-
 
 ### Goal 29D Runtime DI Hotfix
 

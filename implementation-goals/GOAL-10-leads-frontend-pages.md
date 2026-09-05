@@ -14,7 +14,6 @@ Owner request: create a customer landing page and an admin section for registere
 
 - Landing page served at `/` with product positioning, workflow, governance, and request-access form.
 - Admin page served at `/admin` with secure access panel, metrics, source mix, consent health, confirmation queue, filters, recent leads table, and selected lead detail panel.
-- Admin browser UI does not load lead data until an internal service token is supplied, and contact values are masked in rendered tables/details.
 - Docker runtime now copies `public/` so the pages ship with the Nest service image.
 
 ## Sensitive-Data Handling

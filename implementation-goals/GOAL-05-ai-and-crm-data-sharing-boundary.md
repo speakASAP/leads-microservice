@@ -41,15 +41,6 @@ AI and CRM integrations must use minimum necessary lead context and never export
 
 ## Data Classes
 
-| Class | Examples | Default handling |
-| --- | --- | --- |
-| Public operational metadata | source service name, lead ID, counts, timestamps, page/limit, status flags | Allowed in logs and validation evidence when it does not identify a person or expose message content. |
-| Consent/preference state | `marketingConsent`, `consentSource`, `consentCapturedAt`, `preferredChannel`, `fallbackChannels`, `unsubscribedAt` | Share only through trusted internal APIs and only for consent/preference decisions. Preserve GDPR evidence. |
-| Contact data | email, telegram, whatsapp values, recipient fields | Sensitive. Do not put in docs, prompts, logs, tests, screenshots, or AI/CRM payloads unless owner approval names fields, destination, retention, and validation. |
-| Lead narrative/context | submitted message, metadata values, source URL path/query, source label when identifying | Sensitive. Minimize or redact before AI/CRM use; raw export requires explicit active-task approval. |
-| Confirmation/unsubscribe secrets | confirmation token, private confirmation URLs, internal service token | Secret/sensitive. Never export to AI/CRM and never record in docs or prompts. |
-| Production rows/logs | database records, raw service logs containing lead details, CRM records | Sensitive. Do not copy into reports. Use masked summaries only when operational validation requires it. |
-
 ## Redaction And Minimization Rules
 
 - Default AI/CRM payload posture: no payload until an owner-approved task names the destination, fields, retention, and validation evidence.

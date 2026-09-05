@@ -82,14 +82,11 @@ Replay payloads, docs, tests, logs, and validation evidence must omit contact va
 
 Leads owns non-registered lifecycle evidence. Logging owns centralized log storage and analytics log history. Marketing owns campaign policy and execution. Notifications owns delivery mechanics. Auth owns identity and registered-user claims. CRM owns workflow after it consumes minimized evidence.
 
-
 ## 2026-06-15 FlipFlop Runtime Consumer Addendum
 
 Approved first runtime consumer: `flipflop-service`.
 
 Runtime route: `GET /api/leads/internal/:id/lifecycle-replay`.
-
-Required headers: `x-internal-service-token` and `x-service-name: flipflop-service`. Leads still relies on `InternalServiceGuard`, including `TRUSTED_INTERNAL_SERVICES` when configured.
 
 Required query: `consumer=flipflop-service`. Optional query: `purpose`, `limit`, `fromOccurredAt`, and `toOccurredAt`.
 

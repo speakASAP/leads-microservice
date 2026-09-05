@@ -46,7 +46,6 @@ Make raw lead list/detail retrieval controlled, preserve the max-30 list bound, 
 - `GET /api/leads/:id` calls `getLeadById` and currently returns raw lead detail with contact methods and submissions.
 - Internal preference read/update and unsubscribe routes already use `InternalServiceGuard`.
 - `listLeads` clamps page size with `Math.min(query.limit || 30, 30)`.
-- `InternalServiceGuard` checks `x-internal-service-token` and, when `TRUSTED_INTERNAL_SERVICES` is configured, requires `x-service-name` to be listed.
 
 ## Required Behavior
 

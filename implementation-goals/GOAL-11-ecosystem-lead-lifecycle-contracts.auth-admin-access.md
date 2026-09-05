@@ -17,8 +17,6 @@ downstream:
 
 ## Purpose
 
-Define the Auth-backed tenant and admin access requirements for the Leads admin experience before replacing the temporary browser-entered internal service token shell.
-
 This is a contract artifact only. It does not change runtime authentication behavior.
 
 ## Source Context
@@ -35,10 +33,6 @@ DocsRAG retrieval for Auth/RBAC context returned HTTP 200 from the in-cluster Le
 Token values were not printed.
 
 ## Core Decision
-
-Human admin access to Leads must use Auth-backed sessions or JWTs. Browser users must not type or store `INTERNAL_SERVICE_TOKEN`.
-
-Service-to-service calls may continue to use `InternalServiceGuard` with `x-internal-service-token` and `x-service-name`, but that path is for trusted backend services only, not browser admin users.
 
 ## Ownership Boundary
 
@@ -173,7 +167,6 @@ PATCH /api/admin/leads/:id/lifecycle
 
 Rules:
 
-- Browser/admin APIs require Auth session/JWT, not `x-internal-service-token`.
 - Service-to-service APIs may continue under `/api/leads/internal/...` with `InternalServiceGuard`.
 - Mask contact values by default.
 - Do not return raw messages in list views.

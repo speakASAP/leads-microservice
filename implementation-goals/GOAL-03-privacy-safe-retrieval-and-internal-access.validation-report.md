@@ -43,9 +43,7 @@ Focused service tests confirm `listLeads` clamps omitted or oversized `limit` va
 
 Focused guard tests confirm:
 
-- valid `x-internal-service-token` plus trusted `x-service-name` is accepted;
 - untrusted service name is rejected;
-- missing internal service token is rejected;
 - missing service name is rejected when trusted services are configured.
 
 ## Sensitive-Data Evidence

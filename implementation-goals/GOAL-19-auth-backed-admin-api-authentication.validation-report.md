@@ -13,7 +13,6 @@ Pre-coding gate result: pass with documented tenant-scope follow-up. Auth contra
 - Added src/auth/admin-auth.guard.ts and focused guard tests.
 - Added src/leads/admin-leads.controller.ts and focused controller tests.
 - Updated src/leads/leads.service.ts with masked admin summary, list, and detail methods.
-- Updated public/admin.html and public/admin.js to use Auth bearer tokens instead of internal service token headers.
 - Preserved existing InternalServiceGuard routes for service-to-service APIs.
 
 ## Validation Evidence

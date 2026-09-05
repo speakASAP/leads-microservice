@@ -333,7 +333,6 @@ Client responsibilities:
 
 Client non-goals:
 
-- no internal-service token;
 - no guarded list/detail retrieval;
 - no campaign eligibility;
 - no contact resolution;
@@ -357,5 +356,4 @@ Client non-goals:
 - No raw lead export.
 - No mass outreach.
 - No campaign execution.
-- No internal-service token in browser code.
 - No secrets, real contacts, raw messages, or confirmation tokens in docs, logs, tests, prompts, or validation output.

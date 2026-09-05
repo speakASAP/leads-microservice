@@ -52,8 +52,6 @@ No consent semantics change. Access to stored consent and preference fields is t
 
 ## Contract/Schema Impact
 
-Public contract change: `GET /api/leads` and `GET /api/leads/:id` become trusted internal-service routes and require `x-internal-service-token` plus `x-service-name` accepted by `InternalServiceGuard`. `POST /api/leads/submit` and `GET /api/leads/confirm/:token` remain public. Internal preference and unsubscribe paths keep their existing guarded contract. No schema change.
-
 ## Replay/Determinism Impact
 
 Validation is unit-level and deterministic. It does not create leads, send notifications, confirm tokens, unsubscribe contacts, or mutate production.

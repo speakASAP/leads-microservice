@@ -2,14 +2,11 @@
 
 ## Intent
 
-Leads must replace browser-entered internal service token usage with Auth-backed bearer-token validation for human admin APIs, while keeping service-to-service internal token routes separate.
-
 ## Scope
 
 - Validate Auth-issued bearer tokens by calling Auth POST /auth/validate.
 - Enforce Leads admin roles locally from Auth-owned role claims.
 - Add masked browser/admin APIs under /api/admin/leads.
-- Update the admin browser shell to send Authorization bearer tokens instead of x-internal-service-token.
 
 ## Non-Goals
 
