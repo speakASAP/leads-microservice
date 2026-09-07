@@ -11,6 +11,7 @@ import { UpdateLeadPreferencesDto } from './dto/update-lead-preferences.dto';
 import { LoggingService } from '../logging/logging.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { InternalServiceGuard } from './guards/internal-service.guard';
+import { Roles } from './guards/roles.decorator';
 import {
   buildLeadConfirmedEvent,
   buildLeadConvertedToUserEvent,
@@ -18,6 +19,18 @@ import {
   buildLeadSubmittedEvent,
 } from './integrations/lifecycle-events';
 import { LeadLifecycleEventRouterService } from './integrations/lifecycle-event-router.service';
+
+/** Read principal roles for internal Leads APIs (seed in Auth if missing). */
+const LEADS_READ_ROLES = [
+  'internal:leads-microservice:read',
+  'internal:leads-microservice:service',
+] as const;
+
+/** Write principal roles for mutating / PII-resolution internal Leads APIs. */
+const LEADS_WRITE_ROLES = [
+  'internal:leads-microservice:write',
+  'internal:leads-microservice:service',
+] as const;
 
 @Controller('leads')
 export class LeadsController {
@@ -115,6 +128,7 @@ export class LeadsController {
 
   @Get('marketing/recipients')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async listMarketingRecipients(@Query() query: Record<string, string | undefined>) {
     const result = await this.leadsService.listMarketingRecipients(query);
     await this.loggingService.log('info', 'Marketing recipient list retrieved', {
@@ -126,6 +140,7 @@ export class LeadsController {
 
   @Get(':id')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async getLead(@Param('id') id: string) {
     const lead = await this.leadsService.getLeadById(id);
     await this.loggingService.log('info', 'Lead retrieved', { leadId: id });
@@ -134,6 +149,7 @@ export class LeadsController {
 
   @Get()
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async listLeads(@Query() query: LeadQueryDto) {
     const result = await this.leadsService.listLeads(query);
     await this.loggingService.log('info', 'Lead list retrieved', {
@@ -146,6 +162,7 @@ export class LeadsController {
 
   @Post('internal/contact-resolution')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_WRITE_ROLES)
   async resolveLeadContact(@Body() payload: ContactResolutionDto) {
     const startedAt = Date.now();
     const result = await this.leadsService.resolveLeadContact(payload);
@@ -164,6 +181,7 @@ export class LeadsController {
 
   @Post('internal/campaign-eligibility/preview')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async previewCampaignEligibility(@Body() payload: CampaignEligibilityPreviewDto) {
     const startedAt = Date.now();
     const result = await this.leadsService.previewCampaignEligibility(payload);
@@ -181,6 +199,7 @@ export class LeadsController {
 
   @Get('internal/:id/sanitized-context')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async getSanitizedLeadContext(@Param('id') id: string) {
     const startedAt = Date.now();
     const result = await this.leadsService.getSanitizedLeadContext(id);
@@ -199,6 +218,7 @@ export class LeadsController {
 
   @Get('internal/:id/lifecycle-events')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async getLeadLifecycleEvents(@Param('id') id: string) {
     const startedAt = Date.now();
     const result = await this.leadsService.getLeadLifecycleEvents(id);
@@ -213,6 +233,7 @@ export class LeadsController {
 
   @Get("internal/:id/lifecycle-replay")
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async getLeadLifecycleReplay(@Param("id") id: string, @Query() query: LifecycleReplayQueryDto) {
     const startedAt = Date.now();
     const result = await this.leadsService.getLeadLifecycleReplay(id, query);
@@ -229,6 +250,7 @@ export class LeadsController {
 
   @Get('internal/:id/preferences')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_READ_ROLES)
   async getLeadPreferences(@Param('id') id: string) {
     const startedAt = Date.now();
     const result = await this.leadsService.getLeadPreferences(id);
@@ -242,6 +264,7 @@ export class LeadsController {
 
   @Patch('internal/:id/preferences')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_WRITE_ROLES)
   async updateLeadPreferences(@Param('id') id: string, @Body() payload: UpdateLeadPreferencesDto) {
     const startedAt = Date.now();
     const result = await this.leadsService.updateLeadPreferences(id, payload);
@@ -276,6 +299,7 @@ export class LeadsController {
 
   @Post('internal/:id/unsubscribe')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_WRITE_ROLES)
   async unsubscribeLead(@Param('id') id: string) {
     const startedAt = Date.now();
     const result = await this.leadsService.unsubscribeLead(id);
@@ -306,6 +330,7 @@ export class LeadsController {
 
   @Post('internal/:id/conversion-links')
   @UseGuards(InternalServiceGuard)
+  @Roles(...LEADS_WRITE_ROLES)
   async linkLeadToUser(@Param('id') id: string, @Body() payload: LinkLeadToUserDto) {
     const lead = await this.leadsService.getLeadConversionSource(id);
     const linkedAt = payload.linkedAt ? new Date(payload.linkedAt) : new Date();

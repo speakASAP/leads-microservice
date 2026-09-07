@@ -1,10 +1,15 @@
 import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { InternalServiceGuard } from './guards/internal-service.guard';
+import { LEADS_INTERNAL_ROLES_KEY } from './guards/roles.decorator';
 import { LeadsController } from './leads.controller';
 
 function guardsFor(method: keyof LeadsController) {
   return Reflect.getMetadata(GUARDS_METADATA, LeadsController.prototype[method]) ?? [];
+}
+
+function rolesFor(method: keyof LeadsController): string[] {
+  return Reflect.getMetadata(LEADS_INTERNAL_ROLES_KEY, LeadsController.prototype[method]) ?? [];
 }
 
 function buildController(leadsService: Record<string, unknown>) {
@@ -32,20 +37,32 @@ function buildController(leadsService: Record<string, unknown>) {
 describe('LeadsController access controls', () => {
   it('guards raw lead detail retrieval', () => {
     expect(guardsFor('getLead')).toContain(InternalServiceGuard);
+    expect(rolesFor('getLead')).toEqual(
+      expect.arrayContaining(['internal:leads-microservice:read', 'internal:leads-microservice:service']),
+    );
   });
 
   it('guards raw lead list retrieval', () => {
     expect(guardsFor('listLeads')).toContain(InternalServiceGuard);
+    expect(rolesFor('listLeads')).toEqual(
+      expect.arrayContaining(['internal:leads-microservice:read', 'internal:leads-microservice:service']),
+    );
   });
 
   it('keeps internal preference, unsubscribe, conversion-link, and campaign eligibility routes guarded', () => {
     expect(guardsFor('resolveLeadContact')).toContain(InternalServiceGuard);
+    expect(rolesFor('resolveLeadContact')).toEqual(
+      expect.arrayContaining(['internal:leads-microservice:write', 'internal:leads-microservice:service']),
+    );
     expect(guardsFor('previewCampaignEligibility')).toContain(InternalServiceGuard);
     expect(guardsFor('getSanitizedLeadContext')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadLifecycleEvents')).toContain(InternalServiceGuard);
-    expect(guardsFor("getLeadLifecycleReplay")).toContain(InternalServiceGuard);
+    expect(guardsFor('getLeadLifecycleReplay')).toContain(InternalServiceGuard);
     expect(guardsFor('getLeadPreferences')).toContain(InternalServiceGuard);
     expect(guardsFor('updateLeadPreferences')).toContain(InternalServiceGuard);
+    expect(rolesFor('updateLeadPreferences')).toEqual(
+      expect.arrayContaining(['internal:leads-microservice:write', 'internal:leads-microservice:service']),
+    );
     expect(guardsFor('unsubscribeLead')).toContain(InternalServiceGuard);
     expect(guardsFor('linkLeadToUser')).toContain(InternalServiceGuard);
   });
@@ -53,6 +70,8 @@ describe('LeadsController access controls', () => {
   it('does not require internal service credentials for public intake or confirmation', () => {
     expect(guardsFor('submitLead')).not.toContain(InternalServiceGuard);
     expect(guardsFor('confirmLead')).not.toContain(InternalServiceGuard);
+    expect(rolesFor('submitLead')).toEqual([]);
+    expect(rolesFor('confirmLead')).toEqual([]);
   });
 });
 
