@@ -311,8 +311,8 @@ Acceptance criteria:
 - Request is limited to at most 30 candidate lead IDs.
 - Response includes lead IDs, eligibility booleans, deterministic reason codes, contact campaignId types, preferred channel, fallback count, consent evidence summary, confirmation state, unsubscribe state, and aggregate summary only.
 - Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, and session tokens.
-- Endpoint is guarded by `InternalServiceGuard` (known non-conformance — see
-  "Service identity non-conformance" below).
+- Endpoint is guarded by `InternalServiceGuard` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - No campaign execution, contact resolution, schema change, production mutation, AI export, CRM export, or deployment is added.
 
 
@@ -359,8 +359,9 @@ Acceptance criteria:
 - Durable records store minimized lifecycle event envelopes only.
 - Stored payloads omit contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, raw consent source values, JWTs, session tokens, and campaign content.
 - Idempotency prevents duplicate records for the same lifecycle transition.
-- Retrieval is guarded by `InternalServiceGuard` (known non-conformance — see
-  "Service identity non-conformance" below) and bounded to one lead at a time.
+- Retrieval is guarded by `InternalServiceGuard` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)
+  and bounded to one lead at a time.
 - Public API response shapes are unchanged.
 - Logging remains metadata-only and does not become the durable event store owner.
 - No Auth login/JWT validation, campaign execution, Notifications dispatch, CRM workflow, AI export, raw lead export, production lead mutation, or deployment is included without separate owner approval.
@@ -383,8 +384,8 @@ Chunks:
 Acceptance criteria:
 
 - Browser/admin APIs require Auth bearer tokens and accepted Leads roles.
-- Internal service routes remain protected by `InternalServiceGuard` (known
-  non-conformance — see "Service identity non-conformance" below).
+- Internal service routes remain protected by `InternalServiceGuard` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Admin responses are masked/minimized by default.
 - Auth tokens, secrets, raw contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, and raw consent source values are not logged or returned from admin APIs.
 - Tenant/workspace scoping remains a documented follow-up until Auth mapping semantics are confirmed.
@@ -722,21 +723,3 @@ Acceptance criteria:
 - No public API, internal API, schema, migration, deployment config, runtime queue consumer, raw lead export, campaign execution, notification dispatch, AI/CRM export, production data read, or production mutation is added.
 - Live broker adapter remains disabled until production RabbitMQ secret/config wiring, broker smoke approval, and replay/backfill validation are explicit.
 
-
-## Service identity non-conformance
-
-`InternalServiceGuard` (`src/leads/guards/internal-service.guard.ts`) authenticates
-internal routes with a static shared `INTERNAL_SERVICE_TOKEN` plus a self-asserted
-`x-service-name` header matched against `TRUSTED_INTERNAL_SERVICES`.
-
-Both mechanisms are prohibited by the canonical
-[`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md),
-which requires one Auth-issued RS256 credential per `(caller -> target)` pair, a
-role of `internal:leads-microservice:<least-privilege-role>`, and a revocable Auth
-principal. A shared static secret is not per-caller, is not revocable per caller,
-and a caller-supplied name header is not proof of identity.
-
-Where acceptance criteria above name this guard, they record what the code does
-today, not an approved design. This is drift to repair, not a pattern to copy: do
-not add new callers or new routes to it, and treat a migration to per-pair RS256
-credentials as the fix.

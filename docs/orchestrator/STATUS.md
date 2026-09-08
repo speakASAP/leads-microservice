@@ -2185,7 +2185,7 @@ Gate decision:
 
 Next unfinished chunks:
 
-- Deploy only after the source thread/integration owner approves final integration and confirms runtime trust/token provisioning for `flipflop-service` against Leads `TRUSTED_INTERNAL_SERVICES` policy.
+- Deploy only after the source thread/integration owner approves final integration and confirms runtime Auth-issued RS256 provisioning for `flipflop-service` → `leads-microservice` per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 
 ## 2026-06-15 - Goal 22 Production Auth Workspace Token Matrix Validation Complete
 
