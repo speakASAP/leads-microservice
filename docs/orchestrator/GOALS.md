@@ -55,12 +55,12 @@ Chunks:
 - [x] 3.1 Audit `GET /api/leads`, `GET /api/leads/:id`, and internal preference endpoints.
 - [x] 3.2 Verify or add access controls for non-public lead retrieval.
 - [x] 3.3 Preserve the max 30 items per list request.
-- [x] 3.4 Add validation evidence for trusted internal-service headers.
+- [x] 3.4 Add validation evidence for internal service identity (Auth RS256 per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md); header-token S2S obsolete).
 
 Acceptance criteria:
 
 - Raw lead retrieval is not public unless owner-approved and documented.
-- Internal preference and unsubscribe APIs require the service guard.
+- Internal preference and unsubscribe APIs require Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Pagination and bounds remain enforced.
 - No raw production lead data appears in logs, docs, prompts, or tests.
 
@@ -311,8 +311,7 @@ Acceptance criteria:
 - Request is limited to at most 30 candidate lead IDs.
 - Response includes lead IDs, eligibility booleans, deterministic reason codes, contact campaignId types, preferred channel, fallback count, consent evidence summary, confirmation state, unsubscribe state, and aggregate summary only.
 - Response and logs omit contact values, raw messages, confirmation tokens, full source URLs, private path/query values, metadata values, campaign content, JWTs, and session tokens.
-- Endpoint is guarded by `InternalServiceGuard` per
-  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
+- Endpoint requires Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - No campaign execution, contact resolution, schema change, production mutation, AI export, CRM export, or deployment is added.
 
 
@@ -359,9 +358,7 @@ Acceptance criteria:
 - Durable records store minimized lifecycle event envelopes only.
 - Stored payloads omit contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, raw consent source values, JWTs, session tokens, and campaign content.
 - Idempotency prevents duplicate records for the same lifecycle transition.
-- Retrieval is guarded by `InternalServiceGuard` per
-  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)
-  and bounded to one lead at a time.
+- Retrieval requires Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and is bounded to one lead at a time.
 - Public API response shapes are unchanged.
 - Logging remains metadata-only and does not become the durable event store owner.
 - No Auth login/JWT validation, campaign execution, Notifications dispatch, CRM workflow, AI export, raw lead export, production lead mutation, or deployment is included without separate owner approval.
@@ -378,14 +375,13 @@ Chunks:
 - [x] 19.2 Add Auth validation guard using Auth POST /auth/validate.
 - [x] 19.3 Add masked Auth-backed admin list, detail, and summary APIs.
 - [x] 19.4 Update admin browser shell to use Auth bearer tokens.
-- [x] 19.5 Add focused tests for guard, admin APIs, masking, and preserved internal-service guards.
+- [x] 19.5 Add focused tests for guard, admin APIs, masking, and preserved service-identity (SPOT) routes.
 - [x] 19.6 Validate tests, build, lint, deployment, migration, health, admin 401, and scans.
 
 Acceptance criteria:
 
 - Browser/admin APIs require Auth bearer tokens and accepted Leads roles.
-- Internal service routes remain protected by `InternalServiceGuard` per
-  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
+- Internal service routes require Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Admin responses are masked/minimized by default.
 - Auth tokens, secrets, raw contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, and raw consent source values are not logged or returned from admin APIs.
 - Tenant/workspace scoping remains a documented follow-up until Auth mapping semantics are confirmed.

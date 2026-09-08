@@ -15,7 +15,7 @@ Goal 24 defines a bounded replay contract over already persisted minimized lifec
 ## System
 
 - Existing source: minimized lifecycle builders and persisted `LeadLifecycleEvent` records.
-- Future runtime guard expectation: `InternalServiceGuard`; no public replay stream is approved.
+- Future runtime guard expectation: Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md); no public replay stream is approved.
 - Logging remains the centralized log owner. Leads serves only its own minimized lifecycle evidence.
 
 ## Feature
@@ -50,7 +50,7 @@ See `GOAL-24-internal-lifecycle-event-replay-contract.coding-prompt.md`.
 - `src/leads/integrations/lifecycle-replay-contract.ts`
 - `src/leads/integrations/lifecycle-replay-contract.spec.ts`
 
-Runtime route added: `GET /api/leads/internal/:id/lifecycle-replay`, guarded by `InternalServiceGuard`, accepting only `consumer=flipflop-service`. No schema, migration, deployment config, raw lead export, campaign execution, notification dispatch, AI/CRM export, or production data changes are included.
+Runtime route added: `GET /api/leads/internal/:id/lifecycle-replay`, guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md), accepting only `consumer=flipflop-service`. No schema, migration, deployment config, raw lead export, campaign execution, notification dispatch, AI/CRM export, or production data changes are included.
 
 ## Validation
 

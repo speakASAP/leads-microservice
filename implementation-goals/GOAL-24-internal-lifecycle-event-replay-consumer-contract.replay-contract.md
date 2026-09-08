@@ -20,7 +20,7 @@ Trusted internal consumers sometimes need to replay minimized lifecycle evidence
 
 ## Guard Requirements For Future Runtime Use
 
-Any runtime endpoint based on this contract must require trusted internal-service authentication and must be serialized with guarded API changes. The first consumer and route shape require owner selection before runtime implementation.
+Any runtime endpoint based on this contract must require Auth-issued RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and must be serialized with guarded API changes. The first consumer and route shape require owner selection before runtime implementation.
 
 ## Request Shape
 

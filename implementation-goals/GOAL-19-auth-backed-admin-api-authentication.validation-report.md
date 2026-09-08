@@ -13,7 +13,7 @@ Pre-coding gate result: pass with documented tenant-scope follow-up. Auth contra
 - Added src/auth/admin-auth.guard.ts and focused guard tests.
 - Added src/leads/admin-leads.controller.ts and focused controller tests.
 - Updated src/leads/leads.service.ts with masked admin summary, list, and detail methods.
-- Preserved existing InternalServiceGuard routes for service-to-service APIs.
+- Preserved service-to-service routes under [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) (Auth RS256 pair principal Bearer).
 
 ## Validation Evidence
 

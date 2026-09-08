@@ -34,7 +34,7 @@ Pre-coding gate result: pass-with-documented-risk. Runtime DocsRAG retrieval fro
 
 Allowed Leads scope used: `src/leads/integrations/lifecycle-replay-contract.ts`, `src/leads/integrations/lifecycle-replay-contract.spec.ts`, `src/leads/dto/lifecycle-replay-query.dto.ts`, `src/leads/leads.controller.ts`, `src/leads/leads.controller.spec.ts`, `src/leads/leads.service.ts`, and `src/leads/leads.service.spec.ts`.
 
-Runtime contract: `GET /api/leads/internal/:id/lifecycle-replay` is guarded by `InternalServiceGuard`, one-lead scoped by path `id`, accepts only `consumer=flipflop-service`, defaults purpose to `consumer_reconciliation`, and clamps replay output to `MAX_LIFECYCLE_REPLAY_EVENTS = 30`.
+Runtime contract: `GET /api/leads/internal/:id/lifecycle-replay` is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md), one-lead scoped by path `id`, accepts only `consumer=flipflop-service`, defaults purpose to `consumer_reconciliation`, and clamps replay output to `MAX_LIFECYCLE_REPLAY_EVENTS = 30`.
 
 Invariant impact: LEADS-INV-001, LEADS-INV-003, LEADS-INV-004, LEADS-INV-007, and LEADS-INV-010 are strengthened. Replay remains minimized, consent-state-only, guarded, and evidence-backed.
 

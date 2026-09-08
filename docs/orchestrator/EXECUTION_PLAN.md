@@ -58,7 +58,7 @@ State whether the chunk changes or validates:
 - `GET /api/leads` query or response shape.
 - `GET /api/leads/:id` response shape.
 - `GET /api/leads/confirm/:token` behavior.
-- internal preference or unsubscribe headers and response shape.
+- internal preference or unsubscribe auth (SPOT: [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)) and response shape.
 - Prisma schema or database migration behavior.
 - notifications-microservice request payloads.
 - logging-microservice event shape.

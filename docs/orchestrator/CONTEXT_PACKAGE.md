@@ -63,7 +63,7 @@ Current source-of-truth summary:
 - Kubernetes namespace: `statex-apps`.
 - Public health endpoint: `GET /health`.
 - Global API prefix: `/api`.
-- Lead endpoints include `POST /api/leads/submit`, `GET /api/leads`, `GET /api/leads/:id`, `GET /api/leads/confirm/:token`, and trusted internal preference/unsubscribe routes.
+- Lead endpoints include `POST /api/leads/submit`, `GET /api/leads`, `GET /api/leads/:id`, `GET /api/leads/confirm/:token`, and SPOT-authenticated internal preference/unsubscribe routes.
 - Consumers listed in docs: sgiprealestate, statex, marketing-microservice.
 - Integrations listed in docs: database-server PostgreSQL, logging-microservice, auth-microservice, notifications-microservice, AI microservice.
 

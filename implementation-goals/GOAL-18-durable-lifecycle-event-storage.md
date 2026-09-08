@@ -43,7 +43,7 @@ Leads must durably store minimized lifecycle events for non-registered leads so 
 - Durable records store minimized lifecycle event envelopes only.
 - Stored payloads omit contact values, raw messages, confirmation tokens, private source URL path/query values, metadata values, raw consent source values, JWTs, session tokens, and campaign content.
 - Idempotency prevents duplicate records for the same lifecycle transition.
-- Retrieval is guarded by `InternalServiceGuard` and bounded to one lead at a time.
+- Retrieval is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and bounded to one lead at a time.
 - Public API response shapes are unchanged.
 - Logging remains metadata-only and does not become the durable event store owner.
 - No Auth login/JWT validation, campaign execution, Notifications dispatch, CRM workflow, AI export, raw lead export, production lead mutation, or deployment is included without separate owner approval.

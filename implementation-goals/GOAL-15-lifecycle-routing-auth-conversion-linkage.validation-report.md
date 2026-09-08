@@ -23,5 +23,5 @@ Passed.
 
 - Public intake and confirmation response shapes unchanged.
 - Internal preference and unsubscribe guards unchanged.
-- New conversion-link route is guarded by `InternalServiceGuard`.
+- New conversion-link route is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - No Prisma migration, raw contact reveal, message bus, durable event store, campaign execution, external Auth call, AI/CRM export, production mutation, or deployment.

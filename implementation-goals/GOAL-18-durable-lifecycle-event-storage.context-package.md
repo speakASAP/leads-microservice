@@ -52,7 +52,7 @@ Auth-backed admin access is contract-defined but not source-ready. The contract 
 
 - Store minimized lifecycle event envelopes only.
 - Do not store contact values, raw messages, confirmation tokens, full private URLs, metadata values, raw consent source values, JWTs, session tokens, or campaign content in lifecycle event records.
-- Retrieval must be guarded by `InternalServiceGuard` and scoped to one lead.
+- Retrieval must be guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and scoped to one lead.
 - Do not implement Auth login, JWT validation, or tenant scoping in Goal 18.
 - Do not trigger campaign sends, notification dispatch, CRM workflow, AI export, raw lead export, production mutation, or deployment.
 

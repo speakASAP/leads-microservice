@@ -2,7 +2,7 @@
 
 Implement controlled contact resolution only:
 
-- Guard with `InternalServiceGuard`.
+- Guard per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Resolve one `leadId` per request.
 - Require `approvalId` for `approved_campaign_send`.
 - Re-check campaign eligibility before campaign-send contact resolution.

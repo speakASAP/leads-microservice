@@ -251,7 +251,7 @@ Proposed guarded endpoint:
 
 `GET /api/leads/internal/:id/lifecycle-events`
 
-Auth: trusted internal-service guard now; future Auth-backed service claims can replace or supplement it.
+Auth: Auth-issued RS256 service JWT in `Authorization: Bearer <token>` per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). Header-token / dual-accept S2S is prohibited.
 
 Response:
 

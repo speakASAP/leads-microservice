@@ -119,7 +119,7 @@ POST /api/leads/internal/campaign-eligibility
 Rules:
 
 - `leadIds` should stay at or below the current Leads list bound of 30 unless a future owner-approved operational plan changes that limit.
-- Request must be authenticated as a trusted internal service.
+- Request must present an Auth-issued RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Future tenant-aware implementation must validate `workspaceId` against Auth/CRM campaign ownership.
 - Request must not include campaign content, raw contact values, raw messages, or arbitrary lead metadata.
 
@@ -285,8 +285,8 @@ Forbidden audit/log values:
 
 Recommended behavior:
 
-- Missing service authentication: reject with `401`.
-- Untrusted service or tenant mismatch: reject with `403`.
+- Missing service identity: reject with `401` ([`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)).
+- Unauthorized caller or tenant mismatch: reject with `403`.
 - Invalid campaign purpose/channel: reject with `422`.
 - Lead not visible to caller scope: return ineligible with `tenant_scope_mismatch` or omit based on future tenant policy.
 - Approval missing or invalid during contact resolution: reject with `403`.

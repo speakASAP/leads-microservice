@@ -18,7 +18,7 @@
 ## Acceptance Criteria
 
 - Browser/admin APIs require Auth bearer tokens and accepted Leads roles.
-- Internal service routes continue to use InternalServiceGuard only.
+- Internal service routes require Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) (not human admin tokens; not self-asserted headers).
 - Admin list/detail responses are masked/minimized by default.
 - Token values and decoded sensitive profile fields are not logged.
 - Tests cover missing token, Auth rejection, role rejection, accepted role, masked admin responses, and unchanged internal route guards.

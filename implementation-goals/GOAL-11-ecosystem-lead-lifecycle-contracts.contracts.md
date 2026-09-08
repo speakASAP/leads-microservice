@@ -183,7 +183,7 @@ POST /api/leads/internal/campaign-eligibility
 
 Guard:
 
-- trusted internal service authentication
+- Auth-issued RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) (caller → leads-microservice)
 - expected caller: `marketing-microservice` or future `crm-microservice`
 - tenant/workspace claims after Auth-backed tenancy exists
 
@@ -241,8 +241,8 @@ POST /api/leads/internal/contact-resolution
 
 Guard:
 
-- trusted internal service authentication
-- Auth-backed role/tenant claims when human/operator initiated
+- Machine: Auth-issued RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)
+- Human/operator initiated: Auth user JWT per consumer JWT validation standard (not service headers)
 - campaign approval or CRM approval reference
 - audit log required
 

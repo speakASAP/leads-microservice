@@ -23,7 +23,7 @@ For runtime chunks 18.2-18.5 only:
 
 - Add a Prisma lifecycle event model and migration for minimized lifecycle envelopes.
 - Persist lifecycle events idempotently from `LeadLifecycleEventRouterService` before route metadata logging.
-- Add guarded one-lead lifecycle event retrieval using `InternalServiceGuard`.
+- Add guarded one-lead lifecycle event retrieval using Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Add focused tests proving persistence idempotency, minimized payloads, guarded retrieval, and sensitive-data omission.
 - Update Goal 18 validation/status artifacts.
 

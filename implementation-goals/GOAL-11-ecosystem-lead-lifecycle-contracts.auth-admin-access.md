@@ -148,11 +148,11 @@ Target flow:
 6. Leads backend returns masked, tenant-scoped data by default.
 7. Contact reveal or approval actions require stronger permission and audit metadata.
 
-The current internal-token input in the admin shell is temporary and must be removed only after Auth-backed admin APIs are ready.
+The current internal-token input in the admin shell is temporary and must be removed only after Auth-backed admin APIs are ready. It is not an approved machine S2S protocol ([`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)).
 
 ## API Boundary
 
-Future human admin APIs should be separate from trusted service APIs.
+Future human admin APIs should be separate from machine service-identity APIs ([`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)).
 
 Recommended browser/admin namespace:
 
@@ -167,7 +167,7 @@ PATCH /api/admin/leads/:id/lifecycle
 
 Rules:
 
-- Service-to-service APIs may continue under `/api/leads/internal/...` with `InternalServiceGuard`.
+- Service-to-service APIs under `/api/leads/internal/...` require Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). Do not treat self-asserted service headers as identity.
 - Mask contact values by default.
 - Do not return raw messages in list views.
 - Do not return confirmation tokens.

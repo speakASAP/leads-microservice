@@ -247,20 +247,20 @@ Next unfinished chunks:
 Current focus:
 
 - Owner-selected goal: Goal 3 - Privacy-Safe Retrieval And Internal Access.
-- Completed chunks: 3.1 audit retrieval/internal endpoints, 3.2 add access controls for non-public raw retrieval, 3.3 preserve max-30 list bound, 3.4 add trusted internal-service header validation evidence.
+- Completed chunks: 3.1 audit retrieval/internal endpoints, 3.2 add access controls for non-public raw retrieval, 3.3 preserve max-30 list bound, 3.4 add service-identity validation evidence (Auth RS256 per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md); header-token S2S obsolete).
 - Runtime code changes: none relative to current `HEAD`; guarded raw retrieval and focused controller/service/guard tests were already present and were validated.
 - Deployment: not requested and not performed.
 
 Source context:
 
-- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, required orchestrator docs, `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `src/leads/leads.controller.ts`, `src/leads/leads.service.ts`, `src/leads/dto/lead-query.dto.ts`, `src/leads/guards/internal-service.guard.ts`, `src/leads/guards/internal-service.guard.spec.ts`, and `package.json`.
+- Reviewed `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, required orchestrator docs, `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, `src/leads/leads.controller.ts`, `src/leads/leads.service.ts`, `src/leads/dto/lead-query.dto.ts`, service-identity enforcement (SPOT: [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)), and `package.json`.
 - Queried DocsRAG from inside the Leads runtime pod because the plain SSH shell does not expose runtime secrets. Retrieval returned HTTP 200 for the Goal 3 privacy-safe retrieval query. The token value was not printed or persisted.
 
 Implementation evidence:
 
 - Added Goal 3 execution, context, coding prompt, and validation report artifacts under `implementation-goals/`.
 - Ran the pre-coding gate with `pass`.
-- Verified `InternalServiceGuard` is applied to `GET /api/leads` and `GET /api/leads/:id`.
+- Verified machine-accessible lead retrieval routes require service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) (`GET /api/leads`, `GET /api/leads/:id`).
 - Verified `src/leads/leads.controller.spec.ts` covers guarded raw retrieval and internal routes while public intake and confirmation remain public.
 - Verified `src/leads/leads.service.spec.ts` covers list retrieval clamping to 30 items.
 - Verified `src/leads/guards/internal-service.guard.spec.ts` covers missing token and missing service name rejection when trusted services are configured.
@@ -272,8 +272,8 @@ Validation evidence:
 - Missing-marker scan passed with no matches: `rg "\[(MISSING|UNKNOWN):" docs/orchestrator docs/IMPLEMENTATION_ORCHESTRATOR.md docs/IMPLEMENTATION_STATE.md implementation-goals AGENTS.md`.
 - Secret-pattern scan passed with no matches across `docs`, `AGENTS.md`, `TASKS.md`, `implementation-goals`, `src/leads/leads.controller.spec.ts`, `src/leads/leads.service.spec.ts`, and `src/leads/guards/internal-service.guard.spec.ts`.
 - Sensitive-data handling: synthetic tests and mocked Prisma behavior only; no secrets, real contact details, production lead rows, confirmation tokens, private URLs, or production payloads captured.
-- Contract impact: raw list/detail retrieval is no longer public and now requires trusted internal-service headers. Public intake and confirmation remain public. Internal preference and unsubscribe routes remain guarded. No schema change.
-- Consent impact: no semantics change; stored consent and preference fields are less exposed because raw retrieval now requires trusted internal-service credentials.
+- Contract impact: raw list/detail retrieval is no longer public and requires Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). Public intake and confirmation remain public. Internal preference and unsubscribe routes remain machine-authenticated the same way. No schema change.
+- Consent impact: no semantics change; stored consent and preference fields are less exposed because raw retrieval requires Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 
 Gate decision:
 
@@ -1090,7 +1090,7 @@ Sensitive-data handling:
 Contract impact:
 
 - Public intake and confirmation response shapes unchanged.
-- New `POST /leads/internal/:id/conversion-links` endpoint is guarded by `InternalServiceGuard`.
+- New `POST /leads/internal/:id/conversion-links` endpoint requires Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - No Prisma schema, message bus, durable event table, raw contact reveal, campaign execution, notification delivery behavior, external Auth call, AI export, CRM export, production read, production mutation, or deployment.
 
 Gate decision:
@@ -1309,7 +1309,7 @@ Implementation evidence:
 
 - Added Auth-backed AdminAuthGuard using Auth POST /auth/validate.
 - Added masked browser/admin APIs under /api/admin/leads.
-- Kept service-to-service routes on InternalServiceGuard.
+- Kept service-to-service routes on Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Recorded tenant/workspace mapping as follow-up because Auth contract does not define Leads tenant mapping yet.
 
 Validation evidence:
@@ -2161,7 +2161,7 @@ Implementation evidence:
 
 - Added `src/leads/dto/lifecycle-replay-query.dto.ts`.
 - Updated `src/leads/integrations/lifecycle-replay-contract.ts` to support `consumer=flipflop-service` mapped to `product-apps` route membership.
-- Added `GET /api/leads/internal/:id/lifecycle-replay`, guarded by `InternalServiceGuard`.
+- Added `GET /api/leads/internal/:id/lifecycle-replay`, requiring Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Added `LeadsService.getLeadLifecycleReplay`, one-lead scoped, consumer-scoped, time-bound capable, storage-read bounded to `limit + 1`, and output-clamped to max 30.
 - Added focused Leads tests proving guard coverage, FlipFlop route filtering, bounded replay, and sensitive-field omission.
 

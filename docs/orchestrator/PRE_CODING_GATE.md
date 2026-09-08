@@ -45,7 +45,7 @@ Coding is blocked when any check fails:
 - consent, unsubscribe, confirmation, or raw lead data impact is unclear;
 - AI/CRM raw data export is proposed without active owner approval;
 - mass outreach, campaign execution, or notification provider behavior is proposed without active owner approval;
-- public API, internal-service headers, database schema, or notification contract impact is missing;
+- public API, service-identity (see [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)), database schema, or notification contract impact is missing;
 - validation commands and expected evidence are missing;
 - secret or raw production data handling is ambiguous;
 - source file scope is not named;

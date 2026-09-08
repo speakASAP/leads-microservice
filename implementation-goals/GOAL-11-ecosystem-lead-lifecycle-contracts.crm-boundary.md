@@ -385,8 +385,8 @@ Audit metadata must not include:
 
 Recommended behavior:
 
-- `401`: missing or invalid trusted service authentication.
-- `403`: CRM not trusted, actor lacks permission, tenant mismatch, or purpose disallowed.
+- `401`: missing or invalid machine service identity ([`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)).
+- `403`: CRM not authorized, actor lacks permission, tenant mismatch, or purpose disallowed.
 - `404`: lead not visible in tenant scope.
 - `409`: reveal already processed, stale workflow state, or conflicting assignment.
 - `422`: invalid purpose/channel/workflow reference.

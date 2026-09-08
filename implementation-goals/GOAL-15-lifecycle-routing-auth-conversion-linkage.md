@@ -27,7 +27,7 @@ Implement the next two owner-selected slices together: consumer-side lifecycle e
 
 - Add a lifecycle event router service that maps minimized events to intended internal consumers and records routing metadata through `LoggingService`.
 - Refactor existing controller lifecycle recordings to use the router.
-- Add a guarded internal Auth conversion-link endpoint that records a minimized `LeadConvertedToUser` lifecycle event after a trusted service asserts verified contact ownership, conversion token validation, or owner-reviewed manual linkage.
+- Add a guarded internal Auth conversion-link endpoint that records a minimized `LeadConvertedToUser` lifecycle event after an authenticated machine caller ([`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)) asserts verified contact ownership, conversion token validation, or owner-reviewed manual linkage.
 - Preserve current schemas and public response shapes.
 
 ## Out Of Scope
@@ -39,6 +39,6 @@ Implement the next two owner-selected slices together: consumer-side lifecycle e
 
 - Lifecycle routing metadata lists intended consumers without raw lead data.
 - Existing lifecycle event flows still emit minimized events through the router.
-- Auth conversion-link endpoint is guarded by `InternalServiceGuard`.
+- Auth conversion-link endpoint is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Auth conversion-link event contains `leadId`, `userId`, `sourceService`, `linkMethod`, and `linkedAt` only.
 - Focused tests and build pass.

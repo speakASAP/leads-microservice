@@ -43,7 +43,7 @@ Create a customer landing page and an admin dashboard shell in the Leads service
 
 ## Current Behavior
 
-The service was API-only. `/api/leads` retrieval is guarded by `InternalServiceGuard`; public intake is available at `/api/leads/submit`.
+The service was API-only. `/api/leads` retrieval is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md); public intake is available at `/api/leads/submit`.
 
 ## Required Behavior
 

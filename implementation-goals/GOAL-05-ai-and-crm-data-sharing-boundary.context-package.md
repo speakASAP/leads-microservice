@@ -46,9 +46,9 @@ Document the current and intended AI/CRM data-sharing boundary for Leads. The ta
 
 - `AI_SERVICE_URL` is configured in `.env.example` and listed in `SYSTEM.md`, but no source code calls the AI microservice.
 - `README.md`, `BUSINESS.md`, and `CLAUDE.md` describe CRM and AI analysis as intended follow-up support, but no CRM-specific client or export endpoint exists in source.
-- `GET /api/leads`, `GET /api/leads/:id`, and internal preference/unsubscribe routes are guarded by `InternalServiceGuard`.
+- `GET /api/leads`, `GET /api/leads/:id`, and internal preference/unsubscribe routes are guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - `getLeadById` can return contact methods and submissions to trusted internal callers; this is sensitive raw lead access and must not become bulk AI/CRM export without approval.
-- `getLeadPreferences`, `updateLeadPreferences`, and `unsubscribeLead` expose/minimize consent and preference state for trusted services.
+- `getLeadPreferences`, `updateLeadPreferences`, and `unsubscribeLead` expose/minimize consent and preference state for authenticated machine callers (SPOT: [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md)).
 - `LoggingService` sends operational metadata only when callers avoid raw meta. Current controller logs use IDs, source service, counts, page/limit, timestamps, and duration, not raw messages/contact values.
 
 ## DocsRAG Context
@@ -70,7 +70,7 @@ DocsRAG returned HTTP 200 and reinforced these source-of-truth points:
 ## Constraints
 
 - No raw production lead data, secrets, confirmation tokens, private URLs, or CRM records in docs or prompts.
-- No public API, internal-service header, schema, logging, notification, AI, or CRM runtime contract changes in this chunk.
+- No public API, service-identity, schema, logging, notification, AI, or CRM runtime contract changes in this chunk.
 - No deployment.
 - No production reads or mutations.
 

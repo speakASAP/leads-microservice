@@ -16,7 +16,7 @@ Passed.
 
 - Service tests cover eligible, ineligible, and invalid lead ID outcomes.
 - Controller tests prove the preview endpoint returns minimized eligibility data and logs only aggregate summary fields.
-- Guard reflection tests prove the endpoint is protected by `InternalServiceGuard`.
+- Guard reflection tests prove the endpoint is protected by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Prisma select in eligibility preview does not request raw message, source URL, confirmation token, or contact method values.
 
 ## Impact Review

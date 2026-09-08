@@ -106,7 +106,7 @@ Files modified:
 - `TASKS.md`
 - `STATE.json`
 
-Contract impact: documentation-only. Defines future Auth-backed admin access but does not change runtime authentication, authorization, routes, schema, or frontend behavior.
+Contract impact: documentation-only. Defines Auth-backed human admin access (user JWT lane) but does not change runtime authentication, authorization, routes, schema, or frontend behavior. Machine S2S remains SPOT RS256 only.
 
 Sensitive-data classification: none.
 

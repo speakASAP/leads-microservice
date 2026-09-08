@@ -37,7 +37,7 @@ Current notification logs include raw contact method values, raw recipient value
 - `LEADS-INV-004`: affected; raw contact details, source URLs, messages, confirmation tokens, and response bodies must not appear in logs/tests/docs.
 - `LEADS-INV-005`: preserved; no mass outreach behavior.
 - `LEADS-INV-006`: not directly affected; public intake/query bounds are out of scope.
-- `LEADS-INV-007`: not directly affected; internal-service headers are out of scope.
+- `LEADS-INV-007`: not directly affected; service-identity boundary is out of scope.
 - `LEADS-INV-008`: affected; Leads requests confirmation sends but does not own delivery mechanics or notification provider credentials.
 - `LEADS-INV-009`: not affected; no AI or CRM export.
 - `LEADS-INV-010`: affected; status and validation evidence must be updated.

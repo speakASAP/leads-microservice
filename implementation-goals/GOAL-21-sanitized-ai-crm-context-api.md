@@ -15,7 +15,7 @@ Non-goals:
 
 Acceptance criteria:
 
-- `GET /api/leads/internal/:id/sanitized-context` is guarded by `InternalServiceGuard`.
+- `GET /api/leads/internal/:id/sanitized-context` is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - The response uses the existing sanitized AI/CRM context builder and omits contact values, raw message text, confirmation tokens, private source URL path/query values, metadata values, and raw consent source values.
 - Missing leads return existing not-found behavior.
 - Logs contain aggregate/minimized context metadata only.

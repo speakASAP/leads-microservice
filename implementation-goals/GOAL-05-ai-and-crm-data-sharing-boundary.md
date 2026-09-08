@@ -35,7 +35,7 @@ AI and CRM integrations must use minimum necessary lead context and never export
 | --- | --- | --- | --- |
 | AI microservice | `AI_SERVICE_URL` exists in configuration and `SYSTEM.md`, but no source client currently calls AI from Leads. | No current payload. Future payloads may include derived or minimized lead context only. | No AI export exists today. Any future AI payload must be approved, minimized, and validated before implementation. |
 | CRM follow-up | `README.md`, `BUSINESS.md`, and `CLAUDE.md` describe CRM follow-up, but no CRM-specific client or endpoint exists in source. | No current CRM-specific payload. | No CRM export exists today. Future CRM integration must use guarded APIs and owner-approved field scope. |
-| Marketing/CRM-like consumer read | `GET /api/leads`, `GET /api/leads/:id`, and internal preference/unsubscribe endpoints are guarded by `InternalServiceGuard`. DocsRAG confirms marketing-microservice reads Leads contact, preference, and consent fields for non-registered contacts. | Raw lead detail/list can include message/contact methods; preference endpoints expose minimized consent/preference state. | Guarded internal access only. Raw list/detail retrieval is sensitive and must not be used as bulk export without owner approval. Prefer preference endpoints when only consent state is needed. |
+| Marketing/CRM-like consumer read | `GET /api/leads`, `GET /api/leads/:id`, and internal preference/unsubscribe endpoints are guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). DocsRAG confirms marketing-microservice reads Leads contact, preference, and consent fields for non-registered contacts. | Raw lead detail/list can include message/contact methods; preference endpoints expose minimized consent/preference state. | Guarded internal access only. Raw list/detail retrieval is sensitive and must not be used as bulk export without owner approval. Prefer preference endpoints when only consent state is needed. |
 | Logging | `LoggingService` sends operational metadata to logging-microservice. Lead submit/retrieval logs use lead IDs, source service, page/limit, timestamps, durations, counts, and booleans. | Metadata, not raw lead content. | Logs must never include raw messages, contact method values, confirmation tokens, private URLs, or full integration payloads. |
 | Notifications | Confirmation request payloads are sent to notifications-microservice. This is not AI/CRM, but it carries sensitive lead context for confirmation delivery. | Notification delivery context. | Notifications remain delivery-owner. Do not reuse notification payloads as AI/CRM input. |
 
@@ -77,7 +77,7 @@ Before merging future AI/CRM integration work, verify and record:
 - [ ] Does it preserve `marketingConsent`, `consentSource`, `consentCapturedAt`, unsubscribe state, and confirmation evidence?
 - [ ] Does the destination service retain ownership of its domain, with Leads only exposing approved lead context?
 - [ ] Are list/page limits preserved at 30 or lower?
-- [ ] Are trusted internal-service headers required where raw or preference data is read?
+- [ ] Is machine service identity enforced per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) where raw or preference data is read?
 - [ ] Are validation commands deterministic and based on synthetic or masked data?
 - [ ] Does the validation report state `No raw lead export` or include the approval record above?
 

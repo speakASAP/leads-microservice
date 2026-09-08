@@ -37,7 +37,7 @@ This chunk records current and intended AI/CRM data-sharing paths, classifies se
 - `LEADS-INV-004`: strengthened; raw lead data and identifying fields are classified and restricted.
 - `LEADS-INV-005`: strengthened; future CRM/Marketing handoff must not trigger mass outreach without human review.
 - `LEADS-INV-006`: preserved; no public intake/list limit change.
-- `LEADS-INV-007`: preserved; raw retrieval and preference reads remain behind `InternalServiceGuard`.
+- `LEADS-INV-007`: preserved; raw retrieval and preference reads remain behind Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - `LEADS-INV-008`: preserved; notification delivery context is not reused as AI/CRM input.
 - `LEADS-INV-009`: strengthened; raw AI/CRM export approval requirements are explicit.
 - `LEADS-INV-010`: satisfied through status and continuation updates.

@@ -45,7 +45,7 @@ Public intake and query behavior must remain validated and bounded. The max 30 i
 
 ### LEADS-INV-007: Internal Service Trust Boundary
 
-Internal preference and unsubscribe APIs must require trusted service authentication. Header names, token behavior, and trusted service lists are contract-sensitive.
+Internal preference and unsubscribe APIs require machine service identity per the sole canonical [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). Do not redefine headers, token formats, or trusted-service lists here.
 
 ### LEADS-INV-008: Notification Boundary
 

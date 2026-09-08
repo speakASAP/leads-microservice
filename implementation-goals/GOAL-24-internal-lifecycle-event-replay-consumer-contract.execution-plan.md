@@ -31,7 +31,7 @@ This goal defines a future-safe internal replay contract over minimized lifecycl
 - LEADS-INV-004: high impact; tests prove sensitive values are omitted from replay output.
 - LEADS-INV-005: preserved; no outreach automation.
 - LEADS-INV-006: preserved; public intake unchanged.
-- LEADS-INV-007: preserved for future runtime use by requiring trusted internal access and one-lead scope.
+- LEADS-INV-007: preserved for future runtime use by requiring Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and one-lead scope.
 - LEADS-INV-008: preserved; no notification delivery change.
 - LEADS-INV-009: preserved; no AI/CRM raw export.
 - LEADS-INV-010: satisfied through goal artifacts and validation evidence.
@@ -75,7 +75,7 @@ Pre-coding gate result: pass-with-documented-risk. Runtime DocsRAG retrieval fro
 
 Allowed Leads scope used: `src/leads/integrations/lifecycle-replay-contract.ts`, `src/leads/integrations/lifecycle-replay-contract.spec.ts`, `src/leads/dto/lifecycle-replay-query.dto.ts`, `src/leads/leads.controller.ts`, `src/leads/leads.controller.spec.ts`, `src/leads/leads.service.ts`, and `src/leads/leads.service.spec.ts`.
 
-Runtime contract: `GET /api/leads/internal/:id/lifecycle-replay` is guarded by `InternalServiceGuard`, one-lead scoped by path `id`, accepts only `consumer=flipflop-service`, defaults purpose to `consumer_reconciliation`, and clamps replay output to `MAX_LIFECYCLE_REPLAY_EVENTS = 30`.
+Runtime contract: `GET /api/leads/internal/:id/lifecycle-replay` is guarded by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md), one-lead scoped by path `id`, accepts only `consumer=flipflop-service`, defaults purpose to `consumer_reconciliation`, and clamps replay output to `MAX_LIFECYCLE_REPLAY_EVENTS = 30`.
 
 Invariant impact: LEADS-INV-001, LEADS-INV-003, LEADS-INV-004, LEADS-INV-007, and LEADS-INV-010 are strengthened. Replay remains minimized, consent-state-only, guarded, and evidence-backed.
 

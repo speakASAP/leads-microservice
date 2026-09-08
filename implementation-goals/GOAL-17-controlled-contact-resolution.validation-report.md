@@ -16,7 +16,7 @@ Passed.
 
 - Service tests cover requested-channel filtering, approval evidence, eligibility re-checking, and ineligible campaign suppression.
 - Controller test proves contact values may be returned by the guarded endpoint but are not logged.
-- Guard reflection test proves `resolveLeadContact` is protected by `InternalServiceGuard`.
+- Guard reflection test proves `resolveLeadContact` is protected by Auth RS256 service identity per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 
 ## Impact Review
 

@@ -29,7 +29,7 @@ Leads must remain a consent-aware, privacy-safe lead intake and preference servi
 - accept and store contact submissions with source, message, contact methods, and consent context;
 - keep contact and consent evidence available for human-reviewed follow-up;
 - send confirmations through notifications-microservice when configured;
-- expose bounded query and internal preference APIs for trusted services;
+- expose bounded query and internal preference APIs to authenticated machine callers (SPOT: [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md));
 - avoid exporting raw lead data, triggering mass outreach, or bypassing human review.
 
 ## Intent Preservation Rules
@@ -53,7 +53,7 @@ Before any change, ask:
 - Does this weaken consent capture, unsubscribe behavior, or confirmation evidence?
 - Does this expose raw lead data, contact details, tokens, secrets, or production payloads?
 - Does this increase outreach automation without human review?
-- Does this preserve API limits, validation, and trusted-service boundaries?
+- Does this preserve API limits, validation, and service-identity boundaries ([`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md))?
 
 ## Immutable Intent Boundary
 
